@@ -1,43 +1,47 @@
 /**
- * CINEMATIC DIGITAL PORTFOLIO — AYUSH PRAKASH
- * Visual direction inspired by LE:MMA Studio (lemma.studio)
- * Natural, editorial, minimal, atmospheric, sophisticated palette & typography
+ * AYUSH PRAKASH — BLACK LUXURY GLASSMORPHISM DESIGN SYSTEM
+ * Pure obsidian, deep charcoal, frosted glass, metallic silver, soft white, and champagne highlights.
+ * Zero dull/forest green. Award-winning spatial & editorial presentation.
  */
 
 :root {
-  /* Natural Cinematic Surface Palette (Section 5) */
-  --bg-primary: #111514;       /* Main charcoal */
-  --bg-forest: #18211D;        /* Dark forest */
-  --bg-slate: #30383A;         /* Deep slate */
-  --bg-stone: #535655;         /* Natural stone */
-  --bg-muted-forest: #4A5749;  /* Muted forest */
-  --bg-section: #141A18;       /* Subtle section surface */
-  --bg-card: #18201D;          /* Editorial card surface */
-  --bg-elevated: #222B27;      /* Elevated surface */
+  /* Black Luxury Surface Palette */
+  --bg-primary: #050505;                 /* Pure luxury obsidian */
+  --bg-secondary: #0A0A0C;               /* Deep charcoal */
+  --bg-section: #08080A;                 /* Subtle section obsidian */
+  --bg-card: rgba(255, 255, 255, 0.045); /* Frosted glass card */
+  --bg-card-hover: rgba(255, 255, 255, 0.075);
+  --bg-elevated: #121215;                /* High-contrast elevated dark surface */
+  --bg-glass-nav: rgba(10, 10, 13, 0.68);
+  --bg-glass-card: rgba(18, 18, 22, 0.55);
+  --bg-glass-input: rgba(255, 255, 255, 0.035);
 
   /* Typography Colors */
-  --text-primary: #F4F3EE;     /* Warm white */
-  --text-secondary: #C1C4BE;   /* Muted text */
-  --text-muted: #8E948D;       /* Subdued metadata */
-  --text-accent-blue: #8294A6; /* Subtle atmospheric blue */
+  --text-primary: #F5F5F5;               /* Soft white */
+  --text-secondary: #A5A5A9;             /* Graphite silver */
+  --text-muted: #73737A;                 /* Subdued metadata */
+  --text-highlight: #E5E0D8;             /* Subtle champagne */
+  --text-accent-silver: #C8C8CE;         /* Metallic silver */
 
-  /* Borders & Dividers */
-  --border-subtle: rgba(244, 243, 238, 0.09);
-  --border-hover: rgba(244, 243, 238, 0.22);
-  --border-editorial: rgba(193, 196, 190, 0.15);
+  /* Glass Borders & Dividers */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.22);
+  --border-editorial: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-subtle: rgba(255, 255, 255, 0.06);
 
-  /* Accents - Grounded & Natural */
-  --accent-primary: #C1C4BE;
-  --accent-atmospheric: #8294A6;
-  --accent-forest: #4A5749;
-  --accent-gold: #D6A854;       /* Restrained gold for credentials */
-  --accent-emerald: #4CA882;    /* Restrained natural green */
+  /* Luxury Accents */
+  --accent-primary: #C8C8CE;             /* Silver */
+  --accent-silver: #C8C8CE;              /* Metallic silver */
+  --accent-champagne: #E5E0D8;           /* Subtle champagne highlight */
+  --accent-gold: #D4AF37;                /* Restrained luxury gold */
+  --accent-emerald: #10B981;             /* Restrained status pulse */
 
-  /* Typography Font Families (Section 6) */
+  /* Typography Font Families */
   --font-display: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-body: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
-  --font-mono: 'Manrope', monospace;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
 
   /* Typography Scale */
   --type-hero: clamp(3.2rem, 7vw, 6.2rem);
@@ -51,17 +55,22 @@
   --type-metadata: 11px;
 
   /* Geometry & Radii */
-  --radius-xs: 3px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
   --radius-pill: 9999px;
 
-  /* Natural Soft Shadows */
-  --shadow-editorial: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
-  --shadow-subtle: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+  /* Glassmorphism Blur & Shadows */
+  --glass-blur: blur(24px) saturate(140%);
+  --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --glass-glow: 0 0 35px -5px rgba(255, 255, 255, 0.06);
+  --shadow-editorial: 0 16px 48px -8px rgba(0, 0, 0, 0.7);
+  --shadow-subtle: 0 6px 24px -3px rgba(0, 0, 0, 0.5);
 
-  /* Transitions */
+  /* Physics Spring Transitions */
+  --spring-bounce: 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   --transition-smooth: 0.5s cubic-bezier(0.16, 1, 0.3, 1);

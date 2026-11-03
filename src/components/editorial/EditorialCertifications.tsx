@@ -60,15 +60,13 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
           {certifications.map((cert) => (
             <div
               key={cert.id}
+              className="glass-card"
               style={{
-                backgroundColor: 'var(--bg-card)',
-                borderRadius: '8px',
-                border: '1px solid var(--border-subtle)',
+                borderRadius: '16px',
                 padding: '32px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                transition: 'border-color 0.2s ease',
               }}
             >
               <div>

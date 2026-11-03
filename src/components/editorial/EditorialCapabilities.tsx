@@ -66,11 +66,10 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
           {Object.entries(categories).map(([categoryName, skillList]) => (
             <div
               key={categoryName}
+              className="glass-card"
               style={{
-                backgroundColor: 'var(--bg-card)',
-                borderRadius: '8px',
+                borderRadius: '14px',
                 padding: '36px 30px',
-                border: '1px solid var(--border-subtle)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '24px',
@@ -83,7 +82,7 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
                     fontSize: '11px',
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
-                    color: 'var(--text-accent-blue)',
+                    color: 'var(--accent-silver)',
                     marginBottom: '8px',
                   }}
                 >

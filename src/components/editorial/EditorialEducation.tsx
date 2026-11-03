@@ -51,10 +51,9 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
           {education.map((edu) => (
             <div
               key={edu.id}
+              className="glass-card"
               style={{
-                backgroundColor: 'var(--bg-card)',
-                borderRadius: '8px',
-                border: '1px solid var(--border-subtle)',
+                borderRadius: '16px',
                 padding: '36px',
                 display: 'grid',
                 gridTemplateColumns: 'minmax(280px, 380px) 1fr',
@@ -70,7 +69,7 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
                     gap: '8px',
                     fontFamily: 'var(--font-body)',
                     fontSize: '12px',
-                    color: 'var(--text-accent-blue)',
+                    color: 'var(--accent-silver)',
                     marginBottom: '10px',
                   }}
                 >

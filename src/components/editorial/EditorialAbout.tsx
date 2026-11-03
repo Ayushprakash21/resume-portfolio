@@ -80,12 +80,11 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile, aboutSe
           {/* Column 1: Genuine Professional Portrait */}
           <div>
             <div
+              className="glass-card"
               style={{
                 position: 'relative',
-                borderRadius: '8px',
+                borderRadius: '16px',
                 overflow: 'hidden',
-                backgroundColor: 'var(--bg-forest)',
-                border: '1px solid var(--border-editorial)',
                 boxShadow: 'var(--shadow-editorial)',
               }}
             >
@@ -107,7 +106,8 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile, aboutSe
               <div
                 style={{
                   padding: '20px 24px',
-                  backgroundColor: 'rgba(17, 21, 20, 0.94)',
+                  backgroundColor: 'rgba(12, 12, 16, 0.85)',
+                  backdropFilter: 'blur(16px)',
                   borderTop: '1px solid var(--border-subtle)',
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -123,7 +123,7 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile, aboutSe
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <MapPin size={13} color="var(--text-accent-blue)" />
+                  <MapPin size={13} color="var(--accent-silver)" />
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-secondary)' }}>
                     Active
                   </span>

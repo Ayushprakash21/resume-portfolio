@@ -106,11 +106,10 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
           {/* Column 1: Direct Coordinates */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             <div
+              className="glass-card"
               style={{
-                backgroundColor: 'var(--bg-card)',
                 padding: '36px',
-                borderRadius: '8px',
-                border: '1px solid var(--border-subtle)',
+                borderRadius: '16px',
               }}
             >
               <div
@@ -232,11 +231,10 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
 
           {/* Column 2: Minimal Editorial Contact Form */}
           <div
+            className="glass-card"
             style={{
-              backgroundColor: 'var(--bg-card)',
               padding: '40px',
-              borderRadius: '8px',
-              border: '1px solid var(--border-subtle)',
+              borderRadius: '16px',
             }}
           >
             <div

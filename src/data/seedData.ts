@@ -13,6 +13,8 @@ import {
   ResumeRecord,
   SectionConfig,
   AppearanceSettings,
+  OpenToWorkSettings,
+  PreferredLocation,
 } from '../types/cms';
 
 export const DEFAULT_PROFILE: ProfileData = {
@@ -498,23 +500,76 @@ export const DEFAULT_RESUME_RECORD: ResumeRecord = {
   buttonText: 'Download Curriculum Vitae',
 };
 
+export const DEFAULT_OPEN_TO_WORK_SETTINGS: OpenToWorkSettings = {
+  enabled: true,
+  badgeText: 'OPEN TO WORK',
+  sectionHeading: 'OPEN TO OPPORTUNITIES',
+  headline: "Building What's Next.",
+  description:
+    'Actively exploring strategic leadership and operations opportunities combining business operations, global supply chain strategy, enterprise systems architecture, and generative AI innovation. Ready to deliver immediate value to ambitious teams worldwide.',
+  availabilityStatus: 'Open to opportunities',
+  employmentPreferences: [
+    'Full-time',
+    'Contract',
+    'Permanent',
+    'Consulting',
+    'Freelance',
+    'Remote',
+  ],
+  workArrangements: [
+    'Remote',
+    'Hybrid',
+    'On-site',
+    'International relocation',
+    'Open to discussion',
+  ],
+  preferredLocations: [
+    { id: 'loc-1', name: 'India', city: 'Bengaluru / Hybrid / Remote', remoteAvailable: true, relocationWilling: false, isVisible: true, displayOrder: 1 },
+    { id: 'loc-2', name: 'Germany', city: 'Berlin / Munich / Frankfurt', remoteAvailable: true, relocationWilling: true, isVisible: true, displayOrder: 2 },
+    { id: 'loc-3', name: 'Netherlands', city: 'Amsterdam / Rotterdam', remoteAvailable: true, relocationWilling: true, isVisible: true, displayOrder: 3 },
+    { id: 'loc-4', name: 'Japan', city: 'Tokyo', remoteAvailable: true, relocationWilling: true, isVisible: true, displayOrder: 4 },
+    { id: 'loc-5', name: 'United Kingdom', city: 'London', remoteAvailable: true, relocationWilling: true, isVisible: true, displayOrder: 5 },
+    { id: 'loc-6', name: 'United Arab Emirates', city: 'Dubai / Abu Dhabi', remoteAvailable: true, relocationWilling: true, isVisible: true, displayOrder: 6 },
+    { id: 'loc-7', name: 'Singapore', city: 'Singapore', remoteAvailable: true, relocationWilling: true, isVisible: true, displayOrder: 7 },
+    { id: 'loc-8', name: 'Other International', city: 'Global Remote / Discussion', remoteAvailable: true, relocationWilling: true, isVisible: true, displayOrder: 8 },
+  ],
+  preferredJobCategories: [
+    'Project Management',
+    'Supply Chain Management',
+    'Supply Chain Operations',
+    'Business Operations',
+    'AI & Automation',
+    'Product Operations',
+    'Enterprise Systems',
+    'Digital Transformation',
+    'AI Product Development',
+  ],
+  primaryCtaText: 'Discuss an Opportunity ↗',
+  primaryCtaLink: '#contact',
+  secondaryCtaText: 'Download Resume ↓',
+  secondaryCtaLink: '/Ayush_Prakash_Resume.pdf',
+  status: 'published',
+  updatedAt: '2026-11-03',
+};
+
 export const DEFAULT_SECTIONS_CONFIG: SectionConfig[] = [
   { id: 'sec-about', sectionKey: 'about', title: 'About Profile', subtitle: 'Background & Philosophy', displayOrder: 1, isVisible: true, status: 'published' },
-  { id: 'sec-experience', sectionKey: 'experience', title: 'Experience', subtitle: 'Career Timeline', displayOrder: 2, isVisible: true, status: 'published' },
-  { id: 'sec-capabilities', sectionKey: 'capabilities', title: 'Capabilities', subtitle: 'Disciplines & Tools', displayOrder: 3, isVisible: true, status: 'published' },
-  { id: 'sec-orion9', sectionKey: 'orion9', title: 'Orion-9 Showcase', subtitle: 'Flagship Case Study', displayOrder: 4, isVisible: true, status: 'published' },
-  { id: 'sec-applyvise', sectionKey: 'applyvise', title: 'ApplyVise AI', subtitle: 'Product Innovation', displayOrder: 5, isVisible: true, status: 'published' },
-  { id: 'sec-certifications', sectionKey: 'certifications', title: 'Accreditations', subtitle: 'Verified Credentials', displayOrder: 6, isVisible: true, status: 'published' },
-  { id: 'sec-education', sectionKey: 'education', title: 'Education', subtitle: 'Academic Foundation', displayOrder: 7, isVisible: true, status: 'published' },
-  { id: 'sec-contact', sectionKey: 'contact', title: 'Contact', subtitle: 'Direct Transmission', displayOrder: 8, isVisible: true, status: 'published' },
+  { id: 'sec-opentowork', sectionKey: 'openToWork', title: 'Open to Work', subtitle: 'Career Availability & Preferences', displayOrder: 2, isVisible: true, status: 'published' },
+  { id: 'sec-experience', sectionKey: 'experience', title: 'Experience', subtitle: 'Career Timeline', displayOrder: 3, isVisible: true, status: 'published' },
+  { id: 'sec-capabilities', sectionKey: 'capabilities', title: 'Capabilities', subtitle: 'Disciplines & Tools', displayOrder: 4, isVisible: true, status: 'published' },
+  { id: 'sec-orion9', sectionKey: 'orion9', title: 'Orion-9 Showcase', subtitle: 'Flagship Case Study', displayOrder: 5, isVisible: true, status: 'published' },
+  { id: 'sec-applyvise', sectionKey: 'applyvise', title: 'ApplyVise AI', subtitle: 'Product Innovation', displayOrder: 6, isVisible: true, status: 'published' },
+  { id: 'sec-certifications', sectionKey: 'certifications', title: 'Accreditations', subtitle: 'Verified Credentials', displayOrder: 7, isVisible: true, status: 'published' },
+  { id: 'sec-education', sectionKey: 'education', title: 'Education', subtitle: 'Academic Foundation', displayOrder: 8, isVisible: true, status: 'published' },
+  { id: 'sec-contact', sectionKey: 'contact', title: 'Contact', subtitle: 'Direct Transmission', displayOrder: 9, isVisible: true, status: 'published' },
 ];
 
 export const DEFAULT_APPEARANCE_SETTINGS: AppearanceSettings = {
-  primaryBg: '#111514',
-  cardBg: '#18201D',
-  textPrimary: '#F4F3EE',
-  textSecondary: '#C1C4BE',
-  accentColor: '#8294A6',
+  primaryBg: '#050505',
+  cardBg: 'rgba(255, 255, 255, 0.045)',
+  textPrimary: '#F5F5F5',
+  textSecondary: '#A5A5A9',
+  accentColor: '#C8C8CE',
   headingFont: 'Manrope',
   bodyFont: 'Manrope',
   sectionSpacing: 'normal',

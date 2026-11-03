@@ -298,3 +298,32 @@ export interface MediaAsset {
   usageCount?: number;
   usedIn?: string[];
 }
+
+export interface PreferredLocation {
+  id: string;
+  name: string;
+  city?: string;
+  remoteAvailable: boolean;
+  relocationWilling: boolean;
+  isVisible: boolean;
+  displayOrder: number;
+}
+
+export interface OpenToWorkSettings {
+  enabled: boolean;
+  badgeText: string;
+  sectionHeading: string;
+  headline: string;
+  description: string;
+  availabilityStatus: 'Actively looking' | 'Open to opportunities' | 'Available for discussion' | 'Not currently looking';
+  employmentPreferences: string[];
+  workArrangements: string[];
+  preferredLocations: PreferredLocation[];
+  preferredJobCategories: string[];
+  primaryCtaText: string;
+  primaryCtaLink: string;
+  secondaryCtaText: string;
+  secondaryCtaLink: string;
+  status: 'published' | 'draft';
+  updatedAt?: string;
+}

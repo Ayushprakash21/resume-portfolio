@@ -5,7 +5,7 @@ interface FooterProps {
   onOpenAdmin?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
+export const Footer: React.FC<FooterProps> = () => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -58,30 +58,10 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            {onOpenAdmin && (
-              <button
-                onClick={onOpenAdmin}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  padding: '4px 8px',
-                  transition: 'color 0.2s ease',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
-              >
-                CMS Admin
-              </button>
-            )}
-
             <button
               onClick={scrollToTop}
               className="btn-editorial-pill"
-              style={{ padding: '8px 16px', fontSize: '12px' }}
+              style={{ padding: '8px 18px', fontSize: '12px' }}
             >
               <span>Back to Top</span>
               <ArrowUp size={12} />
@@ -106,7 +86,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
               color: 'var(--text-muted)',
             }}
           >
-            &copy; {new Date().getFullYear()} Ayush Prakash. Designed with cinematic restraint &amp; editorial clarity.
+            &copy; {new Date().getFullYear()} Ayush Prakash. Black Luxury Editorial Portfolio.
           </div>
 
           <div
@@ -114,9 +94,10 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
               fontFamily: 'var(--font-body)',
               fontSize: '11px',
               color: 'var(--text-muted)',
+              letterSpacing: '0.05em',
             }}
           >
-            Bengaluru, India
+            Bengaluru, India &bull; Global Operations
           </div>
         </div>
       </div>

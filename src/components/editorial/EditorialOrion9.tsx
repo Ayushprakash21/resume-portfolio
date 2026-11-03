@@ -115,11 +115,10 @@ export const EditorialOrion9: React.FC<EditorialOrion9Props> = ({ project }) => 
         {/* High-Resolution Screenshot Showcase */}
         <div style={{ marginBottom: '64px' }}>
           <div
+            className="glass-card"
             style={{
-              borderRadius: '8px',
+              borderRadius: '16px',
               overflow: 'hidden',
-              backgroundColor: 'var(--bg-card)',
-              border: '1px solid var(--border-editorial)',
               boxShadow: 'var(--shadow-editorial)',
             }}
           >
@@ -130,7 +129,7 @@ export const EditorialOrion9: React.FC<EditorialOrion9Props> = ({ project }) => 
                 width: '100%',
                 maxHeight: '620px',
                 objectFit: 'contain',
-                backgroundColor: '#0D1312',
+                backgroundColor: '#060608',
                 display: 'block',
               }}
             />

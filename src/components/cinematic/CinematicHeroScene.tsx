@@ -30,13 +30,12 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     let width = container.clientWidth || window.innerWidth;
     let height = container.clientHeight || window.innerHeight;
 
-    // 1. SCENE SETUP
-    // Luminous dawn/twilight slate-green atmosphere matching LE:MMA reference
+    // 1. SCENE SETUP — BLACK LUXURY OBSIDIAN ATMOSPHERE
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#4E5B53');
+    scene.background = new THREE.Color('#060608');
 
-    // Atmospheric fog: soft painterly depth without obscuring the landscape
-    scene.fog = new THREE.FogExp2('#4A574F', 0.0065);
+    // Atmospheric fog: deep charcoal-obsidian painterly depth without obscuring the landscape
+    scene.fog = new THREE.FogExp2('#08080C', 0.0075);
 
     // 2. CAMERA SETUP
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 400);
@@ -58,16 +57,16 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
 
     container.appendChild(renderer.domElement);
 
-    // --- 4. NATURAL ATMOSPHERIC SKY DOME ---
-    // Smooth visible sky with distinct luminous dawn/dusk gradient:
-    // Top: muted deep sage (#3A473F), Mid: luminous slate-olive (#58675E), Horizon: soft mist horizon (#7A8B81)
+    // --- 4. LUXURY OBSIDIAN & GRAPHITE SKY DOME ---
+    // Smooth visible sky with distinct luminous gradient:
+    // Top: pure luxury obsidian (#040406), Mid: dark charcoal graphite (#0F1015), Horizon: subtle silver mist (#1A1C24)
     const skyGeo = new THREE.SphereGeometry(250, 32, 24);
     const skyMat = new THREE.ShaderMaterial({
       side: THREE.BackSide,
       uniforms: {
-        topColor: { value: new THREE.Color('#3A473F') },
-        midColor: { value: new THREE.Color('#58675E') },
-        horizonColor: { value: new THREE.Color('#7A8B81') },
+        topColor: { value: new THREE.Color('#040406') },
+        midColor: { value: new THREE.Color('#0F1015') },
+        horizonColor: { value: new THREE.Color('#1A1C24') },
         offset: { value: 18 },
         exponent: { value: 0.6 },
       },
@@ -100,11 +99,11 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
 
     // --- 5. COMPREHENSIVE LIGHTING SYSTEM ---
     // 5a. Soft ambient illumination (sky/ground hemisphere)
-    const ambientLight = new THREE.HemisphereLight('#A8B8AD', '#3A483F', 2.2);
+    const ambientLight = new THREE.HemisphereLight('#8E94A0', '#0A0A0E', 1.8);
     scene.add(ambientLight);
 
-    // 5b. Key directional light (soft dawn radiance from upper right)
-    const keyLight = new THREE.DirectionalLight('#D8E5DC', 2.0);
+    // 5b. Key directional light (soft platinum-silver radiance from upper right)
+    const keyLight = new THREE.DirectionalLight('#E8ECF5', 2.2);
     keyLight.position.set(18, 30, -10);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.width = 1024;
@@ -112,50 +111,49 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     scene.add(keyLight);
 
     // 5c. Foreground fill light (illuminates foreground rocks & water surface)
-    const fillLight = new THREE.DirectionalLight('#92A69A', 1.3);
+    const fillLight = new THREE.DirectionalLight('#7A8090', 1.4);
     fillLight.position.set(-14, 14, 14);
     scene.add(fillLight);
 
-    // 5d. SUBTLE RIM LIGHTING BEHIND HUMAN FIGURE:
+    // 5d. CRISP SILVER RIM LIGHTING BEHIND HUMAN FIGURE:
     // Positioned behind the figure pointing toward camera, highlighting head, mantle & cloak edges
-    const rimLight = new THREE.DirectionalLight('#E4EFE8', 3.2);
+    const rimLight = new THREE.DirectionalLight('#FFFFFF', 4.5);
     rimLight.position.set(0, 3.8, -10);
     rimLight.target.position.set(0, 1.8, 2.6);
     scene.add(rimLight);
     scene.add(rimLight.target);
 
-    // 5e. Golden glow point light reflecting the floral bank onto the water surface
-    const floralWaterReflect = new THREE.PointLight('#E5C87E', 2.2, 35);
+    // 5e. Champagne & silver reflections on the liquid obsidian water surface
+    const floralWaterReflect = new THREE.PointLight('#E5E0D8', 2.0, 35);
     floralWaterReflect.position.set(0, 1.5, -16);
     scene.add(floralWaterReflect);
 
-    const floralWaterReflectLeft = new THREE.PointLight('#D4B565', 1.8, 30);
+    const floralWaterReflectLeft = new THREE.PointLight('#C8C8CE', 1.6, 30);
     floralWaterReflectLeft.position.set(-15, 1.8, -18);
     scene.add(floralWaterReflectLeft);
 
-    const floralWaterReflectRight = new THREE.PointLight('#DFBF6E', 1.8, 30);
+    const floralWaterReflectRight = new THREE.PointLight('#D4AF37', 1.6, 30);
     floralWaterReflectRight.position.set(15, 1.8, -18);
     scene.add(floralWaterReflectRight);
 
-    // --- 6. NATURAL FLORAL HILLSIDE BANK (Directly matching LE:MMA Reference) ---
-    // Middle-ground hillside rising behind the lake, covered in dense dark foliage and golden wild blossoms
+    // --- 6. NATURAL LUXURY HILLSIDE BANK & SHIMMERING CANOPY ---
+    // Middle-ground hillside rising behind the lake, obsidian crag topography
     const hillGeo = new THREE.PlaneGeometry(160, 42, 60, 30);
     hillGeo.rotateX(-Math.PI / 2);
     const hillPos = hillGeo.attributes.position;
     for (let i = 0; i < hillPos.count; i++) {
       const x = hillPos.getX(i);
       const z = hillPos.getZ(i);
-      // Natural rolling hillside contour
       const ridge = Math.sin(x * 0.05) * 2.8 + Math.cos(x * 0.12) * 1.5;
-      const slope = ((z + 21) / 42) * 5.8; // slopes upward toward the horizon
+      const slope = ((z + 21) / 42) * 5.8;
       hillPos.setY(i, Math.max(0.2, ridge + slope));
     }
     hillGeo.computeVertexNormals();
 
     const hillMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#1F2A23'),
-      roughness: 0.95,
-      metalness: 0.02,
+      color: new THREE.Color('#0D0E12'),
+      roughness: 0.92,
+      metalness: 0.05,
       flatShading: true,
     });
     const hillMesh = new THREE.Mesh(hillGeo, hillMat);
@@ -163,29 +161,29 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     hillMesh.receiveShadow = true;
     scene.add(hillMesh);
 
-    // Instanced golden wildflower & shrub canopy across the hillside bank
+    // Instanced metallic champagne & silver crystal blossoms across the hillside bank
     const blossomCount = 2800;
     const blossomGeo = new THREE.DodecahedronGeometry(0.18, 0);
     const blossomMat = new THREE.MeshStandardMaterial({
-      roughness: 0.38,
-      metalness: 0.15,
+      roughness: 0.25,
+      metalness: 0.85,
     });
     const blossomInstanced = new THREE.InstancedMesh(blossomGeo, blossomMat, blossomCount);
     blossomInstanced.instanceMatrix.setUsage(THREE.StaticDrawUsage);
 
     const dummy = new THREE.Object3D();
     const blossomPalette = [
-      new THREE.Color('#E8CE7D'), // Vibrant wild golden blossom
-      new THREE.Color('#D8BA68'), // Warm golden ochre
-      new THREE.Color('#C49E48'), // Deep amber gold
-      new THREE.Color('#8AA8BA'), // Sage-blue alpine wildflower
-      new THREE.Color('#F0EAD6'), // Soft ivory bud
-      new THREE.Color('#5E7A6C'), // Silvery foliage leaf
+      new THREE.Color('#E5E0D8'), // Champagne highlight
+      new THREE.Color('#C8C8CE'), // Metallic silver
+      new THREE.Color('#FFFFFF'), // Pure platinum
+      new THREE.Color('#D4AF37'), // Refined gold
+      new THREE.Color('#8B90A0'), // Silver-graphite
+      new THREE.Color('#404555'), // Deep obsidian reflection
     ];
 
     for (let i = 0; i < blossomCount; i++) {
       const bx = (Math.random() - 0.5) * 95;
-      const bz = -14 - Math.random() * 20; // Spread across the middle-ground hillside
+      const bz = -14 - Math.random() * 20;
       const ridge = Math.sin(bx * 0.05) * 2.8 + Math.cos(bx * 0.12) * 1.5;
       const slope = ((bz + 25 + 21) / 42) * 5.8;
       const by = Math.max(0.4, ridge + slope) + (Math.random() * 0.45);
@@ -197,17 +195,19 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
       dummy.updateMatrix();
       blossomInstanced.setMatrixAt(i, dummy.matrix);
 
-      // Distribute rich golden tones primarily in the dense center bank, matching LE:MMA
+      // Distribute rich champagne and silver highlights across the central bank
       const colorChoice = Math.random();
       let blossomCol: THREE.Color;
-      if (colorChoice < 0.55) {
-        blossomCol = blossomPalette[0]; // Golden yellow
-      } else if (colorChoice < 0.75) {
-        blossomCol = blossomPalette[1]; // Warm ochre
-      } else if (colorChoice < 0.88) {
-        blossomCol = blossomPalette[3]; // Soft blue
+      if (colorChoice < 0.45) {
+        blossomCol = blossomPalette[0]; // Champagne
+      } else if (colorChoice < 0.70) {
+        blossomCol = blossomPalette[1]; // Silver
+      } else if (colorChoice < 0.85) {
+        blossomCol = blossomPalette[2]; // Platinum
+      } else if (colorChoice < 0.95) {
+        blossomCol = blossomPalette[3]; // Subtle gold
       } else {
-        blossomCol = blossomPalette[4]; // Ivory bud
+        blossomCol = blossomPalette[4]; // Graphite silver
       }
       blossomInstanced.setColorAt(i, blossomCol);
     }
@@ -215,11 +215,11 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     if (blossomInstanced.instanceColor) blossomInstanced.instanceColor.needsUpdate = true;
     scene.add(blossomInstanced);
 
-    // Silhouette pine / conifer tops along the crest of the hill
+    // Silhouette conifer tops along the crest of the hill
     const foliageGroup = new THREE.Group();
     const treeMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#19221C'),
-      roughness: 0.92,
+      color: new THREE.Color('#08080B'),
+      roughness: 0.95,
       flatShading: true,
     });
     const treeConeGeo = new THREE.ConeGeometry(0.7, 3.4, 5);
@@ -249,7 +249,7 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     }
     farRidgeGeo.computeVertexNormals();
     const farRidgeMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#323F37'),
+      color: new THREE.Color('#12131A'),
       roughness: 0.95,
       flatShading: true,
     });
@@ -257,16 +257,16 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     farRidge.position.set(0, 0, -65);
     scene.add(farRidge);
 
-    // --- 7. REFLECTIVE WATER PLANE ---
-    // Clear, dark reflective lake water reflecting the sky, mist, and the golden floral bank
+    // --- 7. REFLECTIVE LIQUID OBSIDIAN WATER PLANE ---
+    // Smooth, deep liquid obsidian lake water reflecting the sky and the champagne crystal bank
     const waterGeo = new THREE.PlaneGeometry(180, 50, 70, 40);
     waterGeo.rotateX(-Math.PI / 2);
 
     const waterMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#1B2621'),
-      roughness: 0.14,
-      metalness: 0.90,
-      envMapIntensity: 2.0,
+      color: new THREE.Color('#060608'),
+      roughness: 0.08,
+      metalness: 0.95,
+      envMapIntensity: 2.5,
     });
 
     const waterMesh = new THREE.Mesh(waterGeo, waterMat);
@@ -281,11 +281,11 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
       initialWaterY[i] = waterPos.getY(i);
     }
 
-    // --- 8. FOREGROUND ROCKS (NATURAL CRAG TEXTURES, LE:MMA COMPOSITION) ---
+    // --- 8. FOREGROUND ROCKS (GRAPHITE CRAG TEXTURES, CLEARLY LIT) ---
     const rockMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#38453E'), // Naturally visible slate-granite tone
+      color: new THREE.Color('#181920'), // Clean visible graphite-obsidian tone
       roughness: 0.82,
-      metalness: 0.10,
+      metalness: 0.20,
       flatShading: true,
     });
 
@@ -296,7 +296,6 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
         const vx = pos.getX(i);
         const vy = pos.getY(i);
         const vz = pos.getZ(i);
-        // Realistic crag facets
         const n = Math.sin(vx * 2.2) * Math.cos(vy * 2.4) * Math.sin(vz * 2.0) * 0.16;
         pos.setXYZ(i, vx + vx * n, vy + vy * n, vz + vz * n);
       }
@@ -307,7 +306,7 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
 
     const rockGroup = new THREE.Group();
 
-    // Right Large Craggy Boulder (Prominent right foreground rock matching LE:MMA)
+    // Right Large Craggy Boulder
     const rightBigRock = createCragRock(3.8, 1.25, 1.05, 1.2);
     rightBigRock.position.set(6.6, 0.5, 1.8);
     rightBigRock.rotation.set(0.12, -0.35, 0.08);
@@ -331,7 +330,7 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     leftBaseRock.position.set(-4.6, -0.4, 3.2);
     rockGroup.add(leftBaseRock);
 
-    // Center Rocky Promontory (Platform where the figure stands looking at the water)
+    // Center Rocky Promontory
     const centerLedge = createCragRock(2.6, 1.7, 0.65, 1.5);
     centerLedge.position.set(0, -0.5, 2.5);
     centerLedge.rotation.set(0.05, 0.06, -0.02);
@@ -341,21 +340,21 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
 
     scene.add(rockGroup);
 
-    // --- 9. HUMAN FIGURE (LIQUID METALLIC HOODED CLOAK MATCHING LE:MMA REFERENCE) ---
-    // Standing centered on the rocky ledge, gazing out at the vast water and golden floral bank
+    // --- 9. HUMAN FIGURE (LIQUID METALLIC OBSIDIAN HOODED CLOAK) ---
+    // Standing centered on the rocky ledge, gazing out at the vast water and champagne crystal bank
     const figureGroup = new THREE.Group();
     figureGroup.position.set(0, 0.25, 2.5);
 
-    // Metallic cloak material: reflective dark chrome/silk with luminous specular highlights
+    // Metallic cloak material: reflective obsidian chrome with crisp silver specular highlights
     const cloakMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#222E27'),
-      roughness: 0.26,
-      metalness: 0.78,
+      color: new THREE.Color('#0E0F14'),
+      roughness: 0.20,
+      metalness: 0.90,
     });
     const headMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#2C3A32'),
-      roughness: 0.24,
-      metalness: 0.82,
+      color: new THREE.Color('#14161C'),
+      roughness: 0.18,
+      metalness: 0.92,
     });
 
     // Cloak / Body drape
@@ -489,7 +488,7 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
           position: 'absolute',
           top: 0,
           left: 0,
-          background: 'linear-gradient(180deg, #1E2723 0%, #38463E 45%, #586A60 70%, #182522 100%)',
+          background: 'linear-gradient(180deg, #050507 0%, #0F1015 50%, #050507 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -501,7 +500,7 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
             bottom: '22%',
             width: '28px',
             height: '75px',
-            backgroundColor: '#2A352F',
+            backgroundColor: '#121216',
             borderRadius: '14px 14px 0 0',
             opacity: 0.9,
           }}

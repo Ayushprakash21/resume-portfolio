@@ -24,6 +24,7 @@ import {
   Copy,
   Calendar,
   MapPin,
+  Globe,
 } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { cmsService } from '../../services/cmsService';
@@ -42,10 +43,12 @@ import {
   ContactMessage,
   SiteSettings,
   MediaAsset,
+  OpenToWorkSettings,
 } from '../../types/cms';
 
 import { IntroductionEditor } from './editors/IntroductionEditor';
 import { AboutEditor } from './editors/AboutEditor';
+import { OpenToWorkEditor } from './editors/OpenToWorkEditor';
 import { ExperienceEditorModal } from './editors/ExperienceEditorModal';
 import { ProjectEditorModal } from './editors/ProjectEditorModal';
 import { CertificationEditorModal } from './editors/CertificationEditorModal';
@@ -64,6 +67,7 @@ interface AdminConsoleProps {
 export type AdminSectionId =
   | 'overview'
   | 'introduction'
+  | 'opentowork'
   | 'about'
   | 'experience'
   | 'projects'
@@ -80,6 +84,9 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
 
   // CMS State
   const [profile, setProfile] = useState<ProfileData>(() => cmsService.getProfile());
+  const [openToWork, setOpenToWork] = useState<OpenToWorkSettings>(() =>
+    cmsService.getOpenToWorkSettings()
+  );
   const [aboutSettings, setAboutSettings] = useState<AboutSectionSettings>(() =>
     cmsService.getAboutSettings()
   );
@@ -125,6 +132,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
   useEffect(() => {
     return cmsService.subscribe(() => {
       setProfile(cmsService.getProfile());
+      setOpenToWork(cmsService.getOpenToWorkSettings());
       setAboutSettings(cmsService.getAboutSettings());
       setExperiences(cmsService.getExperiences(false));
       setProjects(cmsService.getProjects(false));
@@ -194,37 +202,38 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
     showNotification('Projects display order updated.');
   };
 
-  // Nav items matching user's exact 12 requested sections
+  // Nav items matching user's requested sections + dedicated Open to Work editor
   const NAV_ITEMS: { id: AdminSectionId; label: string; icon: any; badge?: number }[] = [
-    { id: 'overview', label: '1. Overview', icon: LayoutDashboard },
-    { id: 'introduction', label: '2. Introduction', icon: User },
-    { id: 'about', label: '3. About', icon: Info },
-    { id: 'experience', label: '4. Experience', icon: Briefcase },
-    { id: 'projects', label: '5. Projects', icon: Layers },
-    { id: 'education', label: '6. Education', icon: GraduationCap },
-    { id: 'certifications', label: '7. Licenses & Certifications', icon: Award },
-    { id: 'skills', label: '8. Skills', icon: Cpu },
-    { id: 'resume', label: '9. Resume', icon: FileText },
-    { id: 'media', label: '10. Media Library', icon: ImageIcon },
-    { id: 'sections', label: '11. Website Sections', icon: ListOrdered },
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'introduction', label: 'Introduction', icon: User },
+    { id: 'opentowork', label: 'Open to Work', icon: Globe },
+    { id: 'about', label: 'About', icon: Info },
+    { id: 'experience', label: 'Experience', icon: Briefcase },
+    { id: 'projects', label: 'Projects', icon: Layers },
+    { id: 'education', label: 'Education', icon: GraduationCap },
+    { id: 'certifications', label: 'Licenses & Certifications', icon: Award },
+    { id: 'skills', label: 'Skills', icon: Cpu },
+    { id: 'resume', label: 'Resume', icon: FileText },
+    { id: 'media', label: 'Media Library', icon: ImageIcon },
+    { id: 'sections', label: 'Website Sections', icon: ListOrdered },
     {
       id: 'settings',
-      label: '12. Settings',
+      label: 'Settings',
       icon: Settings,
       badge: messages.filter((m) => !m.read).length,
     },
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#0E1412', color: '#F4F3EE' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#050505', color: '#F5F5F5' }}>
       {/* ========================================================
-          SIDEBAR NAVIGATION (EXACT 12 SECTIONS)
+          SIDEBAR NAVIGATION (BLACK LUXURY)
           ======================================================== */}
       <aside
         style={{
           width: '270px',
-          backgroundColor: '#141C19',
-          borderRight: '1px solid rgba(244, 243, 238, 0.08)',
+          backgroundColor: '#0A0A0E',
+          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -738,6 +747,18 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
             initialProfile={profile}
             onSave={(updated) => setProfile(updated)}
             onCancel={() => setActiveSection('overview')}
+            showNotification={showNotification}
+          />
+        )}
+
+        {/* ---------------- OPEN TO WORK EDITOR ---------------- */}
+        {activeSection === 'opentowork' && (
+          <OpenToWorkEditor
+            initialSettings={openToWork}
+            onSave={(saved) => {
+              setOpenToWork(saved);
+              showNotification('Open to Work settings updated.');
+            }}
             showNotification={showNotification}
           />
         )}

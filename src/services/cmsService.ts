@@ -26,6 +26,7 @@ import {
   ResumeRecord,
   SectionConfig,
   AppearanceSettings,
+  OpenToWorkSettings,
 } from '../types/cms';
 import {
   DEFAULT_PROFILE,
@@ -42,6 +43,7 @@ import {
   DEFAULT_RESUME_RECORD,
   DEFAULT_SECTIONS_CONFIG,
   DEFAULT_APPEARANCE_SETTINGS,
+  DEFAULT_OPEN_TO_WORK_SETTINGS,
 } from '../data/seedData';
 
 const STORAGE_KEYS = {
@@ -59,6 +61,7 @@ const STORAGE_KEYS = {
   resume: 'ayush_cms_resume_v1',
   sections: 'ayush_cms_sections_v1',
   appearance: 'ayush_cms_appearance_v1',
+  openToWork: 'ayush_cms_opentowork_v1',
 };
 
 // Global reactive subscribers
@@ -760,6 +763,31 @@ export const cmsService = {
         await setDoc(doc(db, 'settings', 'appearance'), appearance);
       } catch (err) {
         console.warn('[CMS Firestore] Appearance settings sync notice:', err);
+      }
+    }
+    notifyListeners();
+  },
+
+  // ================= OPEN TO WORK SETTINGS =================
+  getOpenToWorkSettings(): OpenToWorkSettings {
+    const raw = localStorage.getItem(STORAGE_KEYS.openToWork);
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // fallback
+      }
+    }
+    return DEFAULT_OPEN_TO_WORK_SETTINGS;
+  },
+
+  async updateOpenToWorkSettings(settings: OpenToWorkSettings): Promise<void> {
+    localStorage.setItem(STORAGE_KEYS.openToWork, JSON.stringify(settings));
+    if (db) {
+      try {
+        await setDoc(doc(db, 'settings', 'openToWork'), settings);
+      } catch (err) {
+        console.warn('[CMS Firestore] Open to Work settings sync notice:', err);
       }
     }
     notifyListeners();

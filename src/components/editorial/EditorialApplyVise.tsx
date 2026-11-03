@@ -104,16 +104,14 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
         {/* Brand Banner / Official Visual Asset */}
         <div style={{ marginBottom: '64px' }}>
           <div
+            className="glass-card"
             style={{
-              borderRadius: '8px',
-              overflow: 'hidden',
-              backgroundColor: 'var(--bg-card)',
-              border: '1px solid var(--border-editorial)',
-              boxShadow: 'var(--shadow-editorial)',
+              borderRadius: '16px',
               padding: '60px 40px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              boxShadow: 'var(--shadow-editorial)',
             }}
           >
             <img

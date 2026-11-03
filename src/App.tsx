@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CinematicHero } from './components/cinematic/CinematicHero';
 import { EditorialAbout } from './components/editorial/EditorialAbout';
+import { EditorialOpenToWork } from './components/editorial/EditorialOpenToWork';
 import { EditorialExperience } from './components/editorial/EditorialExperience';
 import { EditorialCapabilities } from './components/editorial/EditorialCapabilities';
 import { EditorialOrion9 } from './components/editorial/EditorialOrion9';
@@ -28,6 +29,7 @@ import {
   EducationRecord,
   SectionConfig,
   AppearanceSettings,
+  OpenToWorkSettings,
 } from './types/cms';
 
 export const App: React.FC = () => {
@@ -48,6 +50,9 @@ export const App: React.FC = () => {
   // Reactive Public State loaded directly from CMS
   const [profile, setProfile] = useState<ProfileData>(() => cmsService.getProfile());
   const [homepageSettings, setHomepageSettings] = useState<HomepageSettings>(() => cmsService.getHomepageSettings());
+  const [openToWorkSettings, setOpenToWorkSettings] = useState<OpenToWorkSettings>(() =>
+    cmsService.getOpenToWorkSettings()
+  );
   const [aboutSettings, setAboutSettings] = useState<AboutSectionSettings>(() => cmsService.getAboutSettings());
   const [experiences, setExperiences] = useState<ExperienceRecord[]>(() => cmsService.getExperiences(true));
   const [projects, setProjects] = useState<ProjectRecord[]>(() => cmsService.getProjects(true));
@@ -75,6 +80,7 @@ export const App: React.FC = () => {
     const unsubscribeCms = cmsService.subscribe(() => {
       setProfile(cmsService.getProfile());
       setHomepageSettings(cmsService.getHomepageSettings());
+      setOpenToWorkSettings(cmsService.getOpenToWorkSettings());
       setAboutSettings(cmsService.getAboutSettings());
       setExperiences(cmsService.getExperiences(true));
       setProjects(cmsService.getProjects(true));
@@ -145,6 +151,15 @@ export const App: React.FC = () => {
     switch (key) {
       case 'about':
         return <EditorialAbout key="about" profile={profile} aboutSettings={aboutSettings} />;
+      case 'openToWork':
+      case 'opentowork':
+        return (
+          <EditorialOpenToWork
+            key="opentowork"
+            settings={openToWorkSettings}
+            profile={profile}
+          />
+        );
       case 'experience':
         return <EditorialExperience key="experience" experiences={experiences} />;
       case 'capabilities':
@@ -191,6 +206,7 @@ export const App: React.FC = () => {
           : (
             <>
               <EditorialAbout profile={profile} aboutSettings={aboutSettings} />
+              <EditorialOpenToWork settings={openToWorkSettings} profile={profile} />
               <EditorialExperience experiences={experiences} />
               <EditorialCapabilities skills={skills} />
               <EditorialOrion9 project={orionProject} />

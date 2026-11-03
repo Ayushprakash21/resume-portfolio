@@ -13,7 +13,6 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
   profile,
   homepageSettings,
   onNavigateSection,
-  onOpenAdmin,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -63,33 +62,39 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '40px 48px',
+        padding: '36px 48px',
         zIndex: 5,
         pointerEvents: 'none',
       }}
     >
       {/* ========================================================
-          STICKY TOP NAVIGATION BAR (APPEARS ON SCROLL)
+          TOP NAVIGATION BAR (BLACK LUXURY FLOATING FROSTED GLASS)
           ======================================================== */}
       <header
         style={{
           position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          padding: isScrolled ? '18px 48px' : '40px 48px',
+          top: isScrolled ? '18px' : '28px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: isScrolled ? 'min(92%, 1160px)' : 'calc(100% - 96px)',
+          padding: isScrolled ? '12px 28px' : '12px 0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           zIndex: 40,
           pointerEvents: 'auto',
-          backgroundColor: isScrolled ? 'rgba(17, 21, 20, 0.94)' : 'transparent',
-          backdropFilter: isScrolled ? 'blur(16px)' : 'none',
-          borderBottom: isScrolled ? '1px solid rgba(244, 243, 238, 0.08)' : '1px solid transparent',
+          backgroundColor: isScrolled ? 'rgba(12, 12, 16, 0.72)' : 'transparent',
+          backdropFilter: isScrolled ? 'blur(24px) saturate(140%)' : 'none',
+          WebkitBackdropFilter: isScrolled ? 'blur(24px) saturate(140%)' : 'none',
+          borderRadius: isScrolled ? '9999px' : '0',
+          border: isScrolled ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid transparent',
+          boxShadow: isScrolled
+            ? '0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 24px -4px rgba(255, 255, 255, 0.06)'
+            : 'none',
           transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
-        {/* TOP LEFT NAME (When scrolled, compact branding) */}
+        {/* BRAND IDENTITY */}
         <div
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           style={{
@@ -100,7 +105,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           <span
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: isScrolled ? '16px' : 'clamp(2.0rem, 4.5vw, 3.8rem)',
+              fontSize: isScrolled ? '15px' : 'clamp(2.0rem, 4.5vw, 3.8rem)',
               fontWeight: 700,
               letterSpacing: '-0.02em',
               lineHeight: 0.95,
@@ -114,20 +119,21 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           </span>
         </div>
 
-        {/* TOP NAVIGATION: Work, Experience, About, Projects, Contact */}
+        {/* TOP NAVIGATION LINKS: Work, Experience, About, Open to Work, Contact */}
         <nav
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '36px',
+            gap: isScrolled ? '24px' : '36px',
+            transition: 'gap 0.3s ease',
           }}
         >
           {[
-            { label: nav.work, id: 'projects' },
-            { label: nav.experience, id: 'experience' },
-            { label: nav.about, id: 'about' },
-            { label: nav.projects, id: 'projects' },
-            { label: nav.contact, id: 'contact' },
+            { label: nav.work || 'Work', id: 'projects' },
+            { label: nav.experience || 'Experience', id: 'experience' },
+            { label: nav.about || 'About', id: 'about' },
+            { label: 'Open to Work', id: 'opentowork' },
+            { label: nav.contact || 'Contact', id: 'contact' },
           ].map((item, idx) => (
             <button
               key={`${item.label}-${idx}`}
@@ -135,51 +141,29 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
               style={{
                 background: 'none',
                 border: 'none',
-                color: 'var(--text-secondary)',
+                color: item.id === 'opentowork' ? 'var(--text-highlight)' : 'var(--text-secondary)',
                 fontFamily: 'var(--font-body)',
                 fontSize: '13px',
-                fontWeight: 400,
+                fontWeight: item.id === 'opentowork' ? 500 : 400,
                 letterSpacing: '0.02em',
                 cursor: 'pointer',
-                padding: '4px 0',
-                transition: 'color 0.2s ease',
+                padding: '6px 8px',
+                borderRadius: '6px',
+                transition: 'all 0.2s ease',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--text-primary)';
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color =
+                  item.id === 'opentowork' ? 'var(--text-highlight)' : 'var(--text-secondary)';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
             >
               {item.label}
             </button>
           ))}
-
-          {/* Understated CMS Key */}
-          {onOpenAdmin && (
-            <button
-              onClick={onOpenAdmin}
-              title="Admin Portal"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-muted)',
-                fontFamily: 'var(--font-body)',
-                fontSize: '11px',
-                letterSpacing: '0.05em',
-                cursor: 'pointer',
-                padding: '4px 8px',
-                opacity: 0.6,
-                transition: 'opacity 0.2s ease, color 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = '1';
-                e.currentTarget.style.color = 'var(--text-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = '0.6';
-                e.currentTarget.style.color = 'var(--text-muted)';
-              }}
-            >
-              CMS
-            </button>
-          )}
         </nav>
       </header>
 
@@ -191,7 +175,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           ======================================================== */}
       <div
         style={{
-          maxWidth: '320px',
+          maxWidth: '330px',
           pointerEvents: 'auto',
           marginTop: '32px',
         }}
@@ -214,29 +198,24 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           BOTTOM ROW (EXACT LE:MMA MATCH):
           - BOTTOM LEFT: Headline (BUSINESS. SYSTEMS. / Intelligence & Innovation.)
           - BOTTOM CENTRE: SCROLL TO EXPLORE
-          - BOTTOM RIGHT: Let's Connect ↗
+          - BOTTOM RIGHT: Let's Connect ↗ (With spring physics)
           ======================================================== */}
       <div
         style={{
           display: 'flex',
+          flexWrap: 'wrap',
           alignItems: 'flex-end',
           justifyContent: 'space-between',
+          gap: '24px',
           width: '100%',
-          marginTop: 'auto',
-          paddingBottom: '12px',
         }}
       >
-        {/* BOTTOM LEFT HEADLINE */}
-        <div
-          style={{
-            maxWidth: '560px',
-            pointerEvents: 'auto',
-          }}
-        >
+        {/* BOTTOM LEFT: HEADLINE */}
+        <div>
           <div
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(2.4rem, 4.6vw, 4.4rem)',
+              fontSize: 'clamp(2.4rem, 5.2vw, 5.2rem)',
               lineHeight: 1.0,
               fontWeight: 600,
               letterSpacing: '-0.02em',
@@ -274,7 +253,10 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             pointerEvents: 'auto',
             userSelect: 'none',
             padding: '10px 16px',
+            transition: 'transform 0.2s ease',
           }}
+          onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(2px)')}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
         >
           <span
             style={{
@@ -292,37 +274,11 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           <ArrowDown size={13} color="var(--text-muted)" style={{ opacity: 0.7 }} />
         </div>
 
-        {/* BOTTOM RIGHT: Let's Connect ↗ */}
+        {/* BOTTOM RIGHT: Let's Connect ↗ (With spring bouncy hover physics) */}
         <div style={{ pointerEvents: 'auto' }}>
           <button
             onClick={() => scrollTo(ctaTarget)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '12px 26px',
-              borderRadius: '9999px',
-              border: '1px solid rgba(244, 243, 238, 0.38)',
-              backgroundColor: 'rgba(17, 21, 20, 0.4)',
-              backdropFilter: 'blur(10px)',
-              color: 'var(--text-primary)',
-              fontFamily: 'var(--font-body)',
-              fontSize: '13px',
-              fontWeight: 400,
-              letterSpacing: '0.02em',
-              cursor: 'pointer',
-              transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(244, 243, 238, 0.85)';
-              e.currentTarget.style.backgroundColor = 'rgba(244, 243, 238, 0.14)';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(244, 243, 238, 0.38)';
-              e.currentTarget.style.backgroundColor = 'rgba(17, 21, 20, 0.4)';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
+            className="btn-editorial-pill"
           >
             <span>{cta}</span>
             <ArrowUpRight size={14} />

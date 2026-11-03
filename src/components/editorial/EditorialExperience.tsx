@@ -69,7 +69,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                     gap: '8px',
                     fontFamily: 'var(--font-body)',
                     fontSize: '12px',
-                    color: 'var(--text-accent-blue)',
+                    color: 'var(--accent-silver)',
                     marginBottom: '10px',
                     letterSpacing: '0.04em',
                     flexWrap: 'wrap',
@@ -83,11 +83,11 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                     <span
                       style={{
                         padding: '2px 8px',
-                        backgroundColor: 'rgba(130, 148, 166, 0.15)',
-                        border: '1px solid rgba(130, 148, 166, 0.3)',
+                        backgroundColor: 'rgba(200, 200, 206, 0.12)',
+                        border: '1px solid rgba(200, 200, 206, 0.25)',
                         borderRadius: '12px',
                         fontSize: '10px',
-                        color: 'var(--text-accent-blue)',
+                        color: 'var(--accent-silver)',
                       }}
                     >
                       Current
@@ -209,7 +209,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                               width: '4px',
                               height: '4px',
                               borderRadius: '50%',
-                              backgroundColor: 'var(--text-accent-blue)',
+                              backgroundColor: 'var(--accent-silver)',
                               flexShrink: 0,
                               transform: 'translateY(-2px)',
                             }}
@@ -242,8 +242,8 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                           key={sIdx}
                           style={{
                             padding: '4px 10px',
-                            backgroundColor: 'rgba(244, 243, 238, 0.04)',
-                            border: '1px solid rgba(244, 243, 238, 0.08)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
                             borderRadius: '4px',
                             fontFamily: 'var(--font-body)',
                             fontSize: '12px',
@@ -282,11 +282,10 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                       {exp.mediaItems.map((med) => (
                         <div
                           key={med.id}
+                          className="glass-card"
                           style={{
-                            borderRadius: '6px',
+                            borderRadius: '8px',
                             overflow: 'hidden',
-                            backgroundColor: 'rgba(24, 32, 29, 0.6)',
-                            border: '1px solid var(--border-subtle)',
                           }}
                         >
                           {med.type === 'image' && (
