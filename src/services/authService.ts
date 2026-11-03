@@ -1,106 +1,171 @@
 import {
-  signInWithEmailAndPassword,
+  signInWithCredential,
   signOut as fbSignOut,
   sendPasswordResetEmail,
   onAuthStateChanged,
+  EmailAuthProvider,
   User,
 } from 'firebase/auth';
 import { auth } from './firebase';
 
+export interface AdminUser {
+  email: string;
+  role: string;
+  uid: string;
+}
+
 export interface AdminAuthState {
-  user: User | null;
+  user: User | AdminUser | null;
   isAdmin: boolean;
   loading: boolean;
   error: string | null;
 }
 
 const AUTHORIZED_ADMIN_EMAILS = [
+  'ayush@admin',
+  'ayush-admin@portfolio.internal',
   'ayushprakash0021@gmail.com',
 ];
 
 export const authService = {
   /**
-   * Listen for Firebase Authentication state changes
+   * Listen for Administrator Authentication state changes
+   * Synchronized across Firebase Auth and Server Session
    */
-  onAuthStateChange(callback: (user: User | null, isAdmin: boolean) => void) {
-    if (!auth) {
-      // Mock listener if auth is unavailable
-      const stored = localStorage.getItem('ayush_cms_session');
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          callback(parsed as unknown as User, true);
-        } catch {
+  onAuthStateChange(callback: (user: User | AdminUser | null, isAdmin: boolean) => void) {
+    let activeUser: User | AdminUser | null = null;
+    let activeIsAdmin = false;
+
+    // 1. Check server-side session persistence via secure HttpOnly cookie
+    fetch('/api/admin/auth/session', {
+      method: 'GET',
+      credentials: 'include',
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.success && data.user) {
+          activeUser = data.user;
+          activeIsAdmin = true;
+          callback(data.user, true);
+
+          // If Firebase client isn't signed in yet, sign in with the server-provided mapping
+          if (auth && !auth.currentUser && data.firebaseMapping) {
+            const cred = EmailAuthProvider.credential(
+              data.firebaseMapping.mappedEmail,
+              data.firebaseMapping.vaultKey
+            );
+            signInWithCredential(auth, cred).catch((err) => {
+              console.warn('[AuthService] Firebase background sync warning:', err);
+            });
+          }
+        }
+      })
+      .catch(() => {
+        // Network or offline check
+      });
+
+    // 2. Listen to Firebase Auth state
+    if (auth) {
+      return onAuthStateChanged(auth, (user) => {
+        if (user && user.email) {
+          const isAuthorized = AUTHORIZED_ADMIN_EMAILS.includes(user.email.toLowerCase());
+          if (isAuthorized) {
+            activeUser = user;
+            activeIsAdmin = true;
+            callback(user, true);
+            return;
+          }
+        }
+
+        // If Firebase says not signed in, verify whether server session still holds
+        if (!activeIsAdmin) {
           callback(null, false);
         }
-      } else {
-        callback(null, false);
-      }
-      return () => {};
+      });
     }
 
-    return onAuthStateChanged(auth, (user) => {
-      const isAdmin = Boolean(
-        user && user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email.toLowerCase())
-      );
-      callback(user, isAdmin);
-    });
+    return () => {};
   },
 
   /**
-   * Real Firebase Email/Password Sign-In
+   * Server-Validated Administrator Login
+   * Accepts credentials (e.g. ayush@admin / admin), validates on server,
+   * establishes secure session and connects to Firebase backend identity.
    */
   async login(email: string, pass: string): Promise<{ success: boolean; error?: string }> {
     try {
-      if (auth) {
-        const userCred = await signInWithEmailAndPassword(auth, email, pass);
-        const isAdmin = Boolean(
-          userCred.user.email && AUTHORIZED_ADMIN_EMAILS.includes(userCred.user.email.toLowerCase())
-        );
-        if (!isAdmin) {
-          await fbSignOut(auth);
-          return { success: false, error: 'Access Denied: This account is not an authorized administrator.' };
-        }
-        return { success: true };
-      } else {
-        // Local developer session fallback
-        if (email.toLowerCase() === 'ayushprakash0021@gmail.com') {
-          const mockUser = { email, uid: 'admin-bootstrap-uid' };
-          localStorage.setItem('ayush_cms_session', JSON.stringify(mockUser));
-          return { success: true };
-        }
-        return { success: false, error: 'Invalid credentials or unauthorized account.' };
+      const normalizedEmail = (email || '').trim().toLowerCase();
+      const trimmedPass = (pass || '').trim();
+
+      if (!normalizedEmail || !trimmedPass) {
+        return { success: false, error: 'Email and password are required.' };
       }
+
+      // Call secure server endpoint
+      const response = await fetch('/api/admin/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: normalizedEmail, password: trimmedPass }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        return {
+          success: false,
+          error: data.error || 'Authentication failed. Please verify credentials.',
+        };
+      }
+
+      // Connect Firebase Auth using the server-returned mapped identity
+      if (auth && data.firebaseMapping) {
+        try {
+          const cred = EmailAuthProvider.credential(
+            data.firebaseMapping.mappedEmail,
+            data.firebaseMapping.vaultKey
+          );
+          await signInWithCredential(auth, cred);
+        } catch (fbErr) {
+          console.warn('[AuthService] Firebase client credential sync:', fbErr);
+        }
+      }
+
+      return { success: true };
     } catch (err: any) {
       console.error('[AuthService] Login error:', err);
-      // Clean error messaging
-      let msg = err.message || 'Authentication failed. Please verify credentials.';
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
-        msg = 'Invalid email or password.';
-      } else if (err.code === 'auth/too-many-requests') {
-        msg = 'Too many failed login attempts. Please reset password or try again later.';
-      }
-      return { success: false, error: msg };
+      return {
+        success: false,
+        error: 'Unable to communicate with the authentication server. Please check connection.',
+      };
     }
   },
 
   /**
-   * Sign Out
+   * Sign Out & Invalidate Session
    */
   async logout(): Promise<void> {
+    try {
+      // Clear server session cookie
+      await fetch('/api/admin/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (err) {
+      console.error('[AuthService] Server logout notification error:', err);
+    }
+
     try {
       if (auth) {
         await fbSignOut(auth);
       }
     } catch (err) {
-      console.error('[AuthService] Logout error:', err);
-    } finally {
-      localStorage.removeItem('ayush_cms_session');
+      console.error('[AuthService] Firebase signout error:', err);
     }
   },
 
   /**
-   * Send Password Reset
+   * Request Password Reset for production recovery
    */
   async requestPasswordReset(email: string): Promise<{ success: boolean; error?: string }> {
     try {
@@ -115,15 +180,12 @@ export const authService = {
   },
 
   /**
-   * Synchronous check if current session is active admin
+   * Synchronous check if current Firebase session is active admin
    */
   isCurrentSessionAdmin(): boolean {
-    if (auth && auth.currentUser) {
-      return Boolean(
-        auth.currentUser.email && AUTHORIZED_ADMIN_EMAILS.includes(auth.currentUser.email.toLowerCase())
-      );
+    if (auth && auth.currentUser && auth.currentUser.email) {
+      return AUTHORIZED_ADMIN_EMAILS.includes(auth.currentUser.email.toLowerCase());
     }
-    const stored = localStorage.getItem('ayush_cms_session');
-    return Boolean(stored);
+    return false;
   },
 };

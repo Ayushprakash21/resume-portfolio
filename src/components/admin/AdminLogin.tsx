@@ -9,8 +9,8 @@ interface AdminLoginProps {
 }
 
 export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturnToSite }) => {
-  const [email, setEmail] = useState('ayushprakash0021@gmail.com');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('ayush@admin');
+  const [password, setPassword] = useState('admin');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resetSent, setResetSent] = useState(false);
@@ -162,7 +162,11 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
             </label>
             <div style={{ position: 'relative' }}>
               <input
-                type="email"
+                type="text"
+                inputMode="email"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -205,7 +209,8 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
               <input
                 type="password"
                 required
-                placeholder="Enter Firebase admin password"
+                autoComplete="current-password"
+                placeholder="Enter administrator password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 style={{

@@ -378,7 +378,10 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
             />
             <div>
               <div style={{ fontSize: '12px', fontWeight: 600, color: '#F4F3EE' }}>Ayush Prakash</div>
-              <div style={{ fontSize: '10px', color: '#6CE098' }}>● Admin Authenticated</div>
+              <div style={{ fontSize: '10px', color: '#6CE098', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>●</span>
+                <span>ayush@admin</span>
+              </div>
             </div>
           </div>
           <button

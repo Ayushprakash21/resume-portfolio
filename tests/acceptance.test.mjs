@@ -293,4 +293,79 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(hero.includes('LAYER 2: Dark Atmospheric Contrast Vignette'), 'Hero has explicit Layer 2 contrast vignette');
     assert.ok(hero.includes('LAYER 3, 4, 5: Exact Layout Elements Overlay'), 'Hero has explicit Layer 3-5 UI overlays');
   });
+
+  // Test 22: Server-Side Administrator Authentication Worker
+  await t.test('22. Server-side worker validates ayush@admin / admin credentials and denies unauthorized access', async () => {
+    const workerModule = await import('../src/worker/index.ts');
+    const worker = workerModule.default;
+    const mockEnv = {
+      ASSETS: { fetch: async () => new Response('assets') },
+      ADMIN_PASSWORD: 'admin',
+    };
+
+    // 1. Correct credentials: ayush@admin + admin
+    const loginReq = new Request('https://portfolio.test/api/admin/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'ayush@admin', password: 'admin' }),
+    });
+    const loginRes = await worker.fetch(loginReq, mockEnv);
+    assert.strictEqual(loginRes.status, 200, 'Correct credentials must return HTTP 200');
+    const loginData = await loginRes.json();
+    assert.strictEqual(loginData.success, true, 'Login must succeed');
+    assert.strictEqual(loginData.user.email, 'ayush@admin', 'User email must be ayush@admin');
+    assert.strictEqual(loginData.user.role, 'admin', 'User role must be admin');
+    assert.ok(loginRes.headers.get('Set-Cookie')?.includes('ap_admin_session='), 'Must set HttpOnly session cookie');
+
+    // 2. Incorrect password
+    const wrongPassReq = new Request('https://portfolio.test/api/admin/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'ayush@admin', password: 'wrong-password' }),
+    });
+    const wrongPassRes = await worker.fetch(wrongPassReq, mockEnv);
+    assert.strictEqual(wrongPassRes.status, 401, 'Incorrect password must return HTTP 401');
+    const wrongPassData = await wrongPassRes.json();
+    assert.strictEqual(wrongPassData.success, false);
+
+    // 3. Unauthorized non-admin email
+    const nonAdminReq = new Request('https://portfolio.test/api/admin/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'intruder@domain.com', password: 'admin' }),
+    });
+    const nonAdminRes = await worker.fetch(nonAdminReq, mockEnv);
+    assert.strictEqual(nonAdminRes.status, 403, 'Unauthorized email must return HTTP 403 Access Denied');
+
+    // 4. Public registration prohibition
+    const regReq = new Request('https://portfolio.test/api/admin/auth/register', {
+      method: 'POST',
+    });
+    const regRes = await worker.fetch(regReq, mockEnv);
+    assert.strictEqual(regRes.status, 403, 'Public registration must be prohibited with HTTP 403');
+
+    // 5. Logout endpoint invalidates session
+    const logoutReq = new Request('https://portfolio.test/api/admin/auth/logout', {
+      method: 'POST',
+    });
+    const logoutRes = await worker.fetch(logoutReq, mockEnv);
+    assert.strictEqual(logoutRes.status, 200, 'Logout must return HTTP 200');
+    assert.ok(logoutRes.headers.get('Set-Cookie')?.includes('Max-Age=0'), 'Logout must expire the session cookie');
+  });
+
+  // Test 23: Admin Route and Database Security Protection
+  await t.test('23. Admin routes and database write permissions are protected against unauthenticated access', () => {
+    const app = fs.readFileSync('src/App.tsx', 'utf-8');
+    assert.ok(app.includes('if (isAdminRoute)'), 'App routes /admin conditionally');
+    assert.ok(app.includes('if (isAdminAuthenticated)'), 'App checks authentication state');
+    assert.ok(app.includes('<AdminLogin'), 'App forces AdminLogin when unauthenticated');
+
+    const firestoreRules = fs.readFileSync('firestore.rules', 'utf-8');
+    assert.ok(firestoreRules.includes('ayush-admin@portfolio.internal'), 'Firestore rules authorize mapped admin identity');
+    assert.ok(firestoreRules.includes('allow write: if isAdmin()'), 'Firestore restricts write operations to isAdmin');
+
+    const storageRules = fs.readFileSync('storage.rules', 'utf-8');
+    assert.ok(storageRules.includes('ayush-admin@portfolio.internal'), 'Storage rules authorize mapped admin identity');
+    assert.ok(storageRules.includes('allow write: if isAdmin()'), 'Storage restricts write operations to isAdmin');
+  });
 });
