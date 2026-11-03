@@ -211,24 +211,28 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
       updatedAt: new Date().toISOString(),
     };
 
-    if (isEditing && initialExperience) {
-      await cmsService.updateExperience(initialExperience.id, recordPayload);
-      onSave({ ...recordPayload, id: initialExperience.id });
-      showNotification(
-        targetStatus === 'published'
-          ? 'Experience updated and published.'
-          : 'Experience draft saved.'
-      );
-    } else {
-      const created = await cmsService.addExperience(recordPayload);
-      onSave(created);
-      showNotification(
-        targetStatus === 'published'
-          ? 'Experience created and published.'
-          : 'Experience draft saved.'
-      );
+    try {
+      if (isEditing && initialExperience) {
+        await cmsService.updateExperience(initialExperience.id, recordPayload);
+        onSave({ ...recordPayload, id: initialExperience.id });
+        showNotification(
+          targetStatus === 'published'
+            ? 'Experience updated and published.'
+            : 'Experience draft saved.'
+        );
+      } else {
+        const created = await cmsService.addExperience(recordPayload);
+        onSave(created);
+        showNotification(
+          targetStatus === 'published'
+            ? 'Experience created and published.'
+            : 'Experience draft saved.'
+        );
+      }
+      onClose();
+    } catch (err: any) {
+      showNotification('Save failed: ' + (err.message || 'Firebase error'), 'error');
     }
-    onClose();
   };
 
   // Filter skills query

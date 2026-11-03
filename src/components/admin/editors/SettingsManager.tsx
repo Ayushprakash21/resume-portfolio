@@ -39,9 +39,13 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    await cmsService.updateSiteSettings(form);
-    onUpdateSettings(form);
-    showNotification('System and SEO settings updated.');
+    try {
+      await cmsService.updateSiteSettings(form);
+      onUpdateSettings(form);
+      showNotification('System and SEO settings updated and published globally.');
+    } catch (err: any) {
+      showNotification('Save failed: ' + (err.message || 'Error'), 'error');
+    }
   };
 
   const handleToggleRead = async (id: string, readState: boolean) => {

@@ -365,24 +365,28 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
       updatedAt: new Date().toISOString(),
     };
 
-    if (isEditing && initialProject) {
-      await cmsService.updateProject(initialProject.id, payload);
-      onSave({ ...payload, id: initialProject.id });
-      showNotification(
-        targetStatus === 'published'
-          ? 'Project updated and published to live site.'
-          : 'Project draft saved.'
-      );
-    } else {
-      const created = await cmsService.addProject(payload);
-      onSave(created);
-      showNotification(
-        targetStatus === 'published'
-          ? 'Project created and published.'
-          : 'Project draft saved.'
-      );
+    try {
+      if (isEditing && initialProject) {
+        await cmsService.updateProject(initialProject.id, payload);
+        onSave({ ...payload, id: initialProject.id });
+        showNotification(
+          targetStatus === 'published'
+            ? 'Project updated and published to live site.'
+            : 'Project draft saved.'
+        );
+      } else {
+        const created = await cmsService.addProject(payload);
+        onSave(created);
+        showNotification(
+          targetStatus === 'published'
+            ? 'Project created and published.'
+            : 'Project draft saved.'
+        );
+      }
+      onClose();
+    } catch (err: any) {
+      showNotification('Save failed: ' + (err.message || 'Firebase error'), 'error');
     }
-    onClose();
   };
 
   const filteredSkills = allSkills

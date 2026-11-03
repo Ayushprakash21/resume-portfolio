@@ -15,42 +15,61 @@ service cloud.firestore {
       );
     }
 
-    // Public readable content (Profile, Projects, Experience, Skills, Certifications, Settings)
+    // Profile: Public readable, only admin can write
     match /profile/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
+    // Projects: Public can read published items; admin can read drafts and write
     match /projects/{docId} {
-      allow read: if true;
+      allow read: if isAdmin() || resource.data.status == 'published' || resource == null;
       allow write: if isAdmin();
     }
 
+    // Experiences: Public can read published items; admin can read drafts and write
     match /experiences/{docId} {
-      allow read: if true;
+      allow read: if isAdmin() || resource.data.status == 'published' || resource == null;
       allow write: if isAdmin();
     }
 
+    // Certifications: Public can read published items; admin can read drafts and write
     match /certifications/{docId} {
-      allow read: if true;
+      allow read: if isAdmin() || resource.data.status == 'published' || resource == null;
       allow write: if isAdmin();
     }
 
+    // Skills: Public readable, admin can write
     match /skills/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
+    // Education: Public readable, admin can write
     match /education/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
+    // Settings (homepage, about, openToWork, sections, appearance)
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // SiteSettings: legacy & fallback
     match /siteSettings/{docId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
+    // Resume document
+    match /resume/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Media assets metadata
     match /mediaAssets/{docId} {
       allow read: if true;
       allow write: if isAdmin();

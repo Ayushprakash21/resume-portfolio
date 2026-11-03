@@ -8,8 +8,10 @@ export interface ProfileData {
   shortIntro?: string;
   bio: string;
   countryRegion?: string;
+  stateProvince?: string;
   city?: string;
   location: string;
+  isLocationVisible?: boolean;
   profilePhoto: string;
   coverImage?: string;
   email: string;
@@ -24,6 +26,8 @@ export interface ProfileData {
   availabilityStatus: string;
   status?: 'published' | 'draft';
   updatedAt?: string;
+  publishedAt?: string;
+  draft?: Partial<ProfileData>;
 }
 
 export interface HomepageSettings {
@@ -56,6 +60,7 @@ export interface AboutSectionSettings {
   status?: 'published' | 'draft';
   characterCount?: number;
   updatedAt?: string;
+  publishedAt?: string;
   contentBlocks?: {
     id: string;
     title: string;
@@ -189,6 +194,7 @@ export interface SkillRecord {
   description?: string;
   displayOrder: number;
   associatedWith?: ('profile' | 'experience' | 'projects' | 'certifications' | 'education')[];
+  updatedAt?: string;
 }
 
 export interface EducationRecord {

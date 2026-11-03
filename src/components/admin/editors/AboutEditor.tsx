@@ -118,14 +118,19 @@ Key Focus Areas:
       updatedAt: new Date().toISOString(),
     };
 
-    await cmsService.updateAboutSettings(payload);
-    setHasUnsavedChanges(false);
-    onSave(payload);
-    showNotification(
-      targetStatus === 'published'
-        ? 'About section published to live website.'
-        : 'About section draft saved.'
-    );
+    try {
+      if (targetStatus === 'published') {
+        await cmsService.publishAboutSettings(payload);
+        showNotification('About section published globally to live website.', 'success');
+      } else {
+        await cmsService.saveAboutDraft(payload);
+        showNotification('About draft saved without affecting live site.', 'info');
+      }
+      setHasUnsavedChanges(false);
+      onSave(payload);
+    } catch (err: any) {
+      showNotification('Save failed: ' + (err.message || 'Firebase error'), 'error');
+    }
   };
 
   return (

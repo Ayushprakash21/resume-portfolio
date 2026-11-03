@@ -158,13 +158,21 @@ export const OpenToWorkEditor: React.FC<OpenToWorkEditorProps> = ({
       status: statusOverride || form.status,
       updatedAt: new Date().toISOString(),
     };
-    await cmsService.updateOpenToWorkSettings(payload);
-    setForm(payload);
-    setHasUnsavedChanges(false);
-    onSave(payload);
-    showNotification(
-      `Open to Work settings saved and ${payload.status === 'published' ? 'published' : 'saved as draft'}.`
-    );
+    try {
+      if (payload.status === 'published') {
+        await cmsService.publishOpenToWorkSettings(payload);
+      } else {
+        await cmsService.saveOpenToWorkDraft(payload);
+      }
+      setForm(payload);
+      setHasUnsavedChanges(false);
+      onSave(payload);
+      showNotification(
+        `Open to Work settings ${payload.status === 'published' ? 'published globally' : 'saved as draft'}.`
+      );
+    } catch (err: any) {
+      showNotification('Save failed: ' + (err.message || 'Firebase error'), 'error');
+    }
   };
 
   return (

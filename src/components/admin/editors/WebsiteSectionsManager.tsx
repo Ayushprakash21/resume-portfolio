@@ -39,32 +39,44 @@ export const WebsiteSectionsManager: React.FC<WebsiteSectionsManagerProps> = ({
       s.displayOrder = i + 1;
     });
 
-    setList(copy);
-    await cmsService.updateSectionsConfig(copy);
-    onUpdate(copy);
-    showNotification('Section display order updated on live site.');
+    try {
+      setList(copy);
+      await cmsService.updateSectionsConfig(copy);
+      onUpdate(copy);
+      showNotification('Section display order updated on live site.');
+    } catch (err: any) {
+      showNotification('Update failed: ' + (err.message || 'Error'), 'error');
+    }
   };
 
   const handleToggleVisibility = async (id: string) => {
     const updated = list.map((s) =>
       s.id === id ? { ...s, isVisible: !s.isVisible } : s
     );
-    setList(updated);
-    await cmsService.updateSectionsConfig(updated);
-    onUpdate(updated);
-    const item = updated.find((s) => s.id === id);
-    showNotification(
-      `Section "${item?.title}" is now ${item?.isVisible ? 'Visible' : 'Hidden'} on live website.`
-    );
+    try {
+      setList(updated);
+      await cmsService.updateSectionsConfig(updated);
+      onUpdate(updated);
+      const item = updated.find((s) => s.id === id);
+      showNotification(
+        `Section "${item?.title}" is now ${item?.isVisible ? 'Visible' : 'Hidden'} on live website.`
+      );
+    } catch (err: any) {
+      showNotification('Update failed: ' + (err.message || 'Error'), 'error');
+    }
   };
 
   const handleTitleChange = async (id: string, newTitle: string, newSubtitle: string) => {
     const updated = list.map((s) =>
       s.id === id ? { ...s, title: newTitle, subtitle: newSubtitle } : s
     );
-    setList(updated);
-    await cmsService.updateSectionsConfig(updated);
-    onUpdate(updated);
+    try {
+      setList(updated);
+      await cmsService.updateSectionsConfig(updated);
+      onUpdate(updated);
+    } catch (err: any) {
+      showNotification('Update failed: ' + (err.message || 'Error'), 'error');
+    }
   };
 
   return (

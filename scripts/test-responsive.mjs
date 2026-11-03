@@ -54,7 +54,8 @@ async function run() {
       });
 
       const page = await context.newPage();
-      await page.goto('http://localhost:4173', { waitUntil: 'networkidle' });
+      await page.goto('http://localhost:4173', { waitUntil: 'load' });
+      await page.waitForTimeout(1000);
 
       // Check horizontal overflow
       const overflow = await page.evaluate(() => {
@@ -134,7 +135,8 @@ async function run() {
         console.log(`  📸 Captured mobile screenshot: ${shotPath}`);
 
         // Also screenshot admin on mobile
-        await page.goto('http://localhost:4173/admin', { waitUntil: 'networkidle' });
+        await page.goto('http://localhost:4173/admin', { waitUntil: 'load' });
+        await page.waitForTimeout(1000);
         const adminShotPath = path.join(SCREENSHOT_DIR, 'screenshot_390x844_admin_login.png');
         await page.screenshot({ path: adminShotPath, fullPage: false });
         console.log(`  📸 Captured admin mobile screenshot: ${adminShotPath}`);

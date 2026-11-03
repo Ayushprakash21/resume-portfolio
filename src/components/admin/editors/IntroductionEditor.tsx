@@ -13,6 +13,7 @@ import {
   Linkedin,
   Github,
   AlertCircle,
+  RotateCcw,
 } from 'lucide-react';
 import { ProfileData } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
@@ -30,27 +31,33 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
   onCancel,
   showNotification,
 }) => {
-  const [form, setForm] = useState<ProfileData>(() => ({
-    ...initialProfile,
-    firstName: initialProfile.firstName || initialProfile.name.split(' ')[0] || 'Ayush',
-    lastName: initialProfile.lastName || initialProfile.name.split(' ').slice(1).join(' ') || 'Prakash',
-    additionalName: initialProfile.additionalName || '',
-    pronouns: initialProfile.pronouns || 'He/Him',
-    headline:
-      initialProfile.headline ||
-      'AI & Automation Professional | Supply Chain & Operations | Generative AI | Claude AI | AI Agents | Building AI-Powered Products & Intelligent Business Solutions',
-    countryRegion: initialProfile.countryRegion || 'India',
-    city: initialProfile.city || 'Bengaluru',
-    location: initialProfile.location || 'Bengaluru, Karnataka, India',
-    profilePhoto: initialProfile.profilePhoto || '/images/creator/creator_1793142386775_044ada53_wall.png',
-    coverImage: initialProfile.coverImage || '/images/creator/creator_1793142386775_044ada53_wall.png',
-    email: initialProfile.email || 'ayushprakash0021@gmail.com',
-    phone: initialProfile.phone || '+91 (Available on request)',
-    linkedinUrl: initialProfile.linkedinUrl || 'https://www.linkedin.com/in/ayushprakash',
-    githubUrl: initialProfile.githubUrl || 'https://github.com/Ayushprakash21',
-    portfolioUrl: initialProfile.portfolioUrl || 'https://resume-portfolio.ayushprakash0021.workers.dev',
-    status: initialProfile.status || 'published',
-  }));
+  const [form, setForm] = useState<ProfileData>(() => {
+    const draft = cmsService.getProfileDraft();
+    const base = draft || initialProfile;
+    return {
+      ...base,
+      firstName: base.firstName || base.name?.split(' ')[0] || 'Ayush',
+      lastName: base.lastName || base.name?.split(' ').slice(1).join(' ') || 'Prakash',
+      additionalName: base.additionalName || '',
+      pronouns: base.pronouns || 'He/Him',
+      headline:
+        base.headline ||
+        'AI & Automation Professional | Supply Chain & Operations | Generative AI | Claude AI | AI Agents | Building AI-Powered Products & Intelligent Business Solutions',
+      countryRegion: base.countryRegion || 'India',
+      stateProvince: base.stateProvince || 'Madhya Pradesh',
+      city: base.city || 'Indore',
+      location: base.location || 'Indore, Madhya Pradesh, India',
+      isLocationVisible: base.isLocationVisible !== undefined ? base.isLocationVisible : true,
+      profilePhoto: base.profilePhoto || '/images/creator/creator_1793142386775_044ada53_wall.png',
+      coverImage: base.coverImage || '/images/creator/creator_1793142386775_044ada53_wall.png',
+      email: base.email || 'ayushprakash0021@gmail.com',
+      phone: base.phone || '+91 (Available on request)',
+      linkedinUrl: base.linkedinUrl || 'https://www.linkedin.com/in/ayushprakash',
+      githubUrl: base.githubUrl || 'https://github.com/Ayushprakash21',
+      portfolioUrl: base.portfolioUrl || 'https://resume-portfolio.ayushprakash0021.workers.dev',
+      status: base.status || 'published',
+    };
+  });
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -62,6 +69,24 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
       const next = { ...prev, [key]: value };
       if (key === 'firstName' || key === 'lastName') {
         next.name = `${next.firstName || ''} ${next.lastName || ''}`.trim();
+      }
+      return next;
+    });
+    setHasUnsavedChanges(true);
+  };
+
+  const updateLocationField = (
+    key: 'countryRegion' | 'stateProvince' | 'city' | 'location' | 'isLocationVisible',
+    value: any
+  ) => {
+    setForm((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === 'city' || key === 'stateProvince' || key === 'countryRegion') {
+        const city = key === 'city' ? value : prev.city;
+        const state = key === 'stateProvince' ? value : prev.stateProvince;
+        const country = key === 'countryRegion' ? value : prev.countryRegion;
+        const parts = [city, state, country].filter((p) => p && String(p).trim().length > 0);
+        next.location = parts.join(', ');
       }
       return next;
     });
@@ -125,15 +150,36 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
       updatedAt: new Date().toISOString(),
     };
 
-    await cmsService.updateProfile(payload);
-    setHasUnsavedChanges(false);
-    onSave(payload);
-    showNotification(
-      targetStatus === 'published'
-        ? 'Introduction published to live portfolio.'
-        : 'Introduction draft saved successfully.'
-    );
+    try {
+      if (targetStatus === 'published') {
+        await cmsService.publishProfile(payload);
+        showNotification('Profile published globally to live portfolio.', 'success');
+      } else {
+        await cmsService.saveProfileDraft(payload);
+        showNotification('Profile draft saved successfully without affecting public site.', 'info');
+      }
+      setHasUnsavedChanges(false);
+      onSave(payload);
+    } catch (err: any) {
+      showNotification('Save failed: ' + (err.message || 'Firebase error'), 'error');
+    }
   };
+
+  const handleRevert = async () => {
+    if (confirm('Discard all draft changes and revert to published profile?')) {
+      try {
+        await cmsService.discardProfileDraft();
+        const published = cmsService.getProfile(false);
+        setForm({ ...published });
+        setHasUnsavedChanges(false);
+        showNotification('Reverted to published profile.', 'info');
+      } catch (err: any) {
+        showNotification('Revert failed: ' + err.message, 'error');
+      }
+    }
+  };
+
+  const hasDraft = !!cmsService.getProfileDraft();
 
   return (
     <div style={{ maxWidth: '960px', margin: '0 auto' }}>
@@ -197,6 +243,28 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
 
         {/* Action Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {hasDraft && (
+            <button
+              type="button"
+              onClick={handleRevert}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '6px',
+                backgroundColor: 'rgba(230, 80, 80, 0.1)',
+                border: '1px solid rgba(230, 80, 80, 0.3)',
+                color: '#FF8888',
+                fontSize: '13px',
+                fontFamily: 'var(--font-body)',
+                cursor: 'pointer',
+              }}
+            >
+              <RotateCcw size={14} />
+              Revert to Published
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setShowPreviewModal(true)}
@@ -694,7 +762,7 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
               gap: '18px',
             }}
           >
@@ -713,8 +781,38 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
               <input
                 type="text"
                 value={form.countryRegion || ''}
-                onChange={(e) => updateField('countryRegion', e.target.value)}
+                onChange={(e) => updateLocationField('countryRegion', e.target.value)}
                 placeholder="e.g. India"
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: '#0E1412',
+                  border: '1px solid rgba(244, 243, 238, 0.12)',
+                  color: '#F4F3EE',
+                  fontSize: '14px',
+                  outline: 'none',
+                }}
+              />
+            </div>
+
+            <div>
+              <label
+                style={{
+                  display: 'block',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '12px',
+                  color: '#A7B0A9',
+                  marginBottom: '6px',
+                }}
+              >
+                State / Province
+              </label>
+              <input
+                type="text"
+                value={form.stateProvince || ''}
+                onChange={(e) => updateLocationField('stateProvince', e.target.value)}
+                placeholder="e.g. Madhya Pradesh"
                 style={{
                   width: '100%',
                   padding: '10px 12px',
@@ -743,8 +841,8 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
               <input
                 type="text"
                 value={form.city || ''}
-                onChange={(e) => updateField('city', e.target.value)}
-                placeholder="e.g. Bengaluru"
+                onChange={(e) => updateLocationField('city', e.target.value)}
+                placeholder="e.g. Indore"
                 style={{
                   width: '100%',
                   padding: '10px 12px',
@@ -758,7 +856,7 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
               />
             </div>
 
-            <div>
+            <div style={{ gridColumn: '1 / -1' }}>
               <label
                 style={{
                   display: 'block',
@@ -768,13 +866,13 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
                   marginBottom: '6px',
                 }}
               >
-                Formatted Public Location
+                Formatted Public Display Location
               </label>
               <input
                 type="text"
                 value={form.location}
-                onChange={(e) => updateField('location', e.target.value)}
-                placeholder="e.g. Bengaluru, Karnataka, India"
+                onChange={(e) => updateLocationField('location', e.target.value)}
+                placeholder="e.g. Indore, Madhya Pradesh, India"
                 style={{
                   width: '100%',
                   padding: '10px 12px',
@@ -786,6 +884,28 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
                   outline: 'none',
                 }}
               />
+            </div>
+
+            <div style={{ gridColumn: '1 / -1', marginTop: '4px' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '13px',
+                  color: '#F4F3EE',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.isLocationVisible !== false}
+                  onChange={(e) => updateLocationField('isLocationVisible', e.target.checked)}
+                  style={{ width: '16px', height: '16px', accentColor: 'var(--accent-silver)' }}
+                />
+                Display Location publicly on Profile card and Footer
+              </label>
             </div>
           </div>
         </div>

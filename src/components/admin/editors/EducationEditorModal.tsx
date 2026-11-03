@@ -79,16 +79,20 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
       return;
     }
 
-    if (isEditing && initialEducation) {
-      await cmsService.updateEducation(initialEducation.id, form);
-      onSave({ ...form, id: initialEducation.id });
-      showNotification('Education record updated.');
-    } else {
-      const created = await cmsService.addEducation(form);
-      onSave(created);
-      showNotification('Education record created.');
+    try {
+      if (isEditing && initialEducation) {
+        await cmsService.updateEducation(initialEducation.id, form);
+        onSave({ ...form, id: initialEducation.id });
+        showNotification('Education record updated.');
+      } else {
+        const created = await cmsService.addEducation(form);
+        onSave(created);
+        showNotification('Education record created.');
+      }
+      onClose();
+    } catch (err: any) {
+      showNotification('Save failed: ' + (err.message || 'Firebase error'), 'error');
     }
-    onClose();
   };
 
   return (

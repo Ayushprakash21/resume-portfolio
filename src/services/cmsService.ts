@@ -1,14 +1,12 @@
 import {
   collection,
   doc,
-  getDocs,
-  getDoc,
   setDoc,
   addDoc,
   updateDoc,
   deleteDoc,
-  query,
-  orderBy,
+  onSnapshot,
+  Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import {
@@ -64,599 +62,1031 @@ const STORAGE_KEYS = {
   openToWork: 'ayush_cms_opentowork_v1',
 };
 
+function safeStorageGet<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined' || !window.localStorage) return fallback;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
+function safeStorageSet(key: string, value: any): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // quota exceeded or private mode
+  }
+}
+
+// In-Memory Global Reactive Cache (Initialized from localStorage / defaults, then hydrated live by Firestore)
+interface CmsStore {
+  profile: ProfileData;
+  profileDraft: ProfileData | null;
+  homepage: HomepageSettings;
+  homepageDraft: HomepageSettings | null;
+  about: AboutSectionSettings;
+  aboutDraft: AboutSectionSettings | null;
+  openToWork: OpenToWorkSettings;
+  openToWorkDraft: OpenToWorkSettings | null;
+  resume: ResumeRecord;
+  resumeDraft: ResumeRecord | null;
+  sections: SectionConfig[];
+  appearance: AppearanceSettings;
+  experiences: ExperienceRecord[];
+  projects: ProjectRecord[];
+  certifications: CertificationRecord[];
+  skills: SkillRecord[];
+  education: EducationRecord[];
+  media: MediaAsset[];
+  siteSettings: SiteSettings;
+  messages: ContactMessage[];
+}
+
+const store: CmsStore = {
+  profile: safeStorageGet(STORAGE_KEYS.profile, DEFAULT_PROFILE),
+  profileDraft: null,
+  homepage: safeStorageGet(STORAGE_KEYS.homepage, DEFAULT_HOMEPAGE_SETTINGS),
+  homepageDraft: null,
+  about: safeStorageGet(STORAGE_KEYS.about, DEFAULT_ABOUT_SETTINGS),
+  aboutDraft: null,
+  openToWork: safeStorageGet(STORAGE_KEYS.openToWork, DEFAULT_OPEN_TO_WORK_SETTINGS),
+  openToWorkDraft: null,
+  resume: safeStorageGet(STORAGE_KEYS.resume, DEFAULT_RESUME_RECORD),
+  resumeDraft: null,
+  sections: safeStorageGet(STORAGE_KEYS.sections, DEFAULT_SECTIONS_CONFIG),
+  appearance: safeStorageGet(STORAGE_KEYS.appearance, DEFAULT_APPEARANCE_SETTINGS),
+  experiences: safeStorageGet(STORAGE_KEYS.experiences, DEFAULT_EXPERIENCES),
+  projects: safeStorageGet(STORAGE_KEYS.projects, DEFAULT_PROJECTS),
+  certifications: safeStorageGet(STORAGE_KEYS.certifications, DEFAULT_CERTIFICATIONS),
+  skills: safeStorageGet(STORAGE_KEYS.skills, DEFAULT_SKILLS),
+  education: safeStorageGet(STORAGE_KEYS.education, DEFAULT_EDUCATION),
+  media: safeStorageGet(STORAGE_KEYS.media, DEFAULT_MEDIA_ASSETS),
+  siteSettings: safeStorageGet(STORAGE_KEYS.settings, DEFAULT_SITE_SETTINGS),
+  messages: safeStorageGet(STORAGE_KEYS.messages, DEFAULT_CONTACT_MESSAGES),
+};
+
 // Global reactive subscribers
 type Listener = () => void;
 const listeners = new Set<Listener>();
 
 function notifyListeners() {
-  listeners.forEach((fn) => fn());
+  listeners.forEach((fn) => {
+    try {
+      fn();
+    } catch (e) {
+      console.warn('[CMS Listener Error]:', e);
+    }
+  });
+}
+
+// Active Firestore unsubscribers
+const activeUnsubscribers: Unsubscribe[] = [];
+let isInitialized = false;
+
+function initFirestoreSync() {
+  if (isInitialized || !db) return;
+  isInitialized = true;
+
+  try {
+    // 1. Profile Listener
+    const unsubProfile = onSnapshot(
+      doc(db, 'profile', 'main'),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data() as ProfileData & { draft?: ProfileData };
+          const { draft, ...published } = data;
+          store.profile = {
+            ...DEFAULT_PROFILE,
+            ...published,
+            status: 'published',
+          };
+          store.profileDraft = draft || null;
+          safeStorageSet(STORAGE_KEYS.profile, store.profile);
+          notifyListeners();
+        }
+      },
+      (err) => console.warn('[CMS Firestore] Profile sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubProfile);
+
+    // 2. Settings: Homepage
+    const unsubHomepage = onSnapshot(
+      doc(db, 'settings', 'homepage'),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data() as HomepageSettings & { draft?: HomepageSettings };
+          const { draft, ...published } = data;
+          store.homepage = { ...DEFAULT_HOMEPAGE_SETTINGS, ...published };
+          store.homepageDraft = draft || null;
+          safeStorageSet(STORAGE_KEYS.homepage, store.homepage);
+          notifyListeners();
+        }
+      },
+      (err) => console.warn('[CMS Firestore] Homepage sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubHomepage);
+
+    // 3. Settings: About
+    const unsubAbout = onSnapshot(
+      doc(db, 'settings', 'about'),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data() as AboutSectionSettings & { draft?: AboutSectionSettings };
+          const { draft, ...published } = data;
+          store.about = { ...DEFAULT_ABOUT_SETTINGS, ...published };
+          store.aboutDraft = draft || null;
+          safeStorageSet(STORAGE_KEYS.about, store.about);
+          notifyListeners();
+        }
+      },
+      (err) => console.warn('[CMS Firestore] About sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubAbout);
+
+    // 4. Settings: Open To Work
+    const unsubOpenToWork = onSnapshot(
+      doc(db, 'settings', 'openToWork'),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data() as OpenToWorkSettings & { draft?: OpenToWorkSettings };
+          const { draft, ...published } = data;
+          store.openToWork = { ...DEFAULT_OPEN_TO_WORK_SETTINGS, ...published };
+          store.openToWorkDraft = draft || null;
+          safeStorageSet(STORAGE_KEYS.openToWork, store.openToWork);
+          notifyListeners();
+        }
+      },
+      (err) => console.warn('[CMS Firestore] OpenToWork sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubOpenToWork);
+
+    // 5. Settings: Sections
+    const unsubSections = onSnapshot(
+      doc(db, 'settings', 'sections'),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data() as { list?: SectionConfig[] };
+          if (Array.isArray(data.list) && data.list.length > 0) {
+            store.sections = data.list;
+            safeStorageSet(STORAGE_KEYS.sections, store.sections);
+            notifyListeners();
+          }
+        }
+      },
+      (err) => console.warn('[CMS Firestore] Sections sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubSections);
+
+    // 6. Settings: Appearance
+    const unsubAppearance = onSnapshot(
+      doc(db, 'settings', 'appearance'),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data() as AppearanceSettings;
+          store.appearance = { ...DEFAULT_APPEARANCE_SETTINGS, ...data };
+          safeStorageSet(STORAGE_KEYS.appearance, store.appearance);
+          notifyListeners();
+        }
+      },
+      (err) => console.warn('[CMS Firestore] Appearance sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubAppearance);
+
+    // 7. Resume
+    const unsubResume = onSnapshot(
+      doc(db, 'resume', 'primary'),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data() as ResumeRecord & { draft?: ResumeRecord };
+          const { draft, ...published } = data;
+          store.resume = { ...DEFAULT_RESUME_RECORD, ...published };
+          store.resumeDraft = draft || null;
+          safeStorageSet(STORAGE_KEYS.resume, store.resume);
+          notifyListeners();
+        }
+      },
+      (err) => console.warn('[CMS Firestore] Resume sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubResume);
+
+    // 8. Experiences Collection
+    const unsubExperiences = onSnapshot(
+      collection(db, 'experiences'),
+      (snap) => {
+        if (!snap.empty) {
+          const list: ExperienceRecord[] = [];
+          snap.forEach((d) => {
+            list.push({ ...d.data(), id: d.id } as ExperienceRecord);
+          });
+          list.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+          store.experiences = list;
+          safeStorageSet(STORAGE_KEYS.experiences, list);
+          notifyListeners();
+        }
+      },
+      (err) => console.warn('[CMS Firestore] Experiences sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubExperiences);
+
+    // 9. Projects Collection
+    const unsubProjects = onSnapshot(
+      collection(db, 'projects'),
+      (snap) => {
+        if (!snap.empty) {
+          const list: ProjectRecord[] = [];
+          snap.forEach((d) => {
+            list.push({ ...d.data(), id: d.id } as ProjectRecord);
+          });
+          list.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+          store.projects = list;
+          safeStorageSet(STORAGE_KEYS.projects, list);
+          notifyListeners();
+        }
+      },
+      (err) => console.warn('[CMS Firestore] Projects sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubProjects);
+
+    // 10. Certifications Collection
+    const unsubCertifications = onSnapshot(
+      collection(db, 'certifications'),
+      (snap) => {
+        if (!snap.empty) {
+          const list: CertificationRecord[] = [];
+          snap.forEach((d) => {
+            list.push({ ...d.data(), id: d.id } as CertificationRecord);
+          });
+          list.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+          store.certifications = list;
+          safeStorageSet(STORAGE_KEYS.certifications, list);
+          notifyListeners();
+        }
+      },
+      (err) => console.warn('[CMS Firestore] Certifications sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubCertifications);
+
+    // 11. Skills Collection
+    const unsubSkills = onSnapshot(
+      collection(db, 'skills'),
+      (snap) => {
+        if (!snap.empty) {
+          const list: SkillRecord[] = [];
+          snap.forEach((d) => {
+            list.push({ ...d.data(), id: d.id } as SkillRecord);
+          });
+          list.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+          store.skills = list;
+          safeStorageSet(STORAGE_KEYS.skills, list);
+          notifyListeners();
+        }
+      },
+      (err) => console.warn('[CMS Firestore] Skills sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubSkills);
+
+    // 12. Education Collection
+    const unsubEducation = onSnapshot(
+      collection(db, 'education'),
+      (snap) => {
+        if (!snap.empty) {
+          const list: EducationRecord[] = [];
+          snap.forEach((d) => {
+            list.push({ ...d.data(), id: d.id } as EducationRecord);
+          });
+          store.education = list;
+          safeStorageSet(STORAGE_KEYS.education, list);
+          notifyListeners();
+        }
+      },
+      (err) => console.warn('[CMS Firestore] Education sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubEducation);
+
+    // 13. Media Assets Collection
+    const unsubMedia = onSnapshot(
+      collection(db, 'mediaAssets'),
+      (snap) => {
+        if (!snap.empty) {
+          const list: MediaAsset[] = [];
+          snap.forEach((d) => {
+            list.push({ ...d.data(), id: d.id } as MediaAsset);
+          });
+          store.media = list;
+          safeStorageSet(STORAGE_KEYS.media, list);
+          notifyListeners();
+        }
+      },
+      (err) => console.warn('[CMS Firestore] MediaAssets sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubMedia);
+
+    // 14. Contact Messages (Authenticated Admin only)
+    try {
+      const unsubMessages = onSnapshot(
+        collection(db, 'contactMessages'),
+        (snap) => {
+          if (!snap.empty) {
+            const list: ContactMessage[] = [];
+            snap.forEach((d) => {
+              list.push({ ...d.data(), id: d.id } as ContactMessage);
+            });
+            list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            store.messages = list;
+            safeStorageSet(STORAGE_KEYS.messages, list);
+            notifyListeners();
+          }
+        },
+        () => {
+          // Unauthenticated visitors will fail silently on contactMessages read
+        }
+      );
+      activeUnsubscribers.push(unsubMessages);
+    } catch {
+      // ignore
+    }
+  } catch (err) {
+    console.warn('[CMS Firestore] Initialization notice:', err);
+  }
+}
+
+// Automatically start Firestore sync on client load
+if (typeof window !== 'undefined') {
+  initFirestoreSync();
 }
 
 export const cmsService = {
+  /**
+   * Register a subscriber to be notified whenever any CMS data changes
+   */
   subscribe(fn: Listener) {
     listeners.add(fn);
+    if (!isInitialized) {
+      initFirestoreSync();
+    }
     return () => {
       listeners.delete(fn);
     };
   },
 
-  // ================= PROFILE =================
-  getProfile(): ProfileData {
-    const raw = localStorage.getItem(STORAGE_KEYS.profile);
-    if (raw) {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        // fallback
-      }
-    }
-    return DEFAULT_PROFILE;
+  /**
+   * Manually trigger Firestore sync initialization
+   */
+  init() {
+    initFirestoreSync();
   },
 
-  async updateProfile(profile: ProfileData): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.profile, JSON.stringify(profile));
-    if (db) {
-      try {
-        await setDoc(doc(db, 'profile', 'main'), profile);
-      } catch (err) {
-        console.warn('[CMS Firestore] Profile sync notice:', err);
-      }
+  // ================= PROFILE =================
+  getProfile(preferDraft = false): ProfileData {
+    if (preferDraft && store.profileDraft) {
+      return store.profileDraft;
     }
+    return store.profile;
+  },
+
+  getProfileDraft(): ProfileData | null {
+    return store.profileDraft;
+  },
+
+  /**
+   * Publish Profile globally to Firestore
+   * Root fields are updated; draft is cleared; public website updates immediately.
+   */
+  async publishProfile(profile: ProfileData): Promise<void> {
+    const payload: ProfileData = {
+      ...profile,
+      status: 'published',
+      publishedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      draft: undefined,
+    };
+
+    if (db) {
+      await setDoc(doc(db, 'profile', 'main'), payload);
+    }
+
+    store.profile = payload;
+    store.profileDraft = null;
+    safeStorageSet(STORAGE_KEYS.profile, payload);
     notifyListeners();
+  },
+
+  /**
+   * Save Profile Draft
+   * Stored in draft sub-field; published content is preserved; public site is untouched.
+   */
+  async saveProfileDraft(draft: ProfileData): Promise<void> {
+    const draftPayload = {
+      ...draft,
+      status: 'draft' as const,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (db) {
+      await setDoc(
+        doc(db, 'profile', 'main'),
+        {
+          draft: draftPayload,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+    }
+
+    store.profileDraft = draftPayload;
+    notifyListeners();
+  },
+
+  /**
+   * Discard draft and revert to published version
+   */
+  async discardProfileDraft(): Promise<void> {
+    if (db) {
+      await setDoc(
+        doc(db, 'profile', 'main'),
+        { draft: null, updatedAt: new Date().toISOString() },
+        { merge: true }
+      );
+    }
+    store.profileDraft = null;
+    notifyListeners();
+  },
+
+  /**
+   * Update Profile (Backward compatible)
+   * If status is draft, saves as draft; if published, publishes globally.
+   */
+  async updateProfile(profile: ProfileData): Promise<void> {
+    if (profile.status === 'draft') {
+      await this.saveProfileDraft(profile);
+    } else {
+      await this.publishProfile(profile);
+    }
+  },
+
+  // ================= ABOUT SETTINGS =================
+  getAboutSettings(preferDraft = false): AboutSectionSettings {
+    if (preferDraft && store.aboutDraft) {
+      return store.aboutDraft;
+    }
+    return store.about;
+  },
+
+  getAboutDraft(): AboutSectionSettings | null {
+    return store.aboutDraft;
+  },
+
+  async publishAboutSettings(about: AboutSectionSettings): Promise<void> {
+    const payload: AboutSectionSettings = {
+      ...about,
+      status: 'published',
+      publishedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (db) {
+      await setDoc(doc(db, 'settings', 'about'), { ...payload, draft: null });
+    }
+
+    store.about = payload;
+    store.aboutDraft = null;
+    safeStorageSet(STORAGE_KEYS.about, payload);
+    notifyListeners();
+  },
+
+  async saveAboutDraft(draft: AboutSectionSettings): Promise<void> {
+    const draftPayload = {
+      ...draft,
+      status: 'draft' as const,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (db) {
+      await setDoc(
+        doc(db, 'settings', 'about'),
+        { draft: draftPayload, updatedAt: new Date().toISOString() },
+        { merge: true }
+      );
+    }
+
+    store.aboutDraft = draftPayload;
+    notifyListeners();
+  },
+
+  async discardAboutDraft(): Promise<void> {
+    if (db) {
+      await setDoc(
+        doc(db, 'settings', 'about'),
+        { draft: null, updatedAt: new Date().toISOString() },
+        { merge: true }
+      );
+    }
+    store.aboutDraft = null;
+    notifyListeners();
+  },
+
+  async updateAboutSettings(about: AboutSectionSettings): Promise<void> {
+    if (about.status === 'draft') {
+      await this.saveAboutDraft(about);
+    } else {
+      await this.publishAboutSettings(about);
+    }
   },
 
   // ================= EXPERIENCES =================
   getExperiences(onlyPublished = false): ExperienceRecord[] {
-    let list: ExperienceRecord[] = DEFAULT_EXPERIENCES;
-    const raw = localStorage.getItem(STORAGE_KEYS.experiences);
-    if (raw) {
-      try {
-        list = JSON.parse(raw);
-      } catch {
-        list = DEFAULT_EXPERIENCES;
-      }
-    }
+    let list = [...store.experiences];
     if (onlyPublished) {
       list = list.filter((e) => e.status === 'published');
     }
-    return list.sort((a, b) => a.displayOrder - b.displayOrder);
+    return list.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
   },
 
   async addExperience(exp: Omit<ExperienceRecord, 'id'>): Promise<ExperienceRecord> {
-    const experiences = this.getExperiences(false);
     const newRecord: ExperienceRecord = {
       ...exp,
       id: 'exp-' + Date.now(),
+      updatedAt: new Date().toISOString(),
     };
-    experiences.unshift(newRecord);
-    localStorage.setItem(STORAGE_KEYS.experiences, JSON.stringify(experiences));
+
     if (db) {
-      try {
-        await setDoc(doc(db, 'experiences', newRecord.id), newRecord);
-      } catch (err) {
-        console.warn('[CMS Firestore] Experience add notice:', err);
-      }
+      await setDoc(doc(db, 'experiences', newRecord.id), newRecord);
     }
+
+    store.experiences.unshift(newRecord);
+    store.experiences.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    safeStorageSet(STORAGE_KEYS.experiences, store.experiences);
     notifyListeners();
     return newRecord;
   },
 
   async updateExperience(id: string, updates: Partial<ExperienceRecord>): Promise<void> {
-    const experiences = this.getExperiences(false);
-    const idx = experiences.findIndex((e) => e.id === id);
+    const payload = {
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (db) {
+      await updateDoc(doc(db, 'experiences', id), payload as any);
+    }
+
+    const idx = store.experiences.findIndex((e) => e.id === id);
     if (idx !== -1) {
-      experiences[idx] = { ...experiences[idx], ...updates };
-      localStorage.setItem(STORAGE_KEYS.experiences, JSON.stringify(experiences));
-      if (db) {
-        try {
-          await updateDoc(doc(db, 'experiences', id), updates as any);
-        } catch (err) {
-          console.warn('[CMS Firestore] Experience update notice:', err);
-        }
-      }
+      store.experiences[idx] = { ...store.experiences[idx], ...payload };
+      store.experiences.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+      safeStorageSet(STORAGE_KEYS.experiences, store.experiences);
       notifyListeners();
     }
   },
 
   async deleteExperience(id: string): Promise<void> {
-    let experiences = this.getExperiences(false);
-    experiences = experiences.filter((e) => e.id !== id);
-    localStorage.setItem(STORAGE_KEYS.experiences, JSON.stringify(experiences));
     if (db) {
-      try {
-        await deleteDoc(doc(db, 'experiences', id));
-      } catch (err) {
-        console.warn('[CMS Firestore] Experience delete notice:', err);
+      await deleteDoc(doc(db, 'experiences', id));
+    }
+
+    store.experiences = store.experiences.filter((e) => e.id !== id);
+    safeStorageSet(STORAGE_KEYS.experiences, store.experiences);
+    notifyListeners();
+  },
+
+  async duplicateExperience(id: string): Promise<ExperienceRecord | null> {
+    const exp = store.experiences.find((e) => e.id === id);
+    if (!exp) return null;
+    const duplicated: Omit<ExperienceRecord, 'id'> = {
+      ...exp,
+      jobTitle: `${exp.jobTitle} (Copy)`,
+      status: 'draft',
+      displayOrder: (exp.displayOrder || 0) + 1,
+    };
+    return await this.addExperience(duplicated);
+  },
+
+  async reorderExperiences(ids: string[]): Promise<void> {
+    const reordered = ids
+      .map((id, index) => {
+        const item = store.experiences.find((e) => e.id === id);
+        return item ? { ...item, displayOrder: index + 1 } : null;
+      })
+      .filter(Boolean) as ExperienceRecord[];
+
+    if (db) {
+      for (const item of reordered) {
+        await updateDoc(doc(db, 'experiences', item.id), {
+          displayOrder: item.displayOrder,
+          updatedAt: new Date().toISOString(),
+        });
       }
     }
+
+    store.experiences = reordered;
+    safeStorageSet(STORAGE_KEYS.experiences, reordered);
     notifyListeners();
   },
 
   // ================= PROJECTS =================
   getProjects(onlyPublished = false): ProjectRecord[] {
-    let list: ProjectRecord[] = DEFAULT_PROJECTS;
-    const raw = localStorage.getItem(STORAGE_KEYS.projects);
-    if (raw) {
-      try {
-        list = JSON.parse(raw);
-      } catch {
-        list = DEFAULT_PROJECTS;
-      }
-    }
+    let list = [...store.projects];
     if (onlyPublished) {
       list = list.filter((p) => p.status === 'published');
     }
-    return list.sort((a, b) => a.displayOrder - b.displayOrder);
+    return list.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
   },
 
   async addProject(proj: Omit<ProjectRecord, 'id'>): Promise<ProjectRecord> {
-    const projects = this.getProjects(false);
     const newRecord: ProjectRecord = {
       ...proj,
       id: 'proj-' + Date.now(),
+      updatedAt: new Date().toISOString(),
     };
-    projects.push(newRecord);
-    localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(projects));
+
     if (db) {
-      try {
-        await setDoc(doc(db, 'projects', newRecord.id), newRecord);
-      } catch (err) {
-        console.warn('[CMS Firestore] Project add notice:', err);
-      }
+      await setDoc(doc(db, 'projects', newRecord.id), newRecord);
     }
+
+    store.projects.push(newRecord);
+    store.projects.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    safeStorageSet(STORAGE_KEYS.projects, store.projects);
     notifyListeners();
     return newRecord;
   },
 
   async updateProject(id: string, updates: Partial<ProjectRecord>): Promise<void> {
-    const projects = this.getProjects(false);
-    const idx = projects.findIndex((p) => p.id === id);
+    const payload = {
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (db) {
+      await updateDoc(doc(db, 'projects', id), payload as any);
+    }
+
+    const idx = store.projects.findIndex((p) => p.id === id);
     if (idx !== -1) {
-      projects[idx] = { ...projects[idx], ...updates };
-      localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(projects));
-      if (db) {
-        try {
-          await updateDoc(doc(db, 'projects', id), updates as any);
-        } catch (err) {
-          console.warn('[CMS Firestore] Project update notice:', err);
-        }
-      }
+      store.projects[idx] = { ...store.projects[idx], ...payload };
+      store.projects.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+      safeStorageSet(STORAGE_KEYS.projects, store.projects);
       notifyListeners();
     }
   },
 
   async deleteProject(id: string): Promise<void> {
-    let projects = this.getProjects(false);
-    projects = projects.filter((p) => p.id !== id);
-    localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(projects));
     if (db) {
-      try {
-        await deleteDoc(doc(db, 'projects', id));
-      } catch (err) {
-        console.warn('[CMS Firestore] Project delete notice:', err);
+      await deleteDoc(doc(db, 'projects', id));
+    }
+
+    store.projects = store.projects.filter((p) => p.id !== id);
+    safeStorageSet(STORAGE_KEYS.projects, store.projects);
+    notifyListeners();
+  },
+
+  async duplicateProject(id: string): Promise<ProjectRecord | null> {
+    const proj = store.projects.find((p) => p.id === id);
+    if (!proj) return null;
+    const duplicated: Omit<ProjectRecord, 'id'> = {
+      ...proj,
+      name: `${proj.name} (Copy)`,
+      status: 'draft',
+      displayOrder: (proj.displayOrder || 0) + 1,
+    };
+    return await this.addProject(duplicated);
+  },
+
+  async reorderProjects(ids: string[]): Promise<void> {
+    const reordered = ids
+      .map((id, index) => {
+        const item = store.projects.find((p) => p.id === id);
+        return item ? { ...item, displayOrder: index + 1 } : null;
+      })
+      .filter(Boolean) as ProjectRecord[];
+
+    if (db) {
+      for (const item of reordered) {
+        await updateDoc(doc(db, 'projects', item.id), {
+          displayOrder: item.displayOrder,
+          updatedAt: new Date().toISOString(),
+        });
       }
     }
+
+    store.projects = reordered;
+    safeStorageSet(STORAGE_KEYS.projects, reordered);
     notifyListeners();
   },
 
   // ================= CERTIFICATIONS =================
   getCertifications(onlyPublished = false): CertificationRecord[] {
-    let list: CertificationRecord[] = DEFAULT_CERTIFICATIONS;
-    const raw = localStorage.getItem(STORAGE_KEYS.certifications);
-    if (raw) {
-      try {
-        list = JSON.parse(raw);
-      } catch {
-        list = DEFAULT_CERTIFICATIONS;
-      }
-    }
+    let list = [...store.certifications];
     if (onlyPublished) {
       list = list.filter((c) => c.status === 'published');
     }
-    return list;
+    return list.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
   },
 
   async addCertification(cert: Omit<CertificationRecord, 'id'>): Promise<CertificationRecord> {
-    const certs = this.getCertifications(false);
     const newRecord: CertificationRecord = {
       ...cert,
       id: 'cert-' + Date.now(),
+      updatedAt: new Date().toISOString(),
     };
-    certs.unshift(newRecord);
-    localStorage.setItem(STORAGE_KEYS.certifications, JSON.stringify(certs));
+
     if (db) {
-      try {
-        await setDoc(doc(db, 'certifications', newRecord.id), newRecord);
-      } catch (err) {
-        console.warn('[CMS Firestore] Cert add notice:', err);
-      }
+      await setDoc(doc(db, 'certifications', newRecord.id), newRecord);
     }
+
+    store.certifications.unshift(newRecord);
+    safeStorageSet(STORAGE_KEYS.certifications, store.certifications);
     notifyListeners();
     return newRecord;
   },
 
   async updateCertification(id: string, updates: Partial<CertificationRecord>): Promise<void> {
-    const certs = this.getCertifications(false);
-    const idx = certs.findIndex((c) => c.id === id);
+    const payload = {
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (db) {
+      await updateDoc(doc(db, 'certifications', id), payload as any);
+    }
+
+    const idx = store.certifications.findIndex((c) => c.id === id);
     if (idx !== -1) {
-      certs[idx] = { ...certs[idx], ...updates };
-      localStorage.setItem(STORAGE_KEYS.certifications, JSON.stringify(certs));
-      if (db) {
-        try {
-          await updateDoc(doc(db, 'certifications', id), updates as any);
-        } catch (err) {
-          console.warn('[CMS Firestore] Cert update notice:', err);
-        }
-      }
+      store.certifications[idx] = { ...store.certifications[idx], ...payload };
+      safeStorageSet(STORAGE_KEYS.certifications, store.certifications);
       notifyListeners();
     }
   },
 
   async deleteCertification(id: string): Promise<void> {
-    let certs = this.getCertifications(false);
-    certs = certs.filter((c) => c.id !== id);
-    localStorage.setItem(STORAGE_KEYS.certifications, JSON.stringify(certs));
     if (db) {
-      try {
-        await deleteDoc(doc(db, 'certifications', id));
-      } catch (err) {
-        console.warn('[CMS Firestore] Cert delete notice:', err);
-      }
+      await deleteDoc(doc(db, 'certifications', id));
     }
+
+    store.certifications = store.certifications.filter((c) => c.id !== id);
+    safeStorageSet(STORAGE_KEYS.certifications, store.certifications);
     notifyListeners();
+  },
+
+  async duplicateCertification(id: string): Promise<CertificationRecord | null> {
+    const cert = store.certifications.find((c) => c.id === id);
+    if (!cert) return null;
+    const duplicated: Omit<CertificationRecord, 'id'> = {
+      ...cert,
+      title: `${cert.title} (Copy)`,
+      status: 'draft',
+      displayOrder: (cert.displayOrder || 1) + 1,
+    };
+    return await this.addCertification(duplicated);
   },
 
   // ================= SKILLS =================
   getSkills(): SkillRecord[] {
-    const raw = localStorage.getItem(STORAGE_KEYS.skills);
-    if (raw) {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        // fallback
-      }
-    }
-    return DEFAULT_SKILLS;
+    return [...store.skills].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
   },
 
   async addSkill(skill: Omit<SkillRecord, 'id'>): Promise<SkillRecord> {
-    const skills = this.getSkills();
     const newRecord: SkillRecord = {
       ...skill,
       id: 'sk-' + Date.now(),
+      updatedAt: new Date().toISOString(),
     };
-    skills.push(newRecord);
-    localStorage.setItem(STORAGE_KEYS.skills, JSON.stringify(skills));
+
     if (db) {
-      try {
-        await setDoc(doc(db, 'skills', newRecord.id), newRecord);
-      } catch (err) {
-        console.warn('[CMS Firestore] Skill add notice:', err);
-      }
+      await setDoc(doc(db, 'skills', newRecord.id), newRecord);
     }
+
+    store.skills.push(newRecord);
+    safeStorageSet(STORAGE_KEYS.skills, store.skills);
     notifyListeners();
     return newRecord;
   },
 
   async updateSkill(id: string, updates: Partial<SkillRecord>): Promise<void> {
-    const skills = this.getSkills();
-    const idx = skills.findIndex((s) => s.id === id);
+    const payload = {
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (db) {
+      await updateDoc(doc(db, 'skills', id), payload as any);
+    }
+
+    const idx = store.skills.findIndex((s) => s.id === id);
     if (idx !== -1) {
-      skills[idx] = { ...skills[idx], ...updates };
-      localStorage.setItem(STORAGE_KEYS.skills, JSON.stringify(skills));
-      if (db) {
-        try {
-          await updateDoc(doc(db, 'skills', id), updates as any);
-        } catch (err) {
-          console.warn('[CMS Firestore] Skill update notice:', err);
-        }
-      }
+      store.skills[idx] = { ...store.skills[idx], ...payload };
+      safeStorageSet(STORAGE_KEYS.skills, store.skills);
       notifyListeners();
     }
   },
 
   async deleteSkill(id: string): Promise<void> {
-    let skills = this.getSkills();
-    skills = skills.filter((s) => s.id !== id);
-    localStorage.setItem(STORAGE_KEYS.skills, JSON.stringify(skills));
     if (db) {
-      try {
-        await deleteDoc(doc(db, 'skills', id));
-      } catch (err) {
-        console.warn('[CMS Firestore] Skill delete notice:', err);
-      }
+      await deleteDoc(doc(db, 'skills', id));
     }
+
+    store.skills = store.skills.filter((s) => s.id !== id);
+    safeStorageSet(STORAGE_KEYS.skills, store.skills);
     notifyListeners();
+  },
+
+  async ensureSkill(name: string, category: string = 'General Capabilities'): Promise<SkillRecord> {
+    const trimmed = name.trim();
+    const existing = store.skills.find((s) => s.name.toLowerCase() === trimmed.toLowerCase());
+    if (existing) return existing;
+
+    const newSkill: Omit<SkillRecord, 'id'> = {
+      name: trimmed,
+      category,
+      displayOrder: store.skills.length + 1,
+    };
+    return await this.addSkill(newSkill);
   },
 
   // ================= EDUCATION =================
   getEducation(): EducationRecord[] {
-    const raw = localStorage.getItem(STORAGE_KEYS.education);
-    if (raw) {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        // fallback
-      }
-    }
-    return DEFAULT_EDUCATION;
+    return [...store.education];
   },
 
   async addEducation(edu: Omit<EducationRecord, 'id'>): Promise<EducationRecord> {
-    const education = this.getEducation();
     const newRecord: EducationRecord = {
       ...edu,
       id: 'edu-' + Date.now(),
+      updatedAt: new Date().toISOString(),
     };
-    education.push(newRecord);
-    localStorage.setItem(STORAGE_KEYS.education, JSON.stringify(education));
+
     if (db) {
-      try {
-        await setDoc(doc(db, 'education', newRecord.id), newRecord);
-      } catch (err) {
-        console.warn('[CMS Firestore] Education add notice:', err);
-      }
+      await setDoc(doc(db, 'education', newRecord.id), newRecord);
     }
+
+    store.education.push(newRecord);
+    safeStorageSet(STORAGE_KEYS.education, store.education);
     notifyListeners();
     return newRecord;
   },
 
   async updateEducation(id: string, updates: Partial<EducationRecord>): Promise<void> {
-    const education = this.getEducation();
-    const idx = education.findIndex((e) => e.id === id);
+    const payload = {
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (db) {
+      await updateDoc(doc(db, 'education', id), payload as any);
+    }
+
+    const idx = store.education.findIndex((e) => e.id === id);
     if (idx !== -1) {
-      education[idx] = { ...education[idx], ...updates };
-      localStorage.setItem(STORAGE_KEYS.education, JSON.stringify(education));
-      if (db) {
-        try {
-          await updateDoc(doc(db, 'education', id), updates as any);
-        } catch (err) {
-          console.warn('[CMS Firestore] Education update notice:', err);
-        }
-      }
+      store.education[idx] = { ...store.education[idx], ...payload };
+      safeStorageSet(STORAGE_KEYS.education, store.education);
       notifyListeners();
     }
   },
 
   async deleteEducation(id: string): Promise<void> {
-    let education = this.getEducation();
-    education = education.filter((e) => e.id !== id);
-    localStorage.setItem(STORAGE_KEYS.education, JSON.stringify(education));
     if (db) {
-      try {
-        await deleteDoc(doc(db, 'education', id));
-      } catch (err) {
-        console.warn('[CMS Firestore] Education delete notice:', err);
-      }
+      await deleteDoc(doc(db, 'education', id));
     }
+
+    store.education = store.education.filter((e) => e.id !== id);
+    safeStorageSet(STORAGE_KEYS.education, store.education);
     notifyListeners();
-  },
-
-  // ================= SITE SETTINGS =================
-  getSiteSettings(): SiteSettings {
-    const raw = localStorage.getItem(STORAGE_KEYS.settings);
-    if (raw) {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        // fallback
-      }
-    }
-    return DEFAULT_SITE_SETTINGS;
-  },
-
-  async updateSiteSettings(settings: SiteSettings): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
-    if (db) {
-      try {
-        await setDoc(doc(db, 'siteSettings', 'global'), settings);
-      } catch (err) {
-        console.warn('[CMS Firestore] SiteSettings update notice:', err);
-      }
-    }
-    notifyListeners();
-  },
-
-  // ================= CONTACT MESSAGES =================
-  getContactMessages(): ContactMessage[] {
-    const raw = localStorage.getItem(STORAGE_KEYS.messages);
-    if (raw) {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        // fallback
-      }
-    }
-    return DEFAULT_CONTACT_MESSAGES;
-  },
-
-  async submitContactMessage(msg: {
-    name: string;
-    email: string;
-    organization?: string;
-    subject: string;
-    message: string;
-  }): Promise<{ success: boolean; id: string }> {
-    const messages = this.getContactMessages();
-    const newRecord: ContactMessage = {
-      ...msg,
-      id: 'msg-' + Date.now(),
-      createdAt: new Date().toISOString(),
-      read: false,
-      archived: false,
-    };
-    messages.unshift(newRecord);
-    localStorage.setItem(STORAGE_KEYS.messages, JSON.stringify(messages));
-    if (db) {
-      try {
-        await addDoc(collection(db, 'contactMessages'), newRecord);
-      } catch (err) {
-        console.warn('[CMS Firestore] ContactMessage store notice:', err);
-      }
-    }
-    notifyListeners();
-    return { success: true, id: newRecord.id };
-  },
-
-  async markMessageRead(id: string, read: boolean): Promise<void> {
-    const messages = this.getContactMessages();
-    const idx = messages.findIndex((m) => m.id === id);
-    if (idx !== -1) {
-      messages[idx].read = read;
-      localStorage.setItem(STORAGE_KEYS.messages, JSON.stringify(messages));
-      notifyListeners();
-    }
-  },
-
-  async archiveMessage(id: string, archived: boolean): Promise<void> {
-    const messages = this.getContactMessages();
-    const idx = messages.findIndex((m) => m.id === id);
-    if (idx !== -1) {
-      messages[idx].archived = archived;
-      localStorage.setItem(STORAGE_KEYS.messages, JSON.stringify(messages));
-      notifyListeners();
-    }
-  },
-
-  async deleteMessage(id: string): Promise<void> {
-    let messages = this.getContactMessages();
-    messages = messages.filter((m) => m.id !== id);
-    localStorage.setItem(STORAGE_KEYS.messages, JSON.stringify(messages));
-    notifyListeners();
-  },
-
-  // ================= MEDIA ASSETS & RESUME =================
-  getMediaAssets(): MediaAsset[] {
-    const raw = localStorage.getItem(STORAGE_KEYS.media);
-    if (raw) {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        // fallback
-      }
-    }
-    return DEFAULT_MEDIA_ASSETS;
-  },
-
-  async addMediaAsset(asset: Omit<MediaAsset, 'id' | 'uploadedAt'>): Promise<MediaAsset> {
-    const assets = this.getMediaAssets();
-    const newAsset: MediaAsset = {
-      ...asset,
-      id: 'media-' + Date.now(),
-      uploadedAt: new Date().toISOString(),
-    };
-    assets.unshift(newAsset);
-    localStorage.setItem(STORAGE_KEYS.media, JSON.stringify(assets));
-    notifyListeners();
-    return newAsset;
-  },
-
-  async deleteMediaAsset(id: string): Promise<void> {
-    let assets = this.getMediaAssets();
-    assets = assets.filter((a) => a.id !== id);
-    localStorage.setItem(STORAGE_KEYS.media, JSON.stringify(assets));
-    notifyListeners();
-  },
-
-  async uploadResume(filename: string, fileUrl: string, sizeBytes: number): Promise<void> {
-    const profile = this.getProfile();
-    profile.resumeUrl = fileUrl;
-    await this.updateProfile(profile);
-
-    await this.addMediaAsset({
-      name: filename,
-      url: fileUrl,
-      type: 'application/pdf',
-      sizeBytes,
-      category: 'resume',
-    });
   },
 
   // ================= HOMEPAGE SETTINGS =================
-  getHomepageSettings(): HomepageSettings {
-    const raw = localStorage.getItem(STORAGE_KEYS.homepage);
-    if (raw) {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        // fallback
-      }
+  getHomepageSettings(preferDraft = false): HomepageSettings {
+    if (preferDraft && store.homepageDraft) {
+      return store.homepageDraft;
     }
-    return DEFAULT_HOMEPAGE_SETTINGS;
+    return store.homepage;
+  },
+
+  async publishHomepageSettings(settings: HomepageSettings): Promise<void> {
+    if (db) {
+      await setDoc(doc(db, 'settings', 'homepage'), {
+        ...settings,
+        draft: null,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    store.homepage = settings;
+    store.homepageDraft = null;
+    safeStorageSet(STORAGE_KEYS.homepage, settings);
+    notifyListeners();
+  },
+
+  async saveHomepageDraft(draft: HomepageSettings): Promise<void> {
+    if (db) {
+      await setDoc(
+        doc(db, 'settings', 'homepage'),
+        { draft, updatedAt: new Date().toISOString() },
+        { merge: true }
+      );
+    }
+
+    store.homepageDraft = draft;
+    notifyListeners();
   },
 
   async updateHomepageSettings(settings: HomepageSettings): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.homepage, JSON.stringify(settings));
-    if (db) {
-      try {
-        await setDoc(doc(db, 'settings', 'homepage'), settings);
-      } catch (err) {
-        console.warn('[CMS Firestore] Homepage settings sync notice:', err);
-      }
+    await this.publishHomepageSettings(settings);
+  },
+
+  // ================= OPEN TO WORK SETTINGS =================
+  getOpenToWorkSettings(preferDraft = false): OpenToWorkSettings {
+    if (preferDraft && store.openToWorkDraft) {
+      return store.openToWorkDraft;
     }
+    return store.openToWork;
+  },
+
+  async publishOpenToWorkSettings(settings: OpenToWorkSettings): Promise<void> {
+    if (db) {
+      await setDoc(doc(db, 'settings', 'openToWork'), {
+        ...settings,
+        draft: null,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    store.openToWork = settings;
+    store.openToWorkDraft = null;
+    safeStorageSet(STORAGE_KEYS.openToWork, settings);
     notifyListeners();
   },
 
-  // ================= ABOUT SETTINGS =================
-  getAboutSettings(): AboutSectionSettings {
-    const raw = localStorage.getItem(STORAGE_KEYS.about);
-    if (raw) {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        // fallback
-      }
+  async saveOpenToWorkDraft(draft: OpenToWorkSettings): Promise<void> {
+    if (db) {
+      await setDoc(
+        doc(db, 'settings', 'openToWork'),
+        { draft, updatedAt: new Date().toISOString() },
+        { merge: true }
+      );
     }
-    return DEFAULT_ABOUT_SETTINGS;
+
+    store.openToWorkDraft = draft;
+    notifyListeners();
   },
 
-  async updateAboutSettings(about: AboutSectionSettings): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.about, JSON.stringify(about));
-    if (db) {
-      try {
-        await setDoc(doc(db, 'settings', 'about'), about);
-      } catch (err) {
-        console.warn('[CMS Firestore] About settings sync notice:', err);
-      }
-    }
-    notifyListeners();
+  async updateOpenToWorkSettings(settings: OpenToWorkSettings): Promise<void> {
+    await this.publishOpenToWorkSettings(settings);
   },
 
   // ================= RESUME RECORD =================
-  getResumeRecord(): ResumeRecord {
-    const raw = localStorage.getItem(STORAGE_KEYS.resume);
-    if (raw) {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        // fallback
-      }
+  getResumeRecord(preferDraft = false): ResumeRecord {
+    if (preferDraft && store.resumeDraft) {
+      return store.resumeDraft;
     }
-    return DEFAULT_RESUME_RECORD;
+    return store.resume;
+  },
+
+  async publishResumeRecord(resume: ResumeRecord): Promise<void> {
+    if (db) {
+      await setDoc(doc(db, 'resume', 'primary'), {
+        ...resume,
+        draft: null,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    store.resume = resume;
+    store.resumeDraft = null;
+    safeStorageSet(STORAGE_KEYS.resume, resume);
+
+    // Also update profile resume fields
+    const updatedProfile: ProfileData = {
+      ...store.profile,
+      resumeUrl: resume.fileUrl,
+      resumeButtonText: resume.buttonText,
+      isResumeDownloadEnabled: resume.isPublicEnabled,
+      updatedAt: new Date().toISOString(),
+    };
+    await this.publishProfile(updatedProfile);
+  },
+
+  async saveResumeDraft(draft: ResumeRecord): Promise<void> {
+    if (db) {
+      await setDoc(
+        doc(db, 'resume', 'primary'),
+        { draft, updatedAt: new Date().toISOString() },
+        { merge: true }
+      );
+    }
+
+    store.resumeDraft = draft;
+    notifyListeners();
   },
 
   async updateResumeRecord(resume: ResumeRecord): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.resume, JSON.stringify(resume));
-    // Also sync profile resumeUrl
-    const profile = this.getProfile();
-    profile.resumeUrl = resume.fileUrl;
-    profile.resumeButtonText = resume.buttonText;
-    profile.isResumeDownloadEnabled = resume.isPublicEnabled;
-    await this.updateProfile(profile);
-
-    if (db) {
-      try {
-        await setDoc(doc(db, 'resume', 'primary'), resume);
-      } catch (err) {
-        console.warn('[CMS Firestore] Resume record sync notice:', err);
-      }
-    }
-    notifyListeners();
+    await this.publishResumeRecord(resume);
   },
 
   async uploadResumeFile(file: File, buttonText?: string): Promise<ResumeRecord> {
     let fileUrl = '';
-    // Try Firebase Storage first
     try {
       const { storage } = await import('./firebase');
       if (storage) {
@@ -669,7 +1099,6 @@ export const cmsService = {
       console.warn('[CMS Storage] Upload to Firebase Storage fallback:', err);
     }
 
-    // Fallback to local Data URL if Storage unavailable or unauthorized
     if (!fileUrl) {
       fileUrl = await new Promise((resolve) => {
         const reader = new FileReader();
@@ -690,9 +1119,8 @@ export const cmsService = {
       buttonText: buttonText || current.buttonText,
     };
 
-    await this.updateResumeRecord(updated);
+    await this.publishResumeRecord(updated);
 
-    // Also add to media library
     await this.addMediaAsset({
       name: file.name,
       url: fileUrl,
@@ -706,33 +1134,26 @@ export const cmsService = {
 
   // ================= SECTIONS CONFIG (SECTION MANAGER) =================
   getSectionsConfig(): SectionConfig[] {
-    let list: SectionConfig[] = DEFAULT_SECTIONS_CONFIG;
-    const raw = localStorage.getItem(STORAGE_KEYS.sections);
-    if (raw) {
-      try {
-        list = JSON.parse(raw);
-        if (!list.some((s) => s.sectionKey === 'projects')) {
-          const defaultProjSec = DEFAULT_SECTIONS_CONFIG.find((s) => s.sectionKey === 'projects');
-          if (defaultProjSec) {
-            list.splice(4, 0, defaultProjSec);
-          }
-        }
-      } catch {
-        list = DEFAULT_SECTIONS_CONFIG;
+    let list = [...store.sections];
+    if (!list.some((s) => s.sectionKey === 'projects')) {
+      const defaultProjSec = DEFAULT_SECTIONS_CONFIG.find((s) => s.sectionKey === 'projects');
+      if (defaultProjSec) {
+        list.splice(4, 0, defaultProjSec);
       }
     }
     return list;
   },
 
   async updateSectionsConfig(sections: SectionConfig[]): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.sections, JSON.stringify(sections));
     if (db) {
-      try {
-        await setDoc(doc(db, 'settings', 'sections'), { list: sections });
-      } catch (err) {
-        console.warn('[CMS Firestore] Sections config sync notice:', err);
-      }
+      await setDoc(doc(db, 'settings', 'sections'), {
+        list: sections,
+        updatedAt: new Date().toISOString(),
+      });
     }
+
+    store.sections = sections;
+    safeStorageSet(STORAGE_KEYS.sections, sections);
     notifyListeners();
   },
 
@@ -752,191 +1173,134 @@ export const cmsService = {
 
   // ================= APPEARANCE SETTINGS =================
   getAppearanceSettings(): AppearanceSettings {
-    const raw = localStorage.getItem(STORAGE_KEYS.appearance);
-    if (raw) {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        // fallback
-      }
-    }
-    return DEFAULT_APPEARANCE_SETTINGS;
+    return store.appearance;
   },
 
   async updateAppearanceSettings(appearance: AppearanceSettings): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.appearance, JSON.stringify(appearance));
     if (db) {
-      try {
-        await setDoc(doc(db, 'settings', 'appearance'), appearance);
-      } catch (err) {
-        console.warn('[CMS Firestore] Appearance settings sync notice:', err);
-      }
-    }
-    notifyListeners();
-  },
-
-  // ================= OPEN TO WORK SETTINGS =================
-  getOpenToWorkSettings(): OpenToWorkSettings {
-    const raw = localStorage.getItem(STORAGE_KEYS.openToWork);
-    if (raw) {
-      try {
-        return JSON.parse(raw);
-      } catch {
-        // fallback
-      }
-    }
-    return DEFAULT_OPEN_TO_WORK_SETTINGS;
-  },
-
-  async updateOpenToWorkSettings(settings: OpenToWorkSettings): Promise<void> {
-    localStorage.setItem(STORAGE_KEYS.openToWork, JSON.stringify(settings));
-    if (db) {
-      try {
-        await setDoc(doc(db, 'settings', 'openToWork'), settings);
-      } catch (err) {
-        console.warn('[CMS Firestore] Open to Work settings sync notice:', err);
-      }
-    }
-    notifyListeners();
-  },
-
-  // ================= DUPLICATE EXPERIENCE HELPER =================
-  async duplicateExperience(id: string): Promise<ExperienceRecord | null> {
-    const exp = this.getExperiences(false).find((e) => e.id === id);
-    if (!exp) return null;
-    const duplicated: Omit<ExperienceRecord, 'id'> = {
-      ...exp,
-      jobTitle: `${exp.jobTitle} (Copy)`,
-      status: 'draft',
-      displayOrder: exp.displayOrder + 1,
-    };
-    return await this.addExperience(duplicated);
-  },
-
-  // ================= DUPLICATE PROJECT HELPER =================
-  async duplicateProject(id: string): Promise<ProjectRecord | null> {
-    const proj = this.getProjects(false).find((p) => p.id === id);
-    if (!proj) return null;
-    const duplicated: Omit<ProjectRecord, 'id'> = {
-      ...proj,
-      name: `${proj.name} (Copy)`,
-      status: 'draft',
-      displayOrder: proj.displayOrder + 1,
-    };
-    return await this.addProject(duplicated);
-  },
-
-  // ================= DUPLICATE CERTIFICATION HELPER =================
-  async duplicateCertification(id: string): Promise<CertificationRecord | null> {
-    const cert = this.getCertifications(false).find((c) => c.id === id);
-    if (!cert) return null;
-    const duplicated: Omit<CertificationRecord, 'id'> = {
-      ...cert,
-      title: `${cert.title} (Copy)`,
-      status: 'draft',
-      displayOrder: (cert.displayOrder || 1) + 1,
-    };
-    return await this.addCertification(duplicated);
-  },
-
-  // ================= REORDERING HELPERS =================
-  async reorderExperiences(ids: string[]): Promise<void> {
-    const experiences = this.getExperiences(false);
-    const reordered = ids
-      .map((id, index) => {
-        const item = experiences.find((e) => e.id === id);
-        return item ? { ...item, displayOrder: index + 1 } : null;
-      })
-      .filter(Boolean) as ExperienceRecord[];
-    localStorage.setItem(STORAGE_KEYS.experiences, JSON.stringify(reordered));
-    if (db) {
-      try {
-        for (const item of reordered) {
-          await updateDoc(doc(db, 'experiences', item.id), { displayOrder: item.displayOrder });
-        }
-      } catch (err) {
-        console.warn('[CMS Firestore] Reorder experiences sync notice:', err);
-      }
-    }
-    notifyListeners();
-  },
-
-  async reorderProjects(ids: string[]): Promise<void> {
-    const projects = this.getProjects(false);
-    const reordered = ids
-      .map((id, index) => {
-        const item = projects.find((p) => p.id === id);
-        return item ? { ...item, displayOrder: index + 1 } : null;
-      })
-      .filter(Boolean) as ProjectRecord[];
-    localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(reordered));
-    if (db) {
-      try {
-        for (const item of reordered) {
-          await updateDoc(doc(db, 'projects', item.id), { displayOrder: item.displayOrder });
-        }
-      } catch (err) {
-        console.warn('[CMS Firestore] Reorder projects sync notice:', err);
-      }
-    }
-    notifyListeners();
-  },
-
-  // ================= CENTRAL SKILL LIBRARY INTEGRATION =================
-  async ensureSkill(name: string, category: string = 'General Capabilities'): Promise<SkillRecord> {
-    const trimmed = name.trim();
-    const skills = this.getSkills();
-    const existing = skills.find((s) => s.name.toLowerCase() === trimmed.toLowerCase());
-    if (existing) return existing;
-
-    const newSkill: Omit<SkillRecord, 'id'> = {
-      name: trimmed,
-      category,
-      displayOrder: skills.length + 1,
-    };
-    return await this.addSkill(newSkill);
-  },
-
-  // ================= MEDIA USAGE DETECTOR =================
-  checkMediaUsage(url: string): { isUsed: boolean; usedIn: string[] } {
-    const usedIn: string[] = [];
-    const profile = this.getProfile();
-    if (profile.profilePhoto === url) usedIn.push('Profile Photo');
-    if (profile.coverImage === url) usedIn.push('Profile Cover Image');
-    if (profile.resumeUrl === url) usedIn.push('Active Resume Link');
-
-    const exps = this.getExperiences(false);
-    exps.forEach((e) => {
-      if (e.logoUrl === url) usedIn.push(`Experience: ${e.employer} (Logo)`);
-      e.mediaItems?.forEach((m) => {
-        if (m.url === url) usedIn.push(`Experience: ${e.employer} (${m.title || 'Media'})`);
+      await setDoc(doc(db, 'settings', 'appearance'), {
+        ...appearance,
+        updatedAt: new Date().toISOString(),
       });
-    });
+    }
 
-    const projs = this.getProjects(false);
-    projs.forEach((p) => {
-      if (p.coverImage === url) usedIn.push(`Project: ${p.name} (Cover)`);
-      if (p.logoUrl === url) usedIn.push(`Project: ${p.name} (Logo)`);
-      if (p.screenshots?.includes(url)) usedIn.push(`Project: ${p.name} (Screenshot)`);
-      p.mediaItems?.forEach((m) => {
-        if (m.url === url) usedIn.push(`Project: ${p.name} (${m.title || 'Media'})`);
-      });
-    });
-
-    const certs = this.getCertifications(false);
-    certs.forEach((c) => {
-      if (c.certificateImage === url || c.certificatePdfUrl === url) {
-        usedIn.push(`Certification: ${c.title}`);
-      }
-    });
-
-    return {
-      isUsed: usedIn.length > 0,
-      usedIn,
-    };
+    store.appearance = appearance;
+    safeStorageSet(STORAGE_KEYS.appearance, appearance);
+    notifyListeners();
   },
 
-  // ================= MEDIA UPLOAD HELPER =================
+  // ================= SITE SETTINGS =================
+  getSiteSettings(): SiteSettings {
+    return store.siteSettings;
+  },
+
+  async updateSiteSettings(settings: SiteSettings): Promise<void> {
+    if (db) {
+      await setDoc(doc(db, 'siteSettings', 'global'), {
+        ...settings,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    store.siteSettings = settings;
+    safeStorageSet(STORAGE_KEYS.settings, settings);
+    notifyListeners();
+  },
+
+  // ================= CONTACT MESSAGES =================
+  getContactMessages(): ContactMessage[] {
+    return store.messages;
+  },
+
+  async submitContactMessage(msg: {
+    name: string;
+    email: string;
+    organization?: string;
+    subject: string;
+    message: string;
+  }): Promise<{ success: boolean; id: string }> {
+    const newRecord: ContactMessage = {
+      ...msg,
+      id: 'msg-' + Date.now(),
+      createdAt: new Date().toISOString(),
+      read: false,
+      archived: false,
+    };
+
+    if (db) {
+      await addDoc(collection(db, 'contactMessages'), newRecord);
+    }
+
+    store.messages.unshift(newRecord);
+    safeStorageSet(STORAGE_KEYS.messages, store.messages);
+    notifyListeners();
+    return { success: true, id: newRecord.id };
+  },
+
+  async markMessageRead(id: string, read: boolean): Promise<void> {
+    const idx = store.messages.findIndex((m) => m.id === id);
+    if (idx !== -1) {
+      store.messages[idx].read = read;
+      safeStorageSet(STORAGE_KEYS.messages, store.messages);
+      notifyListeners();
+    }
+  },
+
+  async archiveMessage(id: string, archived: boolean): Promise<void> {
+    const idx = store.messages.findIndex((m) => m.id === id);
+    if (idx !== -1) {
+      store.messages[idx].archived = archived;
+      safeStorageSet(STORAGE_KEYS.messages, store.messages);
+      notifyListeners();
+    }
+  },
+
+  async deleteMessage(id: string): Promise<void> {
+    store.messages = store.messages.filter((m) => m.id !== id);
+    safeStorageSet(STORAGE_KEYS.messages, store.messages);
+    notifyListeners();
+  },
+
+  // ================= MEDIA ASSETS & RESUME =================
+  getMediaAssets(): MediaAsset[] {
+    return store.media;
+  },
+
+  async addMediaAsset(asset: Omit<MediaAsset, 'id' | 'uploadedAt'>): Promise<MediaAsset> {
+    const newAsset: MediaAsset = {
+      ...asset,
+      id: 'media-' + Date.now(),
+      uploadedAt: new Date().toISOString(),
+    };
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'mediaAssets', newAsset.id), newAsset);
+      } catch (err) {
+        console.warn('[CMS Firestore] MediaAsset metadata write warning:', err);
+      }
+    }
+
+    store.media.unshift(newAsset);
+    safeStorageSet(STORAGE_KEYS.media, store.media);
+    notifyListeners();
+    return newAsset;
+  },
+
+  async deleteMediaAsset(id: string): Promise<void> {
+    if (db) {
+      try {
+        await deleteDoc(doc(db, 'mediaAssets', id));
+      } catch (err) {
+        console.warn('[CMS Firestore] MediaAsset delete warning:', err);
+      }
+    }
+
+    store.media = store.media.filter((a) => a.id !== id);
+    safeStorageSet(STORAGE_KEYS.media, store.media);
+    notifyListeners();
+  },
+
   async uploadMediaFile(
     file: File,
     category: MediaAsset['category'],
@@ -975,5 +1339,43 @@ export const cmsService = {
     });
 
     return asset;
+  },
+
+  checkMediaUsage(url: string): { isUsed: boolean; usedIn: string[] } {
+    const usedIn: string[] = [];
+    const profile = this.getProfile();
+    if (profile.profilePhoto === url) usedIn.push('Profile Photo');
+    if (profile.coverImage === url) usedIn.push('Profile Cover Image');
+    if (profile.resumeUrl === url) usedIn.push('Active Resume Link');
+
+    const exps = this.getExperiences(false);
+    exps.forEach((e) => {
+      if (e.logoUrl === url) usedIn.push(`Experience: ${e.employer} (Logo)`);
+      e.mediaItems?.forEach((m) => {
+        if (m.url === url) usedIn.push(`Experience: ${e.employer} (${m.title || 'Media'})`);
+      });
+    });
+
+    const projs = this.getProjects(false);
+    projs.forEach((p) => {
+      if (p.coverImage === url) usedIn.push(`Project: ${p.name} (Cover)`);
+      if (p.logoUrl === url) usedIn.push(`Project: ${p.name} (Logo)`);
+      if (p.screenshots?.includes(url)) usedIn.push(`Project: ${p.name} (Screenshot)`);
+      p.mediaItems?.forEach((m) => {
+        if (m.url === url) usedIn.push(`Project: ${p.name} (${m.title || 'Media'})`);
+      });
+    });
+
+    const certs = this.getCertifications(false);
+    certs.forEach((c) => {
+      if (c.certificateImage === url || c.certificatePdfUrl === url) {
+        usedIn.push(`Certification: ${c.title}`);
+      }
+    });
+
+    return {
+      isUsed: usedIn.length > 0,
+      usedIn,
+    };
   },
 };

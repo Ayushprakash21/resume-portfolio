@@ -222,7 +222,7 @@ export const App: React.FC = () => {
       </main>
 
       {/* MINIMAL EDITORIAL FOOTER */}
-      <Footer onOpenAdmin={navigateToAdmin} />
+      <Footer profile={profile} onOpenAdmin={navigateToAdmin} />
     </div>
   );
 };

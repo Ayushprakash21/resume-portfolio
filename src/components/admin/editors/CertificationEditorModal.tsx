@@ -164,24 +164,28 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
       updatedAt: new Date().toISOString(),
     };
 
-    if (isEditing && initialCertification) {
-      await cmsService.updateCertification(initialCertification.id, payload);
-      onSave({ ...payload, id: initialCertification.id });
-      showNotification(
-        targetStatus === 'published'
-          ? 'Certification updated and published.'
-          : 'Certification draft saved.'
-      );
-    } else {
-      const created = await cmsService.addCertification(payload);
-      onSave(created);
-      showNotification(
-        targetStatus === 'published'
-          ? 'Certification added and published.'
-          : 'Certification draft saved.'
-      );
+    try {
+      if (isEditing && initialCertification) {
+        await cmsService.updateCertification(initialCertification.id, payload);
+        onSave({ ...payload, id: initialCertification.id });
+        showNotification(
+          targetStatus === 'published'
+            ? 'Certification updated and published.'
+            : 'Certification draft saved.'
+        );
+      } else {
+        const created = await cmsService.addCertification(payload);
+        onSave(created);
+        showNotification(
+          targetStatus === 'published'
+            ? 'Certification added and published.'
+            : 'Certification draft saved.'
+        );
+      }
+      onClose();
+    } catch (err: any) {
+      showNotification('Save failed: ' + (err.message || 'Firebase error'), 'error');
     }
-    onClose();
   };
 
   const filteredSkills = allSkills

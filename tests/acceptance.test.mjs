@@ -482,4 +482,32 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(css.includes('.open-to-work-grid'), 'CSS defines .open-to-work-grid');
     assert.ok(css.includes('.contact-grid-responsive'), 'CSS defines .contact-grid-responsive');
   });
+
+  // Test 30: Global CMS Persistence, Dynamic Location, and Draft/Publish Architecture
+  await t.test('30. Global CMS Persistence: dynamic profile location, real-time Firestore sync, and draft/publish isolation', () => {
+    const about = fs.readFileSync('src/components/editorial/EditorialAbout.tsx', 'utf-8');
+    assert.ok(about.includes('{profile.location'), 'EditorialAbout dynamically renders profile.location from central store');
+    assert.ok(!about.includes('>Bengaluru, India<'), 'EditorialAbout has NO hardcoded Bengaluru, India string');
+
+    const introEditor = fs.readFileSync('src/components/admin/editors/IntroductionEditor.tsx', 'utf-8');
+    assert.ok(introEditor.includes('countryRegion'), 'IntroductionEditor supports Country');
+    assert.ok(introEditor.includes('stateProvince'), 'IntroductionEditor supports State');
+    assert.ok(introEditor.includes('city'), 'IntroductionEditor supports City');
+    assert.ok(introEditor.includes('location'), 'IntroductionEditor supports Full display location');
+    assert.ok(introEditor.includes('isLocationVisible'), 'IntroductionEditor supports location visibility toggle');
+    assert.ok(introEditor.includes('saveProfileDraft'), 'IntroductionEditor supports saving drafts');
+    assert.ok(introEditor.includes('publishProfile'), 'IntroductionEditor supports publishing');
+
+    const cms = fs.readFileSync('src/services/cmsService.ts', 'utf-8');
+    assert.ok(cms.includes('onSnapshot'), 'cmsService implements real-time Firestore onSnapshot listeners');
+    assert.ok(cms.includes('publishProfile'), 'cmsService provides publishProfile');
+    assert.ok(cms.includes('saveProfileDraft'), 'cmsService provides saveProfileDraft');
+    assert.ok(cms.includes('publishAboutSettings'), 'cmsService provides publishAboutSettings');
+    assert.ok(cms.includes('saveAboutDraft'), 'cmsService provides saveAboutDraft');
+
+    const rules = fs.readFileSync('firestore.rules', 'utf-8');
+    assert.ok(rules.includes('match /settings/{docId}'), 'firestore.rules covers /settings/{docId}');
+    assert.ok(rules.includes('match /resume/{docId}'), 'firestore.rules covers /resume/{docId}');
+    assert.ok(rules.includes('resource.data.status == \'published\''), 'Public visitors can only read published items');
+  });
 });

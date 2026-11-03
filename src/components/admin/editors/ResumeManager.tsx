@@ -76,20 +76,28 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    await cmsService.updateResumeRecord(form);
-    onUpdate(form);
-    showNotification('Resume download settings updated and published.');
+    try {
+      await cmsService.updateResumeRecord(form);
+      onUpdate(form);
+      showNotification('Resume download settings updated and published globally.', 'success');
+    } catch (err: any) {
+      showNotification('Save failed: ' + (err.message || 'Error'), 'error');
+    }
   };
 
   const handleSetActiveVersion = async (version: ResumeRecord) => {
-    const updated = { ...version, isActive: true };
-    setForm(updated);
-    await cmsService.updateResumeRecord(updated);
-    onUpdate(updated);
-    setVersions((prev) =>
-      prev.map((v) => ({ ...v, isActive: v.id === version.id }))
-    );
-    showNotification(`Version "${version.fileName}" set as active on live site.`);
+    try {
+      const updated = { ...version, isActive: true };
+      setForm(updated);
+      await cmsService.updateResumeRecord(updated);
+      onUpdate(updated);
+      setVersions((prev) =>
+        prev.map((v) => ({ ...v, isActive: v.id === version.id }))
+      );
+      showNotification(`Version "${version.fileName}" set as active on live site.`, 'success');
+    } catch (err: any) {
+      showNotification('Update failed: ' + (err.message || 'Error'), 'error');
+    }
   };
 
   return (

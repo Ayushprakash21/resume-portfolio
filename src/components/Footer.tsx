@@ -1,12 +1,14 @@
 import React from 'react';
 import { ArrowUp, Linkedin, Github, Mail } from 'lucide-react';
 import { ApMonogram } from './brand/ApMonogram';
+import { ProfileData } from '../types/cms';
 
 interface FooterProps {
+  profile?: ProfileData;
   onOpenAdmin?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = () => {
+export const Footer: React.FC<FooterProps> = ({ profile }) => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -137,7 +139,7 @@ export const Footer: React.FC<FooterProps> = () => {
               letterSpacing: '0.05em',
             }}
           >
-            Bengaluru, India &bull; Global Operations
+            {profile?.location ? `${profile.location} \u2022 Global Operations` : 'Indore, Madhya Pradesh, India \u2022 Global Operations'}
           </div>
         </div>
       </div>

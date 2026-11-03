@@ -112,9 +112,14 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile, aboutSe
                   <div style={{ fontFamily: 'var(--font-display)', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {profile.name}
                   </div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    Bengaluru, India
-                  </div>
+                  {profile.isLocationVisible !== false && (
+                    <div
+                      data-testid="profile-location"
+                      style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}
+                    >
+                      {profile.location || (profile.city ? `${profile.city}, ${profile.stateProvince ? profile.stateProvince + ', ' : ''}${profile.countryRegion || 'India'}` : '')}
+                    </div>
+                  )}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <MapPin size={13} color="var(--accent-silver)" />
