@@ -40,7 +40,7 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({ settin
     <section
       id="opentowork"
       style={{
-        padding: '130px 0',
+        padding: 'clamp(64px, 9vw, 120px) 0',
         backgroundColor: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-subtle)',
         position: 'relative',
@@ -155,16 +155,9 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({ settin
         </div>
 
         {/* Main 2-Column Luxury Glass Layout */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-            gap: '28px',
-            marginBottom: '48px',
-          }}
-        >
+        <div className="open-to-work-grid" style={{ marginBottom: '40px' }}>
           {/* Card 1: Target Disciplines & Job Categories */}
-          <div className="glass-card" style={{ padding: '36px' }}>
+          <div className="glass-card" style={{ padding: 'clamp(20px, 4vw, 36px)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
               <div
                 style={{
@@ -233,7 +226,7 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({ settin
           </div>
 
           {/* Card 2: Employment Types & Work Arrangements */}
-          <div className="glass-card" style={{ padding: '36px' }}>
+          <div className="glass-card" style={{ padding: 'clamp(20px, 4vw, 36px)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
               <div
                 style={{
@@ -334,7 +327,7 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({ settin
         </div>
 
         {/* Global Locations Card */}
-        <div className="glass-panel" style={{ padding: '36px', marginBottom: '56px' }}>
+        <div className="glass-panel" style={{ padding: 'clamp(20px, 4vw, 36px)', marginBottom: '44px' }}>
           <div
             style={{
               display: 'flex',
@@ -412,7 +405,7 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({ settin
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))',
               gap: '16px',
             }}
           >

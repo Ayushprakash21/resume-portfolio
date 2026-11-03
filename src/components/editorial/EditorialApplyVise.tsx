@@ -39,14 +39,14 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
         position: 'relative',
       }}
     >
-      <div className="container" style={{ maxWidth: '1080px', margin: '0 auto', padding: '0 24px' }}>
+      <div className="container" style={{ maxWidth: '1080px' }}>
         {/* ========================================================
             TOP SECTION: Category, Logo, Name, Subtitle, Intro, Buttons
             ======================================================== */}
         <div
           className="glass-card"
           style={{
-            padding: '36px 40px',
+            padding: 'clamp(20px, 4vw, 36px) clamp(18px, 4vw, 40px)',
             borderRadius: '20px',
             marginBottom: '32px',
             background: 'linear-gradient(135deg, rgba(22, 23, 28, 0.75) 0%, rgba(10, 11, 14, 0.9) 100%)',
@@ -406,7 +406,7 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
             gap: '20px',
             marginBottom: '28px',
           }}
@@ -416,7 +416,7 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
             style={{
               background: 'rgba(255, 255, 255, 0.03)',
               borderRadius: '16px',
-              padding: '24px 26px',
+              padding: '20px clamp(16px, 3.5vw, 26px)',
               border: '1px solid rgba(255, 255, 255, 0.08)',
             }}
           >
@@ -447,7 +447,7 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
             style={{
               background: 'rgba(255, 255, 255, 0.03)',
               borderRadius: '16px',
-              padding: '24px 26px',
+              padding: '20px clamp(16px, 3.5vw, 26px)',
               border: '1px solid rgba(255, 255, 255, 0.08)',
             }}
           >

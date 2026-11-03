@@ -11,14 +11,14 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
     <section
       id="education"
       style={{
-        padding: '110px 0',
+        padding: 'clamp(64px, 9vw, 110px) 0',
         backgroundColor: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-subtle)',
       }}
     >
       <div className="container" style={{ maxWidth: '1160px' }}>
         {/* Editorial Eyebrow */}
-        <div style={{ marginBottom: '28px' }}>
+        <div style={{ marginBottom: '24px' }}>
           <span
             style={{
               fontFamily: 'var(--font-body)',
@@ -35,13 +35,14 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(2.2rem, 4.2vw, 3.8rem)',
+            fontSize: 'clamp(1.9rem, 4.2vw, 3.6rem)',
             fontWeight: 500,
             lineHeight: 1.15,
             letterSpacing: '-0.02em',
             color: 'var(--text-primary)',
             maxWidth: '920px',
-            marginBottom: '48px',
+            marginBottom: '40px',
+            overflowWrap: 'break-word',
           }}
         >
           Engineering foundation &amp; quantitative systems training.
@@ -51,13 +52,10 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
           {education.map((edu) => (
             <div
               key={edu.id}
-              className="glass-card"
+              className="glass-card editorial-timeline-grid"
               style={{
                 borderRadius: '16px',
-                padding: '36px',
-                display: 'grid',
-                gridTemplateColumns: 'minmax(280px, 380px) 1fr',
-                gap: '32px',
+                padding: 'clamp(20px, 4vw, 36px)',
                 alignItems: 'start',
               }}
             >

@@ -11,14 +11,14 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
     <section
       id="experience"
       style={{
-        padding: '130px 0',
+        padding: 'clamp(64px, 9vw, 120px) 0',
         backgroundColor: 'var(--bg-section)',
         borderBottom: '1px solid var(--border-subtle)',
       }}
     >
       <div className="container" style={{ maxWidth: '1160px' }}>
         {/* Editorial Eyebrow */}
-        <div style={{ marginBottom: '28px' }}>
+        <div style={{ marginBottom: '24px' }}>
           <span
             style={{
               fontFamily: 'var(--font-body)',
@@ -35,28 +35,27 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(2.2rem, 4.2vw, 3.8rem)',
+            fontSize: 'clamp(1.9rem, 4.2vw, 3.6rem)',
             fontWeight: 500,
             lineHeight: 1.15,
             letterSpacing: '-0.02em',
             color: 'var(--text-primary)',
             maxWidth: '920px',
-            marginBottom: '64px',
+            marginBottom: '48px',
+            overflowWrap: 'break-word',
           }}
         >
           A disciplined track record in supply chain operations, process mapping, and operational systems execution.
         </h2>
 
         {/* Editorial Timeline Items */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '56px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
           {experiences.map((exp, idx) => (
             <div
               key={exp.id}
+              className="editorial-timeline-grid"
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'minmax(260px, 340px) 1fr',
-                gap: '48px',
-                paddingBottom: '56px',
+                paddingBottom: '48px',
                 borderBottom: idx !== experiences.length - 1 ? '1px solid var(--border-subtle)' : 'none',
               }}
             >

@@ -19,14 +19,14 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
     <section
       id="capabilities"
       style={{
-        padding: '130px 0',
+        padding: 'clamp(64px, 9vw, 120px) 0',
         backgroundColor: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-subtle)',
       }}
     >
       <div className="container" style={{ maxWidth: '1160px' }}>
         {/* Eyebrow */}
-        <div style={{ marginBottom: '28px' }}>
+        <div style={{ marginBottom: '24px' }}>
           <span
             style={{
               fontFamily: 'var(--font-body)',
@@ -43,13 +43,14 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(2.2rem, 4.2vw, 3.8rem)',
+            fontSize: 'clamp(1.9rem, 4.2vw, 3.6rem)',
             fontWeight: 500,
             lineHeight: 1.15,
             letterSpacing: '-0.02em',
             color: 'var(--text-primary)',
             maxWidth: '920px',
-            marginBottom: '64px',
+            marginBottom: '48px',
+            overflowWrap: 'break-word',
           }}
         >
           Specialized expertise spanning physical supply pipelines, enterprise software, and applied machine intelligence.
@@ -59,8 +60,8 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '32px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
+            gap: 'clamp(20px, 3vw, 32px)',
           }}
         >
           {Object.entries(categories).map(([categoryName, skillList]) => (
@@ -69,10 +70,10 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
               className="glass-card"
               style={{
                 borderRadius: '14px',
-                padding: '36px 30px',
+                padding: 'clamp(20px, 3.5vw, 32px)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '24px',
+                gap: '20px',
               }}
             >
               <div>

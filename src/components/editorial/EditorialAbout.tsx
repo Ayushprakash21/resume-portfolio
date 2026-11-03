@@ -30,7 +30,7 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile, aboutSe
     <section
       id="about"
       style={{
-        padding: '130px 0',
+        padding: 'clamp(64px, 9vw, 120px) 0',
         backgroundColor: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-subtle)',
         position: 'relative',
@@ -38,7 +38,7 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile, aboutSe
     >
       <div className="container" style={{ maxWidth: '1160px' }}>
         {/* Editorial Section Label */}
-        <div style={{ marginBottom: '28px' }}>
+        <div style={{ marginBottom: '24px' }}>
           <span
             style={{
               fontFamily: 'var(--font-body)',
@@ -56,27 +56,21 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile, aboutSe
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(2.2rem, 4.2vw, 3.8rem)',
+            fontSize: 'clamp(1.9rem, 4.2vw, 3.6rem)',
             fontWeight: 500,
             lineHeight: 1.15,
             letterSpacing: '-0.02em',
             color: 'var(--text-primary)',
             maxWidth: '920px',
-            marginBottom: '56px',
+            marginBottom: '44px',
+            overflowWrap: 'break-word',
           }}
         >
           {headline}
         </h2>
 
         {/* 2-Column Split: Genuine Photo + Longform Narrative */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-            gap: '64px',
-            alignItems: 'start',
-          }}
-        >
+        <div className="editorial-2col-responsive">
           {/* Column 1: Genuine Professional Portrait */}
           <div>
             <div

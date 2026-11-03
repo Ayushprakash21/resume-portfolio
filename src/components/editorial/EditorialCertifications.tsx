@@ -13,14 +13,14 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
     <section
       id="certifications"
       style={{
-        padding: '130px 0',
+        padding: 'clamp(64px, 9vw, 120px) 0',
         backgroundColor: 'var(--bg-section)',
         borderBottom: '1px solid var(--border-subtle)',
       }}
     >
       <div className="container" style={{ maxWidth: '1160px' }}>
         {/* Editorial Eyebrow */}
-        <div style={{ marginBottom: '28px' }}>
+        <div style={{ marginBottom: '24px' }}>
           <span
             style={{
               fontFamily: 'var(--font-body)',
@@ -37,13 +37,14 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(2.2rem, 4.2vw, 3.8rem)',
+            fontSize: 'clamp(1.9rem, 4.2vw, 3.6rem)',
             fontWeight: 500,
             lineHeight: 1.15,
             letterSpacing: '-0.02em',
             color: 'var(--text-primary)',
             maxWidth: '920px',
-            marginBottom: '64px',
+            marginBottom: '48px',
+            overflowWrap: 'break-word',
           }}
         >
           Verified accreditations in cloud infrastructure, machine learning systems, and enterprise logistics.
@@ -53,8 +54,8 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '32px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+            gap: 'clamp(20px, 3vw, 32px)',
           }}
         >
           {certifications.map((cert) => (
@@ -63,7 +64,7 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
               className="glass-card"
               style={{
                 borderRadius: '16px',
-                padding: '32px',
+                padding: 'clamp(20px, 3.5vw, 32px)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',

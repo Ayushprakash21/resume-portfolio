@@ -403,32 +403,32 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 9999,
-        padding: '20px',
+        padding: 'clamp(8px, 2.5vw, 20px)',
       }}
     >
       <div
         style={{
-          backgroundColor: '#141C19',
-          border: '1px solid rgba(244, 243, 238, 0.15)',
+          backgroundColor: '#0F1015',
+          border: '1px solid rgba(255, 255, 255, 0.14)',
           borderRadius: '12px',
           maxWidth: '880px',
           width: '100%',
-          maxHeight: '92vh',
+          maxHeight: '94vh',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.6)',
+          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.75)',
         }}
       >
         {/* Sticky Header */}
         <div
           style={{
-            padding: '16px 24px',
-            borderBottom: '1px solid rgba(244, 243, 238, 0.08)',
+            padding: '16px 20px',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: '#18211D',
+            backgroundColor: '#14151C',
             flexShrink: 0,
           }}
         >
@@ -2058,18 +2058,19 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
             <div />
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <button
               type="button"
               onClick={onClose}
               style={{
-                padding: '8px 16px',
+                padding: '10px 18px',
                 borderRadius: '6px',
                 background: 'transparent',
-                border: '1px solid rgba(244, 243, 238, 0.15)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
                 color: '#C1C4BE',
                 fontSize: '13px',
                 cursor: 'pointer',
+                minHeight: '40px',
               }}
             >
               Cancel
@@ -2078,13 +2079,14 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
               type="button"
               onClick={() => handleSubmit('draft')}
               style={{
-                padding: '8px 16px',
+                padding: '10px 18px',
                 borderRadius: '6px',
-                backgroundColor: 'rgba(130, 148, 166, 0.12)',
-                border: '1px solid rgba(130, 148, 166, 0.25)',
-                color: '#8294A6',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: '#E5E5EA',
                 fontSize: '13px',
                 cursor: 'pointer',
+                minHeight: '40px',
               }}
             >
               Save Draft
@@ -2093,14 +2095,15 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
               type="button"
               onClick={() => handleSubmit('published')}
               style={{
-                padding: '8px 20px',
+                padding: '10px 22px',
                 borderRadius: '6px',
-                backgroundColor: '#4A5749',
+                backgroundColor: '#FFFFFF',
                 border: 'none',
-                color: '#F4F3EE',
+                color: '#050505',
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: 'pointer',
+                minHeight: '40px',
               }}
             >
               Publish Project

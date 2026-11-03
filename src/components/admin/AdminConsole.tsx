@@ -25,6 +25,8 @@ import {
   Calendar,
   MapPin,
   Globe,
+  Menu,
+  X,
 } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { cmsService } from '../../services/cmsService';
@@ -82,6 +84,7 @@ export type AdminSectionId =
 
 export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnToSite }) => {
   const [activeSection, setActiveSection] = useState<AdminSectionId>('overview');
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   // CMS State
   const [profile, setProfile] = useState<ProfileData>(() => cmsService.getProfile());
@@ -226,133 +229,219 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#050505', color: '#F5F5F5' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#050505', color: '#F5F5F5' }}>
       {/* ========================================================
-          SIDEBAR NAVIGATION (BLACK LUXURY)
+          MOBILE TOP BAR (VISIBLE ON MOBILE & TABLET <= 860px)
           ======================================================== */}
-      <aside
-        style={{
-          width: '270px',
-          backgroundColor: '#0A0A0E',
-          borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          flexShrink: 0,
-        }}
-      >
-        <div>
-          {/* Header with AP Monogram */}
-          <div
+      <header className="admin-mobile-topbar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button
+            onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
             style={{
-              padding: '24px 20px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.16)',
+              borderRadius: '8px',
+              padding: '8px',
+              color: '#FFFFFF',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              justifyContent: 'center',
+              minWidth: '40px',
+              minHeight: '40px',
+            }}
+            aria-label="Toggle Navigation Drawer"
+          >
+            {isMobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
+          <ApMonogram width={36} withGlow={true} />
+          <span style={{ fontSize: '14px', fontWeight: 700, textTransform: 'capitalize' }}>
+            {NAV_ITEMS.find((n) => n.id === activeSection)?.label || 'Console'}
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={onReturnToSite}
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: '#C8C8CE',
+              borderRadius: '6px',
+              padding: '6px 10px',
+              fontSize: '11px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <ApMonogram width={48} withGlow={true} />
-              <div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '15px',
-                    fontWeight: 700,
-                    color: '#FFFFFF',
-                    letterSpacing: '0.02em',
-                  }}
-                >
-                  AYUSH PRAKASH
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '10px',
-                    color: 'var(--accent-silver)',
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Portfolio Administration
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={onReturnToSite}
-              title="View Live Portfolio"
+            <span>Site</span>
+            <ExternalLink size={12} />
+          </button>
+          <button
+            onClick={handleLogout}
+            style={{
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              color: '#EF4444',
+              borderRadius: '6px',
+              padding: '6px 10px',
+              fontSize: '11px',
+              cursor: 'pointer',
+            }}
+          >
+            Logout
+          </button>
+        </div>
+      </header>
+
+      <div style={{ display: 'flex', flex: 1, position: 'relative', minHeight: 0 }}>
+        {/* MOBILE BACKDROP OVERLAY */}
+        {isMobileNavOpen && (
+          <div
+            onClick={() => setIsMobileNavOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.75)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              zIndex: 999,
+            }}
+          />
+        )}
+
+        {/* ========================================================
+            SIDEBAR NAVIGATION (BLACK LUXURY)
+            ======================================================== */}
+        <aside
+          className={`admin-sidebar ${isMobileNavOpen ? 'is-open' : ''}`}
+          style={{
+            width: '270px',
+            backgroundColor: '#0A0A0E',
+            borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            flexShrink: 0,
+          }}
+        >
+          <div>
+            {/* Header with AP Monogram */}
+            <div
               style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: '#C8C8CE',
-                borderRadius: '6px',
-                padding: '6px',
-                cursor: 'pointer',
+                padding: '24px 20px',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
               }}
             >
-              <ExternalLink size={14} />
-            </button>
-          </div>
-
-          {/* Nav List */}
-          <nav
-            style={{
-              padding: '14px 10px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '2px',
-              maxHeight: 'calc(100vh - 180px)',
-              overflowY: 'auto',
-            }}
-          >
-            {NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeSection === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveSection(item.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '9px 12px',
-                    borderRadius: '6px',
-                    border: 'none',
-                    backgroundColor: isActive ? 'rgba(130, 148, 166, 0.18)' : 'transparent',
-                    color: isActive ? '#F4F3EE' : '#A7B0A9',
-                    cursor: 'pointer',
-                    fontSize: '13px',
-                    fontFamily: 'var(--font-body)',
-                    fontWeight: isActive ? 600 : 400,
-                    textAlign: 'left',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Icon size={15} color={isActive ? '#8294A6' : '#8E948D'} />
-                    <span>{item.label}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <ApMonogram width={48} withGlow={true} />
+                <div>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: '15px',
+                      fontWeight: 700,
+                      color: '#FFFFFF',
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    AYUSH PRAKASH
                   </div>
-                  {item.badge !== undefined && item.badge > 0 && (
-                    <span
-                      style={{
-                        backgroundColor: '#D9534F',
-                        color: '#FFFFFF',
-                        borderRadius: '10px',
-                        padding: '1px 6px',
-                        fontSize: '10px',
-                        fontWeight: 700,
-                      }}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '10px',
+                      color: 'var(--accent-silver)',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Portfolio Administration
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={onReturnToSite}
+                title="View Live Portfolio"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  color: '#C8C8CE',
+                  borderRadius: '6px',
+                  padding: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                <ExternalLink size={14} />
+              </button>
+            </div>
+
+            {/* Nav List */}
+            <nav
+              style={{
+                padding: '14px 10px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+                maxHeight: 'calc(100vh - 180px)',
+                overflowY: 'auto',
+              }}
+            >
+              {NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeSection === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveSection(item.id);
+                      setIsMobileNavOpen(false);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '9px 12px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: isActive ? 'rgba(130, 148, 166, 0.18)' : 'transparent',
+                      color: isActive ? '#F4F3EE' : '#A7B0A9',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontFamily: 'var(--font-body)',
+                      fontWeight: isActive ? 600 : 400,
+                      textAlign: 'left',
+                      transition: 'all 0.15s ease',
+                      minHeight: '40px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Icon size={15} color={isActive ? '#8294A6' : '#8E948D'} />
+                      <span>{item.label}</span>
+                    </div>
+                    {item.badge !== undefined && item.badge > 0 && (
+                      <span
+                        style={{
+                          backgroundColor: '#D9534F',
+                          color: '#FFFFFF',
+                          borderRadius: '10px',
+                          padding: '1px 6px',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
 
         {/* User Info & Logout */}
         <div
@@ -403,7 +492,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
       {/* ========================================================
           MAIN CONTENT WORKSPACE
           ======================================================== */}
-      <main style={{ flex: 1, padding: '36px 48px', overflowY: 'auto', maxHeight: '100vh' }}>
+      <main style={{ flex: 1, minWidth: 0, width: '100%', padding: 'clamp(18px, 3.5vw, 40px)', overflowY: 'auto', maxHeight: '100vh' }}>
         {/* Global Toast Notification */}
         {notification && (
           <div
@@ -1445,6 +1534,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
           />
         )}
       </main>
+      </div>
     </div>
   );
 };

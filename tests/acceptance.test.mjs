@@ -440,4 +440,46 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(css.includes('font-size: 34px'), 'CSS sets 34px name typography (34-38px)');
     assert.ok(css.includes('width: 88px'), 'CSS sets 88px footer logo width (76-96px)');
   });
+
+  // Test 29: Complete Mobile and Tablet Responsive Architecture
+  await t.test('29. Responsive architecture: mobile drawer, clamp typography, adaptive grids, admin drawer, zero overflow', () => {
+    const heroLayout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
+    assert.ok(heroLayout.includes('mobile-menu-toggle'), 'Header includes mobile-menu-toggle');
+    assert.ok(heroLayout.includes('mobile-nav-backdrop'), 'Header includes mobile-nav-backdrop');
+    assert.ok(heroLayout.includes('desktop-nav-links'), 'Header includes desktop-nav-links');
+    assert.ok(heroLayout.includes('document.body.style.overflow = \'hidden\'') || heroLayout.includes('document.body.style.overflow = "hidden"'), 'Locks body scroll on mobile drawer open');
+    assert.ok(heroLayout.includes('overflowWrap: \'break-word\''), 'Hero headline has overflow-wrap: break-word');
+
+    const heroScene = fs.readFileSync('src/components/cinematic/CinematicHeroScene.tsx', 'utf-8');
+    assert.ok(heroScene.includes('adjustCameraForViewport'), '3D Scene adapts camera to viewport aspect ratio');
+    assert.ok(heroScene.includes('baseCameraZ = 10.6'), 'Mobile camera adjusts distance to preserve composition');
+
+    const about = fs.readFileSync('src/components/editorial/EditorialAbout.tsx', 'utf-8');
+    assert.ok(about.includes('editorial-2col-responsive'), 'EditorialAbout uses responsive 2-column grid');
+
+    const exp = fs.readFileSync('src/components/editorial/EditorialExperience.tsx', 'utf-8');
+    assert.ok(exp.includes('editorial-timeline-grid'), 'EditorialExperience uses responsive timeline grid');
+
+    const edu = fs.readFileSync('src/components/editorial/EditorialEducation.tsx', 'utf-8');
+    assert.ok(edu.includes('editorial-timeline-grid'), 'EditorialEducation uses responsive timeline grid');
+
+    const opentowork = fs.readFileSync('src/components/editorial/EditorialOpenToWork.tsx', 'utf-8');
+    assert.ok(opentowork.includes('open-to-work-grid'), 'OpenToWork uses responsive open-to-work-grid');
+
+    const contact = fs.readFileSync('src/components/editorial/EditorialContact.tsx', 'utf-8');
+    assert.ok(contact.includes('contact-grid-responsive'), 'Contact uses responsive contact-grid-responsive');
+
+    const admin = fs.readFileSync('src/components/admin/AdminConsole.tsx', 'utf-8');
+    assert.ok(admin.includes('admin-mobile-topbar'), 'AdminConsole includes admin-mobile-topbar');
+    assert.ok(admin.includes('admin-sidebar'), 'AdminConsole includes responsive admin-sidebar');
+
+    const css = fs.readFileSync('src/styles/index.css', 'utf-8');
+    assert.ok(css.includes('.mobile-menu-toggle'), 'CSS defines .mobile-menu-toggle');
+    assert.ok(css.includes('.mobile-nav-drawer'), 'CSS defines .mobile-nav-drawer');
+    assert.ok(css.includes('.admin-mobile-topbar'), 'CSS defines .admin-mobile-topbar');
+    assert.ok(css.includes('.editorial-2col-responsive'), 'CSS defines .editorial-2col-responsive');
+    assert.ok(css.includes('.editorial-timeline-grid'), 'CSS defines .editorial-timeline-grid');
+    assert.ok(css.includes('.open-to-work-grid'), 'CSS defines .open-to-work-grid');
+    assert.ok(css.includes('.contact-grid-responsive'), 'CSS defines .contact-grid-responsive');
+  });
 });

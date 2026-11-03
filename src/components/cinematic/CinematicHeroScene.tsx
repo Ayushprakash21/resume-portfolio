@@ -38,9 +38,35 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     scene.fog = new THREE.FogExp2('#07080B', 0.008);
 
     // 2. CAMERA SETUP
+    let baseCameraZ = 8.8;
+    let baseCameraY = 1.85;
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 400);
-    camera.position.set(0, 1.85, 8.8);
-    camera.lookAt(0, 2.2, -45);
+
+    const adjustCameraForViewport = (w: number, h: number) => {
+      const aspect = w / h;
+      camera.aspect = aspect;
+      if (aspect < 0.75) {
+        // Mobile portrait (320px - 430px)
+        camera.fov = 54;
+        baseCameraZ = 10.6;
+        baseCameraY = 1.95;
+      } else if (aspect < 1.1) {
+        // Tablet (600px - 820px)
+        camera.fov = 48;
+        baseCameraZ = 9.5;
+        baseCameraY = 1.90;
+      } else {
+        // Desktop (1024px+)
+        camera.fov = 45;
+        baseCameraZ = 8.8;
+        baseCameraY = 1.85;
+      }
+      camera.position.set(0, baseCameraY, baseCameraZ);
+      camera.lookAt(0, 2.2, -45);
+      camera.updateProjectionMatrix();
+    };
+
+    adjustCameraForViewport(width, height);
 
     // 3. RENDERER SETUP
     const renderer = new THREE.WebGLRenderer({
@@ -349,8 +375,7 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
       if (!container) return;
       width = container.clientWidth || window.innerWidth;
       height = container.clientHeight || window.innerHeight;
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
+      adjustCameraForViewport(width, height);
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     };
@@ -384,7 +409,8 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
         currentParallaxY += (targetParallaxY - currentParallaxY) * 0.04;
 
         camera.position.x = currentParallaxX;
-        camera.position.y = 1.85 + currentParallaxY;
+        camera.position.y = baseCameraY + currentParallaxY;
+        camera.position.z = baseCameraZ;
         camera.lookAt(currentParallaxX * 0.3, 2.2 + currentParallaxY * 0.12, -45);
       }
 

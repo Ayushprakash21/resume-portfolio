@@ -56,30 +56,31 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
         minHeight: '100vh',
         backgroundColor: '#050505',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '24px',
+        padding: 'clamp(16px, 4vw, 32px)',
         position: 'relative',
       }}
     >
-      {/* Return to public site button */}
-      <button
-        onClick={onReturnToSite}
-        className="glass-btn-spring"
-        style={{
-          position: 'absolute',
-          top: '28px',
-          left: '28px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '8px 18px',
-          fontSize: '12px',
-        }}
-      >
-        <ArrowLeft size={13} />
-        <span>Return to Portfolio</span>
-      </button>
+      <div style={{ width: '100%', maxWidth: '430px', marginBottom: '16px', display: 'flex', justifyContent: 'flex-start' }}>
+        {/* Return to public site button */}
+        <button
+          onClick={onReturnToSite}
+          className="glass-btn-spring"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            fontSize: '12px',
+            minHeight: '44px',
+          }}
+        >
+          <ArrowLeft size={13} />
+          <span>Return to Portfolio</span>
+        </button>
+      </div>
 
       {/* Main Glass Login Card */}
       <div
@@ -87,7 +88,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
         style={{
           width: '100%',
           maxWidth: '430px',
-          padding: '44px 36px',
+          padding: 'clamp(28px, 6vw, 44px) clamp(20px, 5vw, 36px)',
         }}
       >
         {/* AP Official Brand Header */}

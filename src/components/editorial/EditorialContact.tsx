@@ -59,14 +59,14 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
     <section
       id="contact"
       style={{
-        padding: '130px 0',
+        padding: 'clamp(64px, 9vw, 120px) 0',
         backgroundColor: 'var(--bg-section)',
         borderBottom: '1px solid var(--border-subtle)',
       }}
     >
       <div className="container" style={{ maxWidth: '1160px' }}>
         {/* Editorial Eyebrow */}
-        <div style={{ marginBottom: '28px' }}>
+        <div style={{ marginBottom: '24px' }}>
           <span
             style={{
               fontFamily: 'var(--font-body)',
@@ -83,32 +83,26 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(2.2rem, 4.2vw, 3.8rem)',
+            fontSize: 'clamp(1.9rem, 4.2vw, 3.6rem)',
             fontWeight: 500,
             lineHeight: 1.15,
             letterSpacing: '-0.02em',
             color: 'var(--text-primary)',
             maxWidth: '920px',
-            marginBottom: '64px',
+            marginBottom: '48px',
+            overflowWrap: 'break-word',
           }}
         >
           Let&apos;s start a conversation around supply chain transformation, systems execution, or strategic product roles.
         </h2>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-            gap: '56px',
-            alignItems: 'start',
-          }}
-        >
+        <div className="contact-grid-responsive">
           {/* Column 1: Direct Coordinates */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
             <div
               className="glass-card"
               style={{
-                padding: '36px',
+                padding: 'clamp(20px, 4vw, 36px)',
                 borderRadius: '16px',
               }}
             >
@@ -233,7 +227,7 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
           <div
             className="glass-card"
             style={{
-              padding: '40px',
+              padding: 'clamp(20px, 4vw, 36px)',
               borderRadius: '16px',
             }}
           >

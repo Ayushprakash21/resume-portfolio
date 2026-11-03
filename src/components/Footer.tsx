@@ -34,13 +34,13 @@ export const Footer: React.FC<FooterProps> = () => {
           }}
         >
           {/* Brand Presentation: AP Monogram + Identity + Positioning */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(14px, 3vw, 24px)', flexWrap: 'wrap' }}>
             <ApMonogram width={88} className="ap-footer-monogram" withGlow={true} />
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div
                 style={{
                   fontFamily: 'var(--font-display)',
-                  fontSize: '24px',
+                  fontSize: 'clamp(18px, 2.4vw, 24px)',
                   fontWeight: 700,
                   letterSpacing: '0.02em',
                   textTransform: 'uppercase',
@@ -53,7 +53,7 @@ export const Footer: React.FC<FooterProps> = () => {
               <div
                 style={{
                   fontFamily: 'var(--font-serif)',
-                  fontSize: '14px',
+                  fontSize: 'clamp(12px, 1.4vw, 14px)',
                   fontStyle: 'italic',
                   color: 'var(--accent-silver)',
                   marginTop: '5px',
