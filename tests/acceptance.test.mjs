@@ -631,24 +631,24 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(footerFile.includes('SpecularButton'), 'Footer uses SpecularButton for actions');
   });
 
-  // Test 34: Illuminated Ayush Prakash Handwritten Hero Signature
-  await t.test('34. Illuminated Ayush Prakash Signature: authentic handwritten asset, draw-on sequence, silver glow, and parallax', () => {
+  // Test 34: Illuminated Ayush Prakash Handwritten Hero Signature (Permanent Bottom-Right)
+  await t.test('34. Illuminated Ayush Prakash Signature: authentic handwritten asset, permanent bottom-right placement, and static silver glow', () => {
     assert.ok(fs.existsSync('public/brand/signature-transparent.png'), 'Transparent signature asset generated');
     assert.ok(fs.existsSync('public/brand/signature-silver.png'), 'Silver signature asset generated');
 
     const sigComponent = fs.readFileSync('src/components/brand/HeroSignature.tsx', 'utf-8');
     assert.ok(sigComponent.includes('signature-silver.png'), 'Uses official signature-silver asset');
-    assert.ok(sigComponent.includes('clipPath') || sigComponent.includes('clip-path'), 'Implements progressive draw-on reveal');
-    assert.ok(sigComponent.includes('star-sparkle') || sigComponent.includes('sparkle'), 'Implements star flourish sparkle');
-    assert.ok(sigComponent.includes('reducedMotion'), 'Respects prefers-reduced-motion');
-    assert.ok(sigComponent.includes('parallax'), 'Implements mouse-responsive depth parallax');
+    assert.ok(sigComponent.includes('signature-ambient-glow'), 'Implements diffused outer ambient silver illumination');
+    assert.ok(sigComponent.includes('signature-inner-glow'), 'Implements soft inner white/silver backlight');
+    assert.ok(sigComponent.includes('signature-star-glow'), 'Implements static restrained star flourish illumination');
+    assert.ok(!sigComponent.includes('clipPath') && !sigComponent.includes('clip-path'), 'Removed draw-on wipe reveal animation for permanent display');
 
     const heroLayout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
     assert.ok(heroLayout.includes('HeroSignature'), 'CinematicHeroLayout mounts HeroSignature');
 
     const css = fs.readFileSync('src/styles/index.css', 'utf-8');
     assert.ok(css.includes('.hero-signature-wrapper'), 'CSS defines .hero-signature-wrapper positioning');
-    assert.ok(css.includes('signatureShimmer'), 'CSS defines signature shimmer animation');
-    assert.ok(css.includes('starBurst'), 'CSS defines star burst sparkle animation');
+    assert.ok(css.includes('bottom: clamp('), 'CSS positions signature in bottom-right area');
+    assert.ok(css.includes('right: clamp(') || css.includes('right: 16px'), 'CSS positions signature with right alignment');
   });
 });
