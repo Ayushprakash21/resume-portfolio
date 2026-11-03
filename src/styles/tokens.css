@@ -1,0 +1,71 @@
+/**
+ * DESIGN SYSTEM LOCK — AYUSH: THE INTELLIGENCE UNIVERSE
+ * Design tokens and CSS variables
+ */
+
+:root {
+  /* Surface & Background Palette */
+  --bg-primary: #07090D;
+  --bg-secondary: #0C1118;
+  --bg-section: #111923;
+  --bg-card: #151E29;
+  --bg-elevated: #1B2836;
+
+  /* Typography Colors */
+  --text-primary: #F5F7FA;
+  --text-secondary: #A7B2C0;
+  --text-muted: #738195;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(69, 214, 255, 0.28);
+
+  /* Interaction & Accents */
+  --accent-primary: #45D6FF;     /* Primary interaction accent: Cyan */
+  --accent-secondary: #8AB4FF;   /* Secondary accent: Depth blue */
+  --accent-tertiary: #777BFF;    /* Tertiary accent: Indigo */
+  --accent-success: #42D6A4;     /* Success & Orion-9 identity */
+  --accent-warning: #FFBF69;
+  --accent-error: #FF6B75;
+
+  /* Selective Accents according to rules */
+  --accent-applywise-violet: #8B5CF6;  /* Used selectively for ApplyVise AI */
+  --accent-applywise-violet-subtle: rgba(139, 92, 246, 0.12);
+  --accent-gold: #E5B94E;              /* Used for certification highlights */
+  --accent-gold-subtle: rgba(229, 185, 78, 0.12);
+  --accent-green-orion: #42D6A4;       /* Used for Orion-9 visual identity */
+  --accent-green-subtle: rgba(66, 214, 164, 0.12);
+
+  /* Typography Font Families */
+  --font-heading: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Typography Scale */
+  --type-hero: clamp(3.5rem, 8vw, 6.5rem);
+  --type-section-heading: clamp(2.5rem, 5vw, 4rem);
+  --type-project-heading: clamp(2.2rem, 4vw, 3rem);
+  --type-subheading: clamp(1.4rem, 2.5vw, 2rem);
+  --type-body: 17px;
+  --type-body-sm: 16px;
+  --type-nav: 14px;
+  --type-metadata: 12px;
+
+  /* Geometry & Spacing */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-pill: 9999px;
+
+  /* Restrained Shadows & Glows */
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
+  --shadow-elevated: 0 12px 32px -4px rgba(0, 0, 0, 0.6);
+  --glow-cyan-subtle: 0 0 20px rgba(69, 214, 255, 0.15);
+  --glow-cyan-button: 0 0 16px rgba(69, 214, 255, 0.25);
+  --glow-violet-subtle: 0 0 24px rgba(139, 92, 246, 0.18);
+  --glow-green-subtle: 0 0 24px rgba(66, 214, 164, 0.18);
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}

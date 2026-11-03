@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'ayushprakash0021@gmail.com' ||
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    // Public readable content (Profile, Projects, Experience, Skills, Certifications, Settings)
+    match /profile/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /projects/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /experiences/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /certifications/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /skills/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /education/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /siteSettings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /mediaAssets/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Contact messages: anyone can create (submit contact form), only admin can read or manage
+    match /contactMessages/{messageId} {
+      allow create: if request.resource.data.email is string &&
+                       request.resource.data.name is string &&
+                       request.resource.data.message is string &&
+                       request.resource.data.message.size() > 5 &&
+                       request.resource.data.message.size() < 5000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Admin collection
+    match /admins/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if isAdmin();
+    }
+  }
+}
