@@ -1,0 +1,1595 @@
+import React, { useState } from 'react';
+import {
+  X,
+  Upload,
+  Plus,
+  Trash2,
+  Image as ImageIcon,
+  FileText,
+  Video,
+  Link as LinkIcon,
+  Search,
+  CheckCircle2,
+  Save,
+  Star,
+  Layers,
+  ChevronUp,
+  ChevronDown,
+} from 'lucide-react';
+import {
+  ProjectRecord,
+  ProjectContentBlocks,
+  ProjectMediaItem,
+  SkillRecord,
+} from '../../../types/cms';
+import { cmsService } from '../../../services/cmsService';
+
+interface ProjectEditorModalProps {
+  initialProject: ProjectRecord | null;
+  allSkills: SkillRecord[];
+  onSave: (saved: ProjectRecord) => void;
+  onDelete?: (id: string) => void;
+  onClose: () => void;
+  showNotification: (msg: string, type?: 'success' | 'error' | 'info') => void;
+}
+
+export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
+  initialProject,
+  allSkills,
+  onSave,
+  onDelete,
+  onClose,
+  showNotification,
+}) => {
+  const isEditing = !!initialProject;
+
+  const [activeSectionTab, setActiveSectionTab] = useState<'basic' | 'contentBlocks' | 'media' | 'skills'>(
+    'basic'
+  );
+
+  const [form, setForm] = useState<Omit<ProjectRecord, 'id'>>(() => {
+    if (initialProject) {
+      return {
+        name: initialProject.name,
+        category: initialProject.category,
+        subtitle: initialProject.subtitle,
+        shortDescription: initialProject.shortDescription || '',
+        description: initialProject.description,
+        problemStatement: initialProject.problemStatement || '',
+        solution: initialProject.solution || '',
+        coverImage: initialProject.coverImage || '',
+        logoUrl: initialProject.logoUrl || '',
+        screenshots: initialProject.screenshots || [],
+        technologyStack: initialProject.technologyStack || [],
+        features: initialProject.features || [],
+        developmentStatus: initialProject.developmentStatus,
+        projectUrl: initialProject.projectUrl || '',
+        repositoryUrl: initialProject.repositoryUrl || '',
+        demoUrl: initialProject.demoUrl || '',
+        startDate: initialProject.startDate || '',
+        endDate: initialProject.endDate || '',
+        isCurrent: initialProject.isCurrent ?? false,
+        contributors: initialProject.contributors || 'Ayush Prakash (Lead)',
+        associatedOrganization: initialProject.associatedOrganization || 'Independent Research',
+        featured: initialProject.featured ?? true,
+        displayOrder: initialProject.displayOrder || 1,
+        status: initialProject.status || 'published',
+        skillsUsed: initialProject.skillsUsed || [],
+        contentBlocks: initialProject.contentBlocks || {
+          overview: initialProject.description,
+          problemStatement: initialProject.problemStatement || '',
+          proposedSolution: initialProject.solution || '',
+          features: initialProject.features || [],
+          architecture: '',
+          technologyStack: initialProject.technologyStack || [],
+          contribution: 'Lead Architect & Full-Stack Developer',
+          outcomes: '',
+          futureRoadmap: '',
+        },
+        mediaItems: initialProject.mediaItems || [],
+      };
+    }
+    return {
+      name: '',
+      category: 'Enterprise AI & Systems',
+      subtitle: '',
+      shortDescription: '',
+      description: '',
+      problemStatement: '',
+      solution: '',
+      coverImage: '',
+      logoUrl: '',
+      screenshots: [],
+      technologyStack: [],
+      features: [],
+      developmentStatus: 'Active Architectural Prototype',
+      projectUrl: '',
+      repositoryUrl: '',
+      demoUrl: '',
+      startDate: '2024',
+      endDate: 'Present',
+      isCurrent: true,
+      contributors: 'Ayush Prakash',
+      associatedOrganization: 'Independent Project',
+      featured: true,
+      displayOrder: 1,
+      status: 'published',
+      skillsUsed: [],
+      contentBlocks: {
+        overview: '',
+        problemStatement: '',
+        proposedSolution: '',
+        features: [],
+        architecture: '',
+        technologyStack: [],
+        contribution: 'Founder & Architect',
+        outcomes: '',
+        futureRoadmap: '',
+      },
+      mediaItems: [],
+    };
+  });
+
+  const [skillSearchQuery, setSkillSearchQuery] = useState('');
+  const [newFeatureInput, setNewFeatureInput] = useState('');
+  const [newTechInput, setNewTechInput] = useState('');
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+
+  const updateField = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const updateBlock = <K extends keyof ProjectContentBlocks>(
+    blockKey: K,
+    val: ProjectContentBlocks[K]
+  ) => {
+    setForm((prev) => ({
+      ...prev,
+      contentBlocks: {
+        ...(prev.contentBlocks || {}),
+        [blockKey]: val,
+      },
+    }));
+  };
+
+  // Feature list helper
+  const handleAddFeature = () => {
+    if (!newFeatureInput.trim()) return;
+    const currentFeatures = form.contentBlocks?.features || form.features || [];
+    const updated = [...currentFeatures, newFeatureInput.trim()];
+    updateBlock('features', updated);
+    updateField('features', updated);
+    setNewFeatureInput('');
+  };
+
+  const handleRemoveFeature = (idx: number) => {
+    const currentFeatures = form.contentBlocks?.features || form.features || [];
+    const updated = currentFeatures.filter((_, i) => i !== idx);
+    updateBlock('features', updated);
+    updateField('features', updated);
+  };
+
+  // Tech stack helper
+  const handleAddTech = () => {
+    if (!newTechInput.trim()) return;
+    const currentTech = form.contentBlocks?.technologyStack || form.technologyStack || [];
+    if (!currentTech.includes(newTechInput.trim())) {
+      const updated = [...currentTech, newTechInput.trim()];
+      updateBlock('technologyStack', updated);
+      updateField('technologyStack', updated);
+    }
+    setNewTechInput('');
+  };
+
+  const handleRemoveTech = (tech: string) => {
+    const currentTech = form.contentBlocks?.technologyStack || form.technologyStack || [];
+    const updated = currentTech.filter((t) => t !== tech);
+    updateBlock('technologyStack', updated);
+    updateField('technologyStack', updated);
+  };
+
+  // Skills helper
+  const handleAddSkill = async (skillName: string) => {
+    const trimmed = skillName.trim();
+    const current = form.skillsUsed || [];
+    if (!trimmed || current.includes(trimmed)) return;
+
+    await cmsService.ensureSkill(trimmed, 'Projects & Case Studies');
+    updateField('skillsUsed', [...current, trimmed]);
+    setSkillSearchQuery('');
+  };
+
+  const handleRemoveSkill = (skillToRemove: string) => {
+    updateField(
+      'skillsUsed',
+      (form.skillsUsed || []).filter((s) => s !== skillToRemove)
+    );
+  };
+
+  // Media upload handler
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingMedia(true);
+    try {
+      const newItems: ProjectMediaItem[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const isDoc = file.type === 'application/pdf';
+        const asset = await cmsService.uploadMediaFile(
+          file,
+          isDoc ? 'work-sample' : 'screenshot',
+          `${form.name || 'Project'} - ${file.name}`
+        );
+
+        newItems.push({
+          id: 'proj-med-' + Date.now() + '-' + i,
+          url: asset.url,
+          title: file.name.replace(/\.[^/.]+$/, ''),
+          caption: `${form.name} screenshot`,
+          altText: file.name,
+          type: isDoc ? 'document' : 'image',
+          isThumbnail: (form.mediaItems || []).length === 0 && i === 0,
+        });
+      }
+
+      const combined = [...(form.mediaItems || []), ...newItems];
+      updateField('mediaItems', combined);
+      if (!form.coverImage && combined.length > 0) {
+        updateField('coverImage', combined[0].url);
+      }
+      showNotification(`${newItems.length} media asset(s) added to project gallery.`);
+    } catch (err: any) {
+      showNotification('Project media upload failed: ' + (err.message || 'Error'), 'error');
+    } finally {
+      setIsUploadingMedia(false);
+    }
+  };
+
+  const handleSetThumbnail = (mediaUrl: string) => {
+    updateField('coverImage', mediaUrl);
+    updateField(
+      'mediaItems',
+      (form.mediaItems || []).map((m) => ({
+        ...m,
+        isThumbnail: m.url === mediaUrl,
+      }))
+    );
+    showNotification('Primary project thumbnail updated.');
+  };
+
+  const handleSetLogo = (mediaUrl: string) => {
+    updateField('logoUrl', mediaUrl);
+    updateField(
+      'mediaItems',
+      (form.mediaItems || []).map((m) => ({
+        ...m,
+        isLogo: m.url === mediaUrl,
+      }))
+    );
+    showNotification('Project branding logo updated.');
+  };
+
+  const handleRemoveMedia = (mediaId: string) => {
+    updateField(
+      'mediaItems',
+      (form.mediaItems || []).filter((m) => m.id !== mediaId)
+    );
+  };
+
+  const handleSubmit = async (targetStatus: 'published' | 'draft') => {
+    if (!form.name.trim() || !form.subtitle.trim()) {
+      showNotification('Project name and subtitle are required.', 'error');
+      return;
+    }
+
+    const payload = {
+      ...form,
+      status: targetStatus,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (isEditing && initialProject) {
+      await cmsService.updateProject(initialProject.id, payload);
+      onSave({ ...payload, id: initialProject.id });
+      showNotification(
+        targetStatus === 'published'
+          ? 'Project updated and published to live site.'
+          : 'Project draft saved.'
+      );
+    } else {
+      const created = await cmsService.addProject(payload);
+      onSave(created);
+      showNotification(
+        targetStatus === 'published'
+          ? 'Project created and published.'
+          : 'Project draft saved.'
+      );
+    }
+    onClose();
+  };
+
+  const filteredSkills = allSkills
+    .map((s) => s.name)
+    .filter(
+      (name) =>
+        name.toLowerCase().includes(skillSearchQuery.toLowerCase()) &&
+        !(form.skillsUsed || []).includes(name)
+    );
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        padding: '20px',
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: '#141C19',
+          border: '1px solid rgba(244, 243, 238, 0.15)',
+          borderRadius: '12px',
+          maxWidth: '880px',
+          width: '100%',
+          maxHeight: '92vh',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.6)',
+        }}
+      >
+        {/* Sticky Header */}
+        <div
+          style={{
+            padding: '16px 24px',
+            borderBottom: '1px solid rgba(244, 243, 238, 0.08)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: '#18211D',
+            flexShrink: 0,
+          }}
+        >
+          <div>
+            <h3
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '18px',
+                fontWeight: 600,
+                color: '#F4F3EE',
+                margin: 0,
+              }}
+            >
+              {isEditing ? `Edit Project: ${form.name}` : 'Add New Project'}
+            </h3>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: '#A7B0A9' }}>
+              LinkedIn-style project management with structured narrative blocks and media gallery.
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#A7B0A9',
+              cursor: 'pointer',
+              padding: '4px',
+            }}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Section Navigation Pills */}
+        <div
+          style={{
+            padding: '10px 24px',
+            backgroundColor: '#121A17',
+            borderBottom: '1px solid rgba(244, 243, 238, 0.06)',
+            display: 'flex',
+            gap: '8px',
+            overflowX: 'auto',
+          }}
+        >
+          {[
+            { id: 'basic', label: '1. Basic Information' },
+            { id: 'contentBlocks', label: '2. Detailed Content Blocks' },
+            { id: 'media', label: `3. Project Media (${(form.mediaItems || []).length})` },
+            { id: 'skills', label: `4. Associated Skills (${(form.skillsUsed || []).length})` },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveSectionTab(tab.id as any)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor:
+                  activeSectionTab === tab.id ? 'rgba(130, 148, 166, 0.2)' : 'transparent',
+                color: activeSectionTab === tab.id ? '#F4F3EE' : '#8E948D',
+                fontFamily: 'var(--font-body)',
+                fontSize: '12px',
+                fontWeight: activeSectionTab === tab.id ? 600 : 400,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Scrollable Form Body */}
+        <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+          {/* TAB 1: BASIC INFORMATION */}
+          {activeSectionTab === 'basic' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '16px',
+                }}
+              >
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '12px',
+                      color: '#A7B0A9',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    Project Name <span style={{ color: '#D9534F' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => updateField('name', e.target.value)}
+                    placeholder="e.g. Orion-9"
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '6px',
+                      backgroundColor: '#0E1412',
+                      border: '1px solid rgba(244, 243, 238, 0.12)',
+                      color: '#F4F3EE',
+                      fontSize: '14px',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '12px',
+                      color: '#A7B0A9',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    value={form.category}
+                    onChange={(e) => updateField('category', e.target.value)}
+                    placeholder="e.g. Supply Chain Operating System"
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '6px',
+                      backgroundColor: '#0E1412',
+                      border: '1px solid rgba(244, 243, 238, 0.12)',
+                      color: '#F4F3EE',
+                      fontSize: '14px',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
+                    color: '#A7B0A9',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Project Subtitle / Elevator Pitch <span style={{ color: '#D9534F' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.subtitle}
+                  onChange={(e) => updateField('subtitle', e.target.value)}
+                  placeholder="e.g. AI-Powered Supply Chain Operating System"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: '#0E1412',
+                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    color: '#F4F3EE',
+                    fontSize: '14px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
+                    color: '#A7B0A9',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Short Summary
+                </label>
+                <textarea
+                  rows={2}
+                  value={form.shortDescription || ''}
+                  onChange={(e) => updateField('shortDescription', e.target.value)}
+                  placeholder="1-2 sentences summarizing the breakthrough and scope..."
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: '#0E1412',
+                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    color: '#F4F3EE',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: '16px',
+                }}
+              >
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '12px',
+                      color: '#A7B0A9',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    Development Status
+                  </label>
+                  <select
+                    value={form.developmentStatus}
+                    onChange={(e) => updateField('developmentStatus', e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '6px',
+                      backgroundColor: '#0E1412',
+                      border: '1px solid rgba(244, 243, 238, 0.12)',
+                      color: '#F4F3EE',
+                      fontSize: '13px',
+                      outline: 'none',
+                    }}
+                  >
+                    <option value="Active Architectural Prototype & Research">
+                      Active Architectural Prototype &amp; Research
+                    </option>
+                    <option value="Active Independent Product Development">
+                      Active Independent Product Development
+                    </option>
+                    <option value="Production System">Production System</option>
+                    <option value="Concept & Specification">Concept &amp; Specification</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '12px',
+                      color: '#A7B0A9',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    Associated Organization
+                  </label>
+                  <input
+                    type="text"
+                    value={form.associatedOrganization || ''}
+                    onChange={(e) => updateField('associatedOrganization', e.target.value)}
+                    placeholder="e.g. Independent Product Research"
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '6px',
+                      backgroundColor: '#0E1412',
+                      border: '1px solid rgba(244, 243, 238, 0.12)',
+                      color: '#F4F3EE',
+                      fontSize: '13px',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* URLs */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: '16px',
+                }}
+              >
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '12px',
+                      color: '#A7B0A9',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    Live Project / Landing URL
+                  </label>
+                  <input
+                    type="url"
+                    value={form.projectUrl || ''}
+                    onChange={(e) => updateField('projectUrl', e.target.value)}
+                    placeholder="https://..."
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      backgroundColor: '#0E1412',
+                      border: '1px solid rgba(244, 243, 238, 0.12)',
+                      color: '#F4F3EE',
+                      fontSize: '13px',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '12px',
+                      color: '#A7B0A9',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    GitHub Repository URL
+                  </label>
+                  <input
+                    type="url"
+                    value={form.repositoryUrl || ''}
+                    onChange={(e) => updateField('repositoryUrl', e.target.value)}
+                    placeholder="https://github.com/..."
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      backgroundColor: '#0E1412',
+                      border: '1px solid rgba(244, 243, 238, 0.12)',
+                      color: '#F4F3EE',
+                      fontSize: '13px',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '12px',
+                      color: '#A7B0A9',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    Interactive Demo / Video URL
+                  </label>
+                  <input
+                    type="url"
+                    value={form.demoUrl || ''}
+                    onChange={(e) => updateField('demoUrl', e.target.value)}
+                    placeholder="https://..."
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      backgroundColor: '#0E1412',
+                      border: '1px solid rgba(244, 243, 238, 0.12)',
+                      color: '#F4F3EE',
+                      fontSize: '13px',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Toggles */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '24px',
+                  padding: '14px',
+                  backgroundColor: '#0E1412',
+                  borderRadius: '6px',
+                }}
+              >
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '13px',
+                    color: '#F4F3EE',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={form.featured}
+                    onChange={(e) => updateField('featured', e.target.checked)}
+                    style={{ accentColor: '#4A5749', width: '16px', height: '16px' }}
+                  />
+                  <span>Featured Case Study (Display prominently)</span>
+                </label>
+
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '13px',
+                    color: '#F4F3EE',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={form.isCurrent}
+                    onChange={(e) => updateField('isCurrent', e.target.checked)}
+                    style={{ accentColor: '#4A5749', width: '16px', height: '16px' }}
+                  />
+                  <span>Currently Active Project</span>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: DETAILED CONTENT BLOCKS */}
+          {activeSectionTab === 'contentBlocks' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
+                    color: '#A7B0A9',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Overview Narrative
+                </label>
+                <textarea
+                  rows={3}
+                  value={form.contentBlocks?.overview || ''}
+                  onChange={(e) => updateBlock('overview', e.target.value)}
+                  placeholder="Executive narrative introducing the platform origin..."
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: '#0E1412',
+                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    color: '#F4F3EE',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
+                    color: '#A7B0A9',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Problem Statement
+                </label>
+                <textarea
+                  rows={3}
+                  value={form.contentBlocks?.problemStatement || ''}
+                  onChange={(e) => updateBlock('problemStatement', e.target.value)}
+                  placeholder="What operational or technical friction does this address? (No invented metrics)..."
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: '#0E1412',
+                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    color: '#F4F3EE',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
+                    color: '#A7B0A9',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Proposed Solution
+                </label>
+                <textarea
+                  rows={3}
+                  value={form.contentBlocks?.proposedSolution || ''}
+                  onChange={(e) => updateBlock('proposedSolution', e.target.value)}
+                  placeholder="Architectural approach and technical solution design..."
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: '#0E1412',
+                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    color: '#F4F3EE',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              {/* Features List */}
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
+                    color: '#A7B0A9',
+                    marginBottom: '8px',
+                  }}
+                >
+                  Key Architectural Features &amp; Capabilities
+                </label>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                  <input
+                    type="text"
+                    value={newFeatureInput}
+                    onChange={(e) => setNewFeatureInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddFeature())}
+                    placeholder="Add verified feature capability..."
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      backgroundColor: '#0E1412',
+                      border: '1px solid rgba(244, 243, 238, 0.12)',
+                      color: '#F4F3EE',
+                      fontSize: '13px',
+                      outline: 'none',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddFeature}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: '6px',
+                      backgroundColor: 'rgba(244, 243, 238, 0.08)',
+                      border: '1px solid rgba(244, 243, 238, 0.15)',
+                      color: '#F4F3EE',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    + Add Feature
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {(form.contentBlocks?.features || form.features || []).map((feat, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '6px 12px',
+                        backgroundColor: '#0E1412',
+                        borderRadius: '4px',
+                        fontSize: '13px',
+                        color: '#C1C4BE',
+                      }}
+                    >
+                      <span>• {feat}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFeature(idx)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#E06C75',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Technology Stack Tags */}
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
+                    color: '#A7B0A9',
+                    marginBottom: '8px',
+                  }}
+                >
+                  Technology Stack
+                </label>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                  <input
+                    type="text"
+                    value={newTechInput}
+                    onChange={(e) => setNewTechInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTech())}
+                    placeholder="e.g. Cloudflare Workers, TypeScript, React 19..."
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      backgroundColor: '#0E1412',
+                      border: '1px solid rgba(244, 243, 238, 0.12)',
+                      color: '#F4F3EE',
+                      fontSize: '13px',
+                      outline: 'none',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddTech}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: '6px',
+                      backgroundColor: 'rgba(244, 243, 238, 0.08)',
+                      border: '1px solid rgba(244, 243, 238, 0.15)',
+                      color: '#F4F3EE',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    + Add Tech
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {(form.contentBlocks?.technologyStack || form.technologyStack || []).map((t) => (
+                    <span
+                      key={t}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 10px',
+                        backgroundColor: 'rgba(244, 243, 238, 0.05)',
+                        border: '1px solid rgba(244, 243, 238, 0.12)',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        color: '#F4F3EE',
+                      }}
+                    >
+                      {t}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTech(t)}
+                        style={{ background: 'none', border: 'none', color: '#8E948D', cursor: 'pointer' }}
+                      >
+                        <X size={11} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
+                    color: '#A7B0A9',
+                    marginBottom: '6px',
+                  }}
+                >
+                  My Contribution &amp; Role Mandate
+                </label>
+                <textarea
+                  rows={2}
+                  value={form.contentBlocks?.contribution || ''}
+                  onChange={(e) => updateBlock('contribution', e.target.value)}
+                  placeholder="Specifically what did you engineer, design, or lead?"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: '#0E1412',
+                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    color: '#F4F3EE',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
+                    color: '#A7B0A9',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Outcomes &amp; Validated Results (No Fake Metrics)
+                </label>
+                <textarea
+                  rows={2}
+                  value={form.contentBlocks?.outcomes || ''}
+                  onChange={(e) => updateBlock('outcomes', e.target.value)}
+                  placeholder="Factual validation, latency tests, schema verification, simulated lifecycle results..."
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: '#0E1412',
+                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    color: '#F4F3EE',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
+                    color: '#A7B0A9',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Future Architecture Roadmap
+                </label>
+                <textarea
+                  rows={2}
+                  value={form.contentBlocks?.futureRoadmap || ''}
+                  onChange={(e) => updateBlock('futureRoadmap', e.target.value)}
+                  placeholder="Planned integrations, BLE protocol handoffs, candidate verification..."
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: '#0E1412',
+                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    color: '#F4F3EE',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: PROJECT MEDIA */}
+          {activeSectionTab === 'media' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 16px',
+                  backgroundColor: '#0E1412',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(244, 243, 238, 0.08)',
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: '#F4F3EE',
+                    }}
+                  >
+                    Project Media Gallery
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: '#8E948D' }}>
+                    Recommended 2–3 screenshots/diagrams starting gallery size. Unlimited supported.
+                  </div>
+                </div>
+
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 14px',
+                    backgroundColor: '#4A5749',
+                    borderRadius: '6px',
+                    color: '#F4F3EE',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Upload size={13} />
+                  {isUploadingMedia ? 'Uploading...' : '+ Upload Asset'}
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,application/pdf"
+                    onChange={handleMediaUpload}
+                    style={{ display: 'none' }}
+                    disabled={isUploadingMedia}
+                  />
+                </label>
+              </div>
+
+              {/* Gallery Grid */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+                  gap: '16px',
+                }}
+              >
+                {(form.mediaItems || []).map((med) => {
+                  const isThumb = form.coverImage === med.url || med.isThumbnail;
+                  const isLog = form.logoUrl === med.url || med.isLogo;
+                  return (
+                    <div
+                      key={med.id}
+                      style={{
+                        backgroundColor: '#0E1412',
+                        border: isThumb
+                          ? '2px solid var(--accent-gold)'
+                          : '1px solid rgba(244, 243, 238, 0.08)',
+                        borderRadius: '6px',
+                        overflow: 'hidden',
+                        position: 'relative',
+                      }}
+                    >
+                      {/* Image / Icon Preview */}
+                      {med.type === 'image' ? (
+                        <img
+                          src={med.url}
+                          alt={med.altText || med.title}
+                          style={{
+                            width: '100%',
+                            height: '130px',
+                            objectFit: 'cover',
+                            display: 'block',
+                          }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            height: '130px',
+                            backgroundColor: '#1E2822',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#8294A6',
+                          }}
+                        >
+                          <FileText size={36} />
+                        </div>
+                      )}
+
+                      {/* Badges */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '6px',
+                          left: '6px',
+                          display: 'flex',
+                          gap: '4px',
+                        }}
+                      >
+                        {isThumb && (
+                          <span
+                            style={{
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              backgroundColor: 'rgba(214, 168, 84, 0.9)',
+                              color: '#111514',
+                              fontSize: '10px',
+                              fontWeight: 700,
+                            }}
+                          >
+                            Thumbnail
+                          </span>
+                        )}
+                        {isLog && (
+                          <span
+                            style={{
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              backgroundColor: 'rgba(130, 148, 166, 0.9)',
+                              color: '#111514',
+                              fontSize: '10px',
+                              fontWeight: 700,
+                            }}
+                          >
+                            Logo
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={{ padding: '10px' }}>
+                        <div
+                          style={{
+                            fontFamily: 'var(--font-display)',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: '#F4F3EE',
+                            marginBottom: '4px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {med.title || 'Asset'}
+                        </div>
+                        <input
+                          type="text"
+                          value={med.caption || ''}
+                          onChange={(e) => {
+                            const updated = (form.mediaItems || []).map((m) =>
+                              m.id === med.id ? { ...m, caption: e.target.value } : m
+                            );
+                            updateField('mediaItems', updated);
+                          }}
+                          placeholder="Caption..."
+                          style={{
+                            width: '100%',
+                            padding: '4px 6px',
+                            borderRadius: '4px',
+                            backgroundColor: '#141C19',
+                            border: '1px solid rgba(244, 243, 238, 0.08)',
+                            color: '#A7B0A9',
+                            fontSize: '11px',
+                            outline: 'none',
+                            marginBottom: '8px',
+                          }}
+                        />
+
+                        {/* Action Pills */}
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleSetThumbnail(med.url)}
+                            style={{
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              backgroundColor: isThumb ? 'rgba(214, 168, 84, 0.2)' : 'rgba(244, 243, 238, 0.05)',
+                              border: '1px solid rgba(244, 243, 238, 0.1)',
+                              color: isThumb ? '#E8CE7D' : '#C1C4BE',
+                              fontSize: '10px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Set Thumbnail
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSetLogo(med.url)}
+                            style={{
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              backgroundColor: isLog ? 'rgba(130, 148, 166, 0.2)' : 'rgba(244, 243, 238, 0.05)',
+                              border: '1px solid rgba(244, 243, 238, 0.1)',
+                              color: isLog ? '#8294A6' : '#C1C4BE',
+                              fontSize: '10px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Set Logo
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMedia(med.id)}
+                            style={{
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              backgroundColor: 'rgba(217, 83, 79, 0.1)',
+                              border: '1px solid rgba(217, 83, 79, 0.2)',
+                              color: '#E06C75',
+                              fontSize: '10px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: ASSOCIATED SKILLS */}
+          {activeSectionTab === 'skills' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '12px',
+                  color: '#A7B0A9',
+                }}
+              >
+                Skills Associated With This Project
+              </label>
+
+              {/* Tag pills */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', minHeight: '32px' }}>
+                {(form.skillsUsed || []).map((sk) => (
+                  <span
+                    key={sk}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '4px 10px',
+                      backgroundColor: 'rgba(130, 148, 166, 0.15)',
+                      border: '1px solid rgba(130, 148, 166, 0.3)',
+                      borderRadius: '16px',
+                      fontSize: '12px',
+                      color: '#F4F3EE',
+                    }}
+                  >
+                    {sk}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSkill(sk)}
+                      style={{ background: 'none', border: 'none', color: '#8294A6', cursor: 'pointer', padding: 0 }}
+                    >
+                      <X size={11} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              {/* Search + Create Input */}
+              <div style={{ display: 'flex', gap: '8px', position: 'relative' }}>
+                <div style={{ flex: 1, position: 'relative' }}>
+                  <input
+                    type="text"
+                    value={skillSearchQuery}
+                    onChange={(e) => setSkillSearchQuery(e.target.value)}
+                    placeholder="Search existing skills or type a new capability..."
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px 8px 32px',
+                      borderRadius: '6px',
+                      backgroundColor: '#0E1412',
+                      border: '1px solid rgba(244, 243, 238, 0.12)',
+                      color: '#F4F3EE',
+                      fontSize: '13px',
+                      outline: 'none',
+                    }}
+                  />
+                  <Search
+                    size={13}
+                    color="#8E948D"
+                    style={{ position: 'absolute', left: '10px', top: '10px' }}
+                  />
+                </div>
+                {skillSearchQuery.trim() && (
+                  <button
+                    type="button"
+                    onClick={() => handleAddSkill(skillSearchQuery)}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: '6px',
+                      backgroundColor: '#4A5749',
+                      border: 'none',
+                      color: '#F4F3EE',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    + Create &ldquo;{skillSearchQuery}&rdquo;
+                  </button>
+                )}
+              </div>
+
+              {skillSearchQuery && filteredSkills.length > 0 && (
+                <div
+                  style={{
+                    backgroundColor: '#18211D',
+                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    borderRadius: '6px',
+                    maxHeight: '140px',
+                    overflowY: 'auto',
+                    padding: '4px',
+                  }}
+                >
+                  {filteredSkills.slice(0, 8).map((sk) => (
+                    <button
+                      key={sk}
+                      type="button"
+                      onClick={() => handleAddSkill(sk)}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '6px 10px',
+                        background: 'none',
+                        border: 'none',
+                        color: '#C1C4BE',
+                        fontSize: '12px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      + {sk}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Sticky Footer Actions */}
+        <div
+          style={{
+            padding: '14px 24px',
+            borderTop: '1px solid rgba(244, 243, 238, 0.08)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: '#18211D',
+            flexShrink: 0,
+          }}
+        >
+          {isEditing && onDelete && initialProject ? (
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm(`Are you sure you want to delete "${initialProject.name}"?`)) {
+                  onDelete(initialProject.id);
+                  onClose();
+                }
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '6px',
+                backgroundColor: 'rgba(217, 83, 79, 0.12)',
+                border: '1px solid rgba(217, 83, 79, 0.3)',
+                color: '#E06C75',
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+            >
+              <Trash2 size={13} />
+              Delete Project
+            </button>
+          ) : (
+            <div />
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '6px',
+                background: 'transparent',
+                border: '1px solid rgba(244, 243, 238, 0.15)',
+                color: '#C1C4BE',
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSubmit('draft')}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '6px',
+                backgroundColor: 'rgba(130, 148, 166, 0.12)',
+                border: '1px solid rgba(130, 148, 166, 0.25)',
+                color: '#8294A6',
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+            >
+              Save Draft
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSubmit('published')}
+              style={{
+                padding: '8px 20px',
+                borderRadius: '6px',
+                backgroundColor: '#4A5749',
+                border: 'none',
+                color: '#F4F3EE',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Publish Project
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

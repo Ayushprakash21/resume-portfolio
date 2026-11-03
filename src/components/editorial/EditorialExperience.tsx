@@ -72,12 +72,40 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                     color: 'var(--text-accent-blue)',
                     marginBottom: '10px',
                     letterSpacing: '0.04em',
+                    flexWrap: 'wrap',
                   }}
                 >
                   <Calendar size={13} />
                   <span>
                     {exp.startDate} &mdash; {exp.endDate}
                   </span>
+                  {exp.isCurrent && (
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        backgroundColor: 'rgba(130, 148, 166, 0.15)',
+                        border: '1px solid rgba(130, 148, 166, 0.3)',
+                        borderRadius: '12px',
+                        fontSize: '10px',
+                        color: 'var(--text-accent-blue)',
+                      }}
+                    >
+                      Current
+                    </span>
+                  )}
+                  {exp.employmentType && (
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        backgroundColor: 'rgba(244, 243, 238, 0.05)',
+                        borderRadius: '12px',
+                        fontSize: '10px',
+                        color: 'var(--text-muted)',
+                      }}
+                    >
+                      {exp.employmentType}
+                    </span>
+                  )}
                 </div>
 
                 <div
@@ -104,21 +132,28 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                   {exp.employer}
                 </div>
 
-                {exp.location && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '12px',
-                      color: 'var(--text-muted)',
-                    }}
-                  >
-                    <MapPin size={12} />
-                    <span>{exp.location}</span>
-                  </div>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                  {exp.location && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontFamily: 'var(--font-body)',
+                        fontSize: '12px',
+                        color: 'var(--text-muted)',
+                      }}
+                    >
+                      <MapPin size={12} />
+                      <span>{exp.location}</span>
+                    </div>
+                  )}
+                  {exp.locationType && (
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                      &bull; {exp.locationType}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Right Column: Narrative & Key Responsibilities */}
@@ -183,6 +218,118 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                         </li>
                       ))}
                     </ul>
+                  </div>
+                )}
+
+                {/* Associated Skills */}
+                {exp.skillsUsed && exp.skillsUsed.length > 0 && (
+                  <div style={{ marginTop: '12px' }}>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-body)',
+                        fontSize: '11px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                        color: 'var(--text-muted)',
+                        marginBottom: '10px',
+                      }}
+                    >
+                      Skills &amp; Capabilities
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {exp.skillsUsed.map((sk, sIdx) => (
+                        <span
+                          key={sIdx}
+                          style={{
+                            padding: '4px 10px',
+                            backgroundColor: 'rgba(244, 243, 238, 0.04)',
+                            border: '1px solid rgba(244, 243, 238, 0.08)',
+                            borderRadius: '4px',
+                            fontFamily: 'var(--font-body)',
+                            fontSize: '12px',
+                            color: 'var(--text-secondary)',
+                          }}
+                        >
+                          {sk}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Media Gallery / Work Samples */}
+                {exp.mediaItems && exp.mediaItems.length > 0 && (
+                  <div style={{ marginTop: '16px' }}>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-body)',
+                        fontSize: '11px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                        color: 'var(--text-muted)',
+                        marginBottom: '10px',
+                      }}
+                    >
+                      Media &amp; Work Samples
+                    </div>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                        gap: '14px',
+                      }}
+                    >
+                      {exp.mediaItems.map((med) => (
+                        <div
+                          key={med.id}
+                          style={{
+                            borderRadius: '6px',
+                            overflow: 'hidden',
+                            backgroundColor: 'rgba(24, 32, 29, 0.6)',
+                            border: '1px solid var(--border-subtle)',
+                          }}
+                        >
+                          {med.type === 'image' && (
+                            <img
+                              src={med.url}
+                              alt={med.altText || med.title || 'Work sample'}
+                              style={{ width: '100%', height: '110px', objectFit: 'cover', display: 'block' }}
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          )}
+                          <div style={{ padding: '8px 10px' }}>
+                            <div
+                              style={{
+                                fontFamily: 'var(--font-display)',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                color: 'var(--text-primary)',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {med.title || 'Attachment'}
+                            </div>
+                            {med.caption && (
+                              <div
+                                style={{
+                                  fontFamily: 'var(--font-body)',
+                                  fontSize: '11px',
+                                  color: 'var(--text-muted)',
+                                  marginTop: '2px',
+                                  lineHeight: 1.3,
+                                }}
+                              >
+                                {med.caption}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

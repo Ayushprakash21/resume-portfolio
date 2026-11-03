@@ -777,4 +777,168 @@ export const cmsService = {
     };
     return await this.addExperience(duplicated);
   },
+
+  // ================= DUPLICATE PROJECT HELPER =================
+  async duplicateProject(id: string): Promise<ProjectRecord | null> {
+    const proj = this.getProjects(false).find((p) => p.id === id);
+    if (!proj) return null;
+    const duplicated: Omit<ProjectRecord, 'id'> = {
+      ...proj,
+      name: `${proj.name} (Copy)`,
+      status: 'draft',
+      displayOrder: proj.displayOrder + 1,
+    };
+    return await this.addProject(duplicated);
+  },
+
+  // ================= DUPLICATE CERTIFICATION HELPER =================
+  async duplicateCertification(id: string): Promise<CertificationRecord | null> {
+    const cert = this.getCertifications(false).find((c) => c.id === id);
+    if (!cert) return null;
+    const duplicated: Omit<CertificationRecord, 'id'> = {
+      ...cert,
+      title: `${cert.title} (Copy)`,
+      status: 'draft',
+      displayOrder: (cert.displayOrder || 1) + 1,
+    };
+    return await this.addCertification(duplicated);
+  },
+
+  // ================= REORDERING HELPERS =================
+  async reorderExperiences(ids: string[]): Promise<void> {
+    const experiences = this.getExperiences(false);
+    const reordered = ids
+      .map((id, index) => {
+        const item = experiences.find((e) => e.id === id);
+        return item ? { ...item, displayOrder: index + 1 } : null;
+      })
+      .filter(Boolean) as ExperienceRecord[];
+    localStorage.setItem(STORAGE_KEYS.experiences, JSON.stringify(reordered));
+    if (db) {
+      try {
+        for (const item of reordered) {
+          await updateDoc(doc(db, 'experiences', item.id), { displayOrder: item.displayOrder });
+        }
+      } catch (err) {
+        console.warn('[CMS Firestore] Reorder experiences sync notice:', err);
+      }
+    }
+    notifyListeners();
+  },
+
+  async reorderProjects(ids: string[]): Promise<void> {
+    const projects = this.getProjects(false);
+    const reordered = ids
+      .map((id, index) => {
+        const item = projects.find((p) => p.id === id);
+        return item ? { ...item, displayOrder: index + 1 } : null;
+      })
+      .filter(Boolean) as ProjectRecord[];
+    localStorage.setItem(STORAGE_KEYS.projects, JSON.stringify(reordered));
+    if (db) {
+      try {
+        for (const item of reordered) {
+          await updateDoc(doc(db, 'projects', item.id), { displayOrder: item.displayOrder });
+        }
+      } catch (err) {
+        console.warn('[CMS Firestore] Reorder projects sync notice:', err);
+      }
+    }
+    notifyListeners();
+  },
+
+  // ================= CENTRAL SKILL LIBRARY INTEGRATION =================
+  async ensureSkill(name: string, category: string = 'General Capabilities'): Promise<SkillRecord> {
+    const trimmed = name.trim();
+    const skills = this.getSkills();
+    const existing = skills.find((s) => s.name.toLowerCase() === trimmed.toLowerCase());
+    if (existing) return existing;
+
+    const newSkill: Omit<SkillRecord, 'id'> = {
+      name: trimmed,
+      category,
+      displayOrder: skills.length + 1,
+    };
+    return await this.addSkill(newSkill);
+  },
+
+  // ================= MEDIA USAGE DETECTOR =================
+  checkMediaUsage(url: string): { isUsed: boolean; usedIn: string[] } {
+    const usedIn: string[] = [];
+    const profile = this.getProfile();
+    if (profile.profilePhoto === url) usedIn.push('Profile Photo');
+    if (profile.coverImage === url) usedIn.push('Profile Cover Image');
+    if (profile.resumeUrl === url) usedIn.push('Active Resume Link');
+
+    const exps = this.getExperiences(false);
+    exps.forEach((e) => {
+      if (e.logoUrl === url) usedIn.push(`Experience: ${e.employer} (Logo)`);
+      e.mediaItems?.forEach((m) => {
+        if (m.url === url) usedIn.push(`Experience: ${e.employer} (${m.title || 'Media'})`);
+      });
+    });
+
+    const projs = this.getProjects(false);
+    projs.forEach((p) => {
+      if (p.coverImage === url) usedIn.push(`Project: ${p.name} (Cover)`);
+      if (p.logoUrl === url) usedIn.push(`Project: ${p.name} (Logo)`);
+      if (p.screenshots?.includes(url)) usedIn.push(`Project: ${p.name} (Screenshot)`);
+      p.mediaItems?.forEach((m) => {
+        if (m.url === url) usedIn.push(`Project: ${p.name} (${m.title || 'Media'})`);
+      });
+    });
+
+    const certs = this.getCertifications(false);
+    certs.forEach((c) => {
+      if (c.certificateImage === url || c.certificatePdfUrl === url) {
+        usedIn.push(`Certification: ${c.title}`);
+      }
+    });
+
+    return {
+      isUsed: usedIn.length > 0,
+      usedIn,
+    };
+  },
+
+  // ================= MEDIA UPLOAD HELPER =================
+  async uploadMediaFile(
+    file: File,
+    category: MediaAsset['category'],
+    caption?: string,
+    altText?: string
+  ): Promise<MediaAsset> {
+    let fileUrl = '';
+    try {
+      const { storage } = await import('./firebase');
+      if (storage) {
+        const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+        const storageRef = ref(storage, `media/${category}/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        fileUrl = await getDownloadURL(snapshot.ref);
+      }
+    } catch (err) {
+      console.warn('[CMS Storage] Media file upload notice:', err);
+    }
+
+    if (!fileUrl) {
+      fileUrl = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const asset = await this.addMediaAsset({
+      name: file.name,
+      url: fileUrl,
+      type: file.type || 'application/octet-stream',
+      sizeBytes: file.size,
+      category,
+      caption: caption || file.name,
+      altText: altText || file.name,
+    });
+
+    return asset;
+  },
 };

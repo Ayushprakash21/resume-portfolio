@@ -142,10 +142,29 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                       fontSize: '11px',
                       color: 'var(--text-muted)',
                       letterSpacing: '0.04em',
-                      marginBottom: '20px',
+                      marginBottom: '14px',
                     }}
                   >
                     ID: {cert.credentialId}
+                  </div>
+                )}
+
+                {cert.skillsUsed && cert.skillsUsed.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '20px' }}>
+                    {cert.skillsUsed.map((sk, sIdx) => (
+                      <span
+                        key={sIdx}
+                        style={{
+                          padding: '2px 8px',
+                          backgroundColor: 'rgba(244, 243, 238, 0.04)',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          color: 'var(--text-muted)',
+                        }}
+                      >
+                        {sk}
+                      </span>
+                    ))}
                   </div>
                 )}
               </div>

@@ -1,19 +1,29 @@
 export interface ProfileData {
+  firstName?: string;
+  lastName?: string;
+  additionalName?: string;
+  pronouns?: string;
   name: string;
   headline: string;
   shortIntro?: string;
   bio: string;
+  countryRegion?: string;
+  city?: string;
+  location: string;
   profilePhoto: string;
+  coverImage?: string;
   email: string;
   phone: string;
   linkedinUrl: string;
   githubUrl: string;
+  portfolioUrl?: string;
   otherSocialLinks?: { label: string; url: string }[];
   resumeUrl: string;
   resumeButtonText?: string;
   isResumeDownloadEnabled?: boolean;
   availabilityStatus: string;
-  location: string;
+  status?: 'published' | 'draft';
+  updatedAt?: string;
 }
 
 export interface HomepageSettings {
@@ -38,10 +48,14 @@ export interface AboutSectionSettings {
   quote: string;
   summary: string;
   detailedText: string;
+  content?: string; // Rich multiline content for LinkedIn-style About editor
   physicalOpsHeading: string;
   physicalOpsText: string;
   digitalPlatformsHeading: string;
   digitalPlatformsText: string;
+  status?: 'published' | 'draft';
+  characterCount?: number;
+  updatedAt?: string;
   contentBlocks?: {
     id: string;
     title: string;
@@ -51,22 +65,63 @@ export interface AboutSectionSettings {
   }[];
 }
 
+export interface ExperienceMediaItem {
+  id: string;
+  url: string;
+  title?: string;
+  caption?: string;
+  altText?: string;
+  type: 'image' | 'document' | 'link';
+}
+
 export interface ExperienceRecord {
   id: string;
   employer: string;
   jobTitle: string;
-  employmentType?: string;
+  employmentType?: string; // Full-time, Contract, Part-time, Self-employed, Founder
+  location?: string;
+  locationType?: 'On-site' | 'Hybrid' | 'Remote';
+  startMonth?: string;
+  startYear?: string;
+  endMonth?: string;
+  endYear?: string;
   startDate: string;
   endDate: string;
   isCurrent?: boolean;
-  location?: string;
   description: string;
   responsibilities: string[];
   achievements?: string[];
+  impact?: string;
   skillsUsed: string[];
   logoUrl?: string;
+  mediaItems?: ExperienceMediaItem[];
   displayOrder: number;
   status: 'published' | 'draft';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ProjectContentBlocks {
+  overview?: string;
+  problemStatement?: string;
+  proposedSolution?: string;
+  features?: string[];
+  architecture?: string;
+  technologyStack?: string[];
+  contribution?: string;
+  outcomes?: string;
+  futureRoadmap?: string;
+}
+
+export interface ProjectMediaItem {
+  id: string;
+  url: string;
+  title?: string;
+  caption?: string;
+  altText?: string;
+  type: 'image' | 'document' | 'video' | 'link';
+  isThumbnail?: boolean;
+  isLogo?: boolean;
 }
 
 export interface ProjectRecord {
@@ -79,29 +134,52 @@ export interface ProjectRecord {
   problemStatement?: string;
   solution?: string;
   coverImage?: string;
+  logoUrl?: string;
   screenshots: string[];
   technologyStack: string[];
   features: string[];
   developmentStatus: string;
   projectUrl?: string;
   repositoryUrl?: string;
+  demoUrl?: string;
+  startDate?: string;
+  endDate?: string;
+  isCurrent?: boolean;
+  contributors?: string;
+  associatedOrganization?: string;
   featured: boolean;
   displayOrder: number;
   status: 'published' | 'draft';
+  skillsUsed?: string[];
+  contentBlocks?: ProjectContentBlocks;
+  mediaItems?: ProjectMediaItem[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CertificationRecord {
   id: string;
   title: string;
   issuer: string;
+  issueMonth?: string;
+  issueYear?: string;
   completionDate: string;
+  expirationMonth?: string;
+  expirationYear?: string;
   expiryDate?: string;
+  doesNotExpire?: boolean;
   credentialId?: string;
   verificationUrl?: string;
+  description?: string;
+  skillsUsed?: string[];
   certificateImage?: string;
+  certificatePdfUrl?: string;
   category: string;
   highlightTag: string;
+  displayOrder?: number;
   status: 'published' | 'draft';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface SkillRecord {
@@ -110,6 +188,7 @@ export interface SkillRecord {
   category: string;
   description?: string;
   displayOrder: number;
+  associatedWith?: ('profile' | 'experience' | 'projects' | 'certifications' | 'education')[];
 }
 
 export interface EducationRecord {
@@ -119,8 +198,20 @@ export interface EducationRecord {
   fieldOfStudy: string;
   startYear: string;
   endYear: string;
+  grade?: string;
+  description?: string;
+  skillsUsed?: string[];
+  logoUrl?: string;
   highlights: string[];
   displayOrder: number;
+  mediaItems?: {
+    id: string;
+    url: string;
+    title?: string;
+    type: 'image' | 'document';
+  }[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ResumeRecord {
@@ -132,6 +223,8 @@ export interface ResumeRecord {
   isActive: boolean;
   isPublicEnabled: boolean;
   buttonText: string;
+  versionName?: string;
+  notes?: string;
 }
 
 export interface SectionConfig {
@@ -198,5 +291,10 @@ export interface MediaAsset {
   type: string;
   sizeBytes: number;
   uploadedAt: string;
-  category: 'certificate' | 'screenshot' | 'resume' | 'photo' | 'general';
+  category: 'certificate' | 'screenshot' | 'resume' | 'photo' | 'general' | 'logo' | 'work-sample';
+  caption?: string;
+  altText?: string;
+  dimensions?: string;
+  usageCount?: number;
+  usedIn?: string[];
 }

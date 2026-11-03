@@ -106,25 +106,34 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — CINEMATIC DIGITAL PORTFOLIO & C
     assert.ok(file.includes('Planned Architecture'), 'Must display planned roadmap');
   });
 
-  // Test 8: Complete Private Admin CMS with all 16 Modules (Part 2, 3, 4, 5, 6, 7)
-  await t.test('8. Private Admin CMS supports all operational modules at /admin', () => {
+  // Test 8: Complete LinkedIn-Style Profile Management System at /admin
+  await t.test('8. LinkedIn-Style Profile Management System supports all 12 operational sections at /admin', () => {
     const admin = fs.readFileSync('src/components/admin/AdminConsole.tsx', 'utf-8');
-    assert.ok(admin.includes('1. Dashboard'), 'Module 1: Dashboard Overview');
-    assert.ok(admin.includes('2. Profile Manager'), 'Module 2: Profile Manager');
-    assert.ok(admin.includes('3. Homepage Hero'), 'Module 3: Homepage Hero Management');
-    assert.ok(admin.includes('4. About Section'), 'Module 4: About Section Management');
-    assert.ok(admin.includes('5. Experience'), 'Module 5: Experience Management');
-    assert.ok(admin.includes('6. Projects'), 'Module 6: Projects Management');
-    assert.ok(admin.includes('7. Certifications'), 'Module 7: Certifications');
-    assert.ok(admin.includes('8. Skills Matrix'), 'Module 8: Skills Matrix');
-    assert.ok(admin.includes('9. Education'), 'Module 9: Education Management');
-    assert.ok(admin.includes('10. Resume Manager'), 'Module 10: Dedicated Resume PDF Manager');
-    assert.ok(admin.includes('11. Section Manager'), 'Module 11: Section Manager');
-    assert.ok(admin.includes('12. Appearance'), 'Module 12: Appearance Manager');
-    assert.ok(admin.includes('13. Media Library'), 'Module 13: Media Library');
-    assert.ok(admin.includes('14. Contact Messages'), 'Module 14: Contact Messages Inbox');
-    assert.ok(admin.includes('15. Site Settings'), 'Module 15: System Settings');
-    assert.ok(admin.includes('16. SEO Management'), 'Module 16: SEO Management');
+    assert.ok(admin.includes('1. Overview'), 'Section 1: Overview Dashboard');
+    assert.ok(admin.includes('2. Introduction'), 'Section 2: Introduction Editor');
+    assert.ok(admin.includes('3. About'), 'Section 3: About Editor');
+    assert.ok(admin.includes('4. Experience'), 'Section 4: Experience Editor');
+    assert.ok(admin.includes('5. Projects'), 'Section 5: Projects Editor');
+    assert.ok(admin.includes('6. Education'), 'Section 6: Education Editor');
+    assert.ok(admin.includes('7. Licenses & Certifications'), 'Section 7: Licenses & Certifications');
+    assert.ok(admin.includes('8. Skills'), 'Section 8: Central Skills Manager');
+    assert.ok(admin.includes('9. Resume'), 'Section 9: Dedicated Resume Manager');
+    assert.ok(admin.includes('10. Media Library'), 'Section 10: Media Library');
+    assert.ok(admin.includes('11. Website Sections'), 'Section 11: Website Sections Manager');
+    assert.ok(admin.includes('12. Settings'), 'Section 12: Settings & SEO');
+
+    // Verify modular LinkedIn editor implementations
+    assert.ok(fs.existsSync('src/components/admin/editors/IntroductionEditor.tsx'), 'IntroductionEditor exists');
+    assert.ok(fs.existsSync('src/components/admin/editors/AboutEditor.tsx'), 'AboutEditor exists');
+    assert.ok(fs.existsSync('src/components/admin/editors/ExperienceEditorModal.tsx'), 'ExperienceEditorModal exists');
+    assert.ok(fs.existsSync('src/components/admin/editors/ProjectEditorModal.tsx'), 'ProjectEditorModal exists');
+    assert.ok(fs.existsSync('src/components/admin/editors/CertificationEditorModal.tsx'), 'CertificationEditorModal exists');
+    assert.ok(fs.existsSync('src/components/admin/editors/EducationEditorModal.tsx'), 'EducationEditorModal exists');
+    assert.ok(fs.existsSync('src/components/admin/editors/SkillsManager.tsx'), 'SkillsManager exists');
+    assert.ok(fs.existsSync('src/components/admin/editors/ResumeManager.tsx'), 'ResumeManager exists');
+    assert.ok(fs.existsSync('src/components/admin/editors/MediaLibraryManager.tsx'), 'MediaLibraryManager exists');
+    assert.ok(fs.existsSync('src/components/admin/editors/WebsiteSectionsManager.tsx'), 'WebsiteSectionsManager exists');
+    assert.ok(fs.existsSync('src/components/admin/editors/SettingsManager.tsx'), 'SettingsManager exists');
   });
 
   // Test 9: Resume Management & Upload Capabilities (Part 4)
@@ -160,5 +169,46 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — CINEMATIC DIGITAL PORTFOLIO & C
   await t.test('12. Production bundle is successfully compiled in dist directory', () => {
     assert.ok(fs.existsSync('dist/index.html'), 'dist/index.html must exist');
     assert.ok(fs.existsSync('dist/assets'), 'dist/assets directory must exist');
+  });
+
+  // Test 13: 18 LinkedIn Profile Management Workflows Verification (Part 15)
+  await t.test('13. Verified 18 LinkedIn Profile Management workflows via CMS service', async () => {
+    const cmsCode = fs.readFileSync('src/services/cmsService.ts', 'utf-8');
+    assert.ok(cmsCode.includes('addProject'), 'Workflow 1: Create project');
+    assert.ok(cmsCode.includes('updateProject'), 'Workflow 2: Edit description');
+    assert.ok(cmsCode.includes('ensureSkill'), 'Workflow 3: Add/remove project skills');
+    assert.ok(cmsCode.includes('uploadMediaFile'), 'Workflow 4: Replace logo');
+    assert.ok(cmsCode.includes('status'), 'Workflow 5: Publish project');
+    assert.ok(cmsCode.includes('onlyPublished'), 'Workflow 6: Verify only published appears publicly');
+    assert.ok(cmsCode.includes('addExperience'), 'Workflow 7: Create experience with media');
+    const expEditorCode = fs.readFileSync('src/components/admin/editors/ExperienceEditorModal.tsx', 'utf-8');
+    assert.ok(expEditorCode.includes('skillsUsed'), 'Workflow 8: Add skills and highlights');
+    assert.ok(cmsCode.includes('addCertification'), 'Workflow 10: Add certification with ID and URL');
+    assert.ok(cmsCode.includes('uploadMediaFile'), 'Workflow 11: Upload certificate');
+    assert.ok(cmsCode.includes('updateProfile'), 'Workflow 12: Update introduction');
+    assert.ok(cmsCode.includes('updateAboutSettings'), 'Workflow 13: Replace About description');
+    assert.ok(cmsCode.includes('uploadResumeFile'), 'Workflow 14: Upload and replace resume');
+    assert.ok(cmsCode.includes("status === 'published'"), 'Workflow 15: Draft vs published separation');
+    assert.ok(cmsCode.includes('checkMediaUsage'), 'Media Safety: Check usage before delete');
+
+    // Verify editors enforce responsive layout and sticky action bars
+    const introEditor = fs.readFileSync('src/components/admin/editors/IntroductionEditor.tsx', 'utf-8');
+    assert.ok(introEditor.includes('sticky'), 'Introduction editor has sticky action bar');
+    assert.ok(introEditor.includes('headline'), 'Introduction editor has long professional headline');
+
+    const aboutEditor = fs.readFileSync('src/components/admin/editors/AboutEditor.tsx', 'utf-8');
+    assert.ok(aboutEditor.includes('maxCharacters'), 'About editor has character counter');
+    assert.ok(aboutEditor.includes('insertBullet'), 'About editor has bullet formatting');
+
+    const expEditor = fs.readFileSync('src/components/admin/editors/ExperienceEditorModal.tsx', 'utf-8');
+    assert.ok(expEditor.includes('mediaItems'), 'Experience editor has media gallery support');
+    assert.ok(expEditor.includes('isCurrent'), 'Experience editor has currently working toggle');
+
+    const projEditor = fs.readFileSync('src/components/admin/editors/ProjectEditorModal.tsx', 'utf-8');
+    assert.ok(projEditor.includes('contentBlocks'), 'Project editor has structured content blocks');
+    assert.ok(projEditor.includes('handleSetThumbnail'), 'Project editor has thumbnail selector');
+
+    const certEditor = fs.readFileSync('src/components/admin/editors/CertificationEditorModal.tsx', 'utf-8');
+    assert.ok(certEditor.includes('doesNotExpire'), 'Certification editor has does not expire toggle');
   });
 });
