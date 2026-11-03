@@ -265,6 +265,29 @@ h1, h2, h3, h4, .font-display {
     padding: 16px 18px;
     max-width: min(92vw, 380px);
   }
+
+  .project-compact-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 22px 20px !important;
+    gap: 20px !important;
+  }
+
+  .project-logo-container {
+    width: 76px !important;
+    height: 76px !important;
+    min-width: 76px !important;
+    border-radius: 14px !important;
+  }
+
+  .project-card-actions {
+    width: 100% !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
 }
 
 /* Subtle Scrollbar */

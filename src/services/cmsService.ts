@@ -706,15 +706,22 @@ export const cmsService = {
 
   // ================= SECTIONS CONFIG (SECTION MANAGER) =================
   getSectionsConfig(): SectionConfig[] {
+    let list: SectionConfig[] = DEFAULT_SECTIONS_CONFIG;
     const raw = localStorage.getItem(STORAGE_KEYS.sections);
     if (raw) {
       try {
-        return JSON.parse(raw);
+        list = JSON.parse(raw);
+        if (!list.some((s) => s.sectionKey === 'projects')) {
+          const defaultProjSec = DEFAULT_SECTIONS_CONFIG.find((s) => s.sectionKey === 'projects');
+          if (defaultProjSec) {
+            list.splice(4, 0, defaultProjSec);
+          }
+        }
       } catch {
-        // fallback
+        list = DEFAULT_SECTIONS_CONFIG;
       }
     }
-    return DEFAULT_SECTIONS_CONFIG;
+    return list;
   },
 
   async updateSectionsConfig(sections: SectionConfig[]): Promise<void> {

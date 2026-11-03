@@ -132,12 +132,12 @@ export const DEFAULT_PROJECTS: ProjectRecord[] = [
     id: 'orion-9',
     name: 'Orion-9',
     category: 'Supply Chain Operating System',
-    subtitle: 'AI-Powered Supply Chain Operating System',
-    shortDescription: 'Edge telemetry and cryptographic verification platform uniting fragmented supplier, warehouse, and transit tiers.',
+    subtitle: 'AI-Powered Autonomous Supply Chain Operating System',
+    shortDescription: 'Bridges real-time warehouse execution, freight route intelligence, and dynamic supplier procurement for integrated supply chain operations.',
     description:
       'Conceived and engineered to answer the foundational question: "What if the supply chain had an operating system?" Orion-9 addresses the severe fragmentation between supplier procurement, inventory warehousing, and multi-tier freight transit through edge streaming telemetry and cryptographic event verification.',
     coverImage: '/images/orion9/admin-page.png',
-    logoUrl: '/images/orion9/admin-branding-tab.png',
+    logoUrl: '/images/orion9/orion9-logo.svg',
     screenshots: [
       '/images/orion9/admin-page.png',
       '/images/orion9/admin-branding-tab.png',
@@ -167,7 +167,7 @@ export const DEFAULT_PROJECTS: ProjectRecord[] = [
       outcomes: 'Validated end-to-end simulation across 6 procurement-to-delivery lifecycle phases with zero data loss under simulated network dropouts.',
       futureRoadmap: 'Integration with hardware BLE beacons and automated multi-carrier bill-of-lading smart contract arbitration.',
     },
-    skillsUsed: ['Supply Chain Architecture', 'Edge Computing', 'TypeScript', 'React 19', 'Three.js', 'Telemetry Systems'],
+    skillsUsed: ['Supply Chain', 'AI & Automation', 'Operations'],
     mediaItems: [
       {
         id: 'orion-m-1',
@@ -207,12 +207,12 @@ export const DEFAULT_PROJECTS: ProjectRecord[] = [
     id: 'applywise-ai',
     name: 'ApplyVise AI',
     category: 'AI & Career Technology',
-    subtitle: 'AI-Powered Career Intelligence Platform',
-    shortDescription: 'Grounded career evaluation platform with AST resume parser and non-hallucinatory skill gap diagnostics.',
+    subtitle: 'AI-Powered Career Intelligence & Job Application Platform',
+    shortDescription: 'An intelligent career platform that replaces opaque ATS rejections with transparent resume diagnostics, high-accuracy job alignment, and structured application intelligence.',
     description:
       'An independent product development initiative designed to transform career evaluation and job applications. Unlike tools that inflate compatibility claims, ApplyVise AI applies grounded semantic reasoning to diagnose genuine skill gaps, optimize ATS parsing fidelity, and simplify application workflows.',
-    coverImage: '/images/applyvise/applyvise-logo.png',
-    logoUrl: '/images/applyvise/applyvise-logo.png',
+    coverImage: '/images/applyvise/applyvise-logo.svg',
+    logoUrl: '/images/applyvise/applyvise-logo.svg',
     screenshots: [
       '/images/applyvise/applyvise-logo.png',
     ],
@@ -239,7 +239,7 @@ export const DEFAULT_PROJECTS: ProjectRecord[] = [
       outcomes: 'Built functioning prototype validating honest skill diagnostics across 100+ standard engineering and operations job specifications.',
       futureRoadmap: 'Autonomous interview scenario generation and automated portfolio matching for verified candidates.',
     },
-    skillsUsed: ['Generative AI', 'Claude AI', 'AI Agents', 'React 19', 'TypeScript', 'Vector Embeddings'],
+    skillsUsed: ['Career Tech', 'AI', 'Job Search'],
     mediaItems: [
       {
         id: 'applyvise-m-1',
@@ -557,11 +557,12 @@ export const DEFAULT_SECTIONS_CONFIG: SectionConfig[] = [
   { id: 'sec-opentowork', sectionKey: 'openToWork', title: 'Open to Work', subtitle: 'Career Availability & Preferences', displayOrder: 2, isVisible: true, status: 'published' },
   { id: 'sec-experience', sectionKey: 'experience', title: 'Experience', subtitle: 'Career Timeline', displayOrder: 3, isVisible: true, status: 'published' },
   { id: 'sec-capabilities', sectionKey: 'capabilities', title: 'Capabilities', subtitle: 'Disciplines & Tools', displayOrder: 4, isVisible: true, status: 'published' },
-  { id: 'sec-orion9', sectionKey: 'orion9', title: 'Orion-9 Showcase', subtitle: 'Flagship Case Study', displayOrder: 5, isVisible: true, status: 'published' },
-  { id: 'sec-applyvise', sectionKey: 'applyvise', title: 'ApplyVise AI', subtitle: 'Product Innovation', displayOrder: 6, isVisible: true, status: 'published' },
-  { id: 'sec-certifications', sectionKey: 'certifications', title: 'Accreditations', subtitle: 'Verified Credentials', displayOrder: 7, isVisible: true, status: 'published' },
-  { id: 'sec-education', sectionKey: 'education', title: 'Education', subtitle: 'Academic Foundation', displayOrder: 8, isVisible: true, status: 'published' },
-  { id: 'sec-contact', sectionKey: 'contact', title: 'Contact', subtitle: 'Direct Transmission', displayOrder: 9, isVisible: true, status: 'published' },
+  { id: 'sec-projects', sectionKey: 'projects', title: 'Selected Projects', subtitle: 'Compact Presentation & Case Studies', displayOrder: 5, isVisible: true, status: 'published' },
+  { id: 'sec-orion9', sectionKey: 'orion9', title: 'Orion-9 Case Study', subtitle: 'Flagship System Architecture', displayOrder: 6, isVisible: true, status: 'published' },
+  { id: 'sec-applyvise', sectionKey: 'applyvise', title: 'ApplyVise AI Case Study', subtitle: 'Product Intelligence Architecture', displayOrder: 7, isVisible: true, status: 'published' },
+  { id: 'sec-certifications', sectionKey: 'certifications', title: 'Accreditations', subtitle: 'Verified Credentials', displayOrder: 8, isVisible: true, status: 'published' },
+  { id: 'sec-education', sectionKey: 'education', title: 'Education', subtitle: 'Academic Foundation', displayOrder: 9, isVisible: true, status: 'published' },
+  { id: 'sec-contact', sectionKey: 'contact', title: 'Contact', subtitle: 'Direct Transmission', displayOrder: 10, isVisible: true, status: 'published' },
 ];
 
 export const DEFAULT_APPEARANCE_SETTINGS: AppearanceSettings = {

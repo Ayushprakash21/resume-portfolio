@@ -1,5 +1,16 @@
-import React from 'react';
-import { ArrowUpRight, Github, CheckCircle2, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  ArrowUpRight,
+  Github,
+  CheckCircle2,
+  Clock,
+  Layers,
+  ChevronDown,
+  ChevronUp,
+  Image as ImageIcon,
+  Cpu,
+  Boxes,
+} from 'lucide-react';
 import { ProjectRecord } from '../../types/cms';
 import { ApplyViseCareerFlow } from '../interactive/ApplyViseCareerFlow';
 
@@ -8,82 +19,150 @@ interface EditorialApplyViseProps {
 }
 
 export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project }) => {
+  const screenshots = project?.screenshots && project.screenshots.length > 0
+    ? project.screenshots
+    : ['/images/applyvise/applyvise-logo.png'];
+
+  const logoSrc = project?.logoUrl || '/images/applyvise/applyvise-logo.svg';
+
+  const [activeScreenshot, setActiveScreenshot] = useState<string | null>(null);
+  const [showArchitecture, setShowArchitecture] = useState<boolean>(false);
+  const [showScreenshots, setShowScreenshots] = useState<boolean>(false);
+
   return (
     <section
-      id="applyvise"
+      id="applyvise-ai"
       style={{
-        padding: '130px 0',
-        backgroundColor: 'var(--bg-primary)',
-        borderBottom: '1px solid var(--border-subtle)',
+        padding: '90px 0',
+        backgroundColor: '#050505',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        position: 'relative',
       }}
     >
-      <div className="container" style={{ maxWidth: '1160px' }}>
-        {/* Editorial Eyebrow */}
-        <div style={{ marginBottom: '28px' }}>
-          <span
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '11px',
-              color: 'var(--text-muted)',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-            }}
-          >
-            Case Study &bull; Product Innovation
-          </span>
-        </div>
-
-        {/* Project Header */}
-        <div style={{ maxWidth: '920px', marginBottom: '56px' }}>
-          <h2
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(2.6rem, 5vw, 4.4rem)',
-              fontWeight: 500,
-              lineHeight: 1.05,
-              letterSpacing: '-0.02em',
-              color: 'var(--text-primary)',
-              marginBottom: '16px',
-            }}
-          >
-            ApplyVise AI
-          </h2>
-
-          <div
-            style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: 'clamp(1.5rem, 2.8vw, 2.2rem)',
-              fontStyle: 'italic',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.3,
-              marginBottom: '24px',
-            }}
-          >
-            AI-Powered Career Intelligence &amp; Job Application Platform
+      <div className="container" style={{ maxWidth: '1080px', margin: '0 auto', padding: '0 24px' }}>
+        {/* ========================================================
+            TOP SECTION: Category, Logo, Name, Subtitle, Intro, Buttons
+            ======================================================== */}
+        <div
+          className="glass-card"
+          style={{
+            padding: '36px 40px',
+            borderRadius: '20px',
+            marginBottom: '32px',
+            background: 'linear-gradient(135deg, rgba(22, 23, 28, 0.75) 0%, rgba(10, 11, 14, 0.9) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.10)',
+          }}
+        >
+          {/* Category Eyebrow */}
+          <div style={{ marginBottom: '18px' }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '11px',
+                color: 'var(--accent-silver)',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                display: 'inline-block',
+                padding: '3px 10px',
+                background: 'rgba(255, 255, 255, 0.04)',
+                borderRadius: '4px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              Case Study &bull; Career Intelligence &amp; AI
+            </span>
           </div>
 
+          {/* Logo & Name Header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '16px', flexWrap: 'wrap' }}>
+            <div
+              style={{
+                width: '68px',
+                height: '68px',
+                minWidth: '68px',
+                borderRadius: '16px',
+                background: 'linear-gradient(135deg, #181920 0%, #0A0B0E 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.14)',
+                padding: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5)',
+              }}
+            >
+              <img
+                src={logoSrc}
+                alt="ApplyVise AI Logo"
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            </div>
+
+            <div>
+              <h2
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 'clamp(28px, 3.2vw, 38px)',
+                  fontWeight: 700,
+                  color: '#FFFFFF',
+                  letterSpacing: '-0.02em',
+                  margin: 0,
+                  lineHeight: 1.1,
+                }}
+              >
+                ApplyVise AI
+              </h2>
+              <div
+                style={{
+                  fontFamily: 'var(--font-serif)',
+                  fontSize: 'clamp(15px, 1.3vw, 18px)',
+                  fontStyle: 'italic',
+                  color: 'var(--accent-silver)',
+                  letterSpacing: '0.01em',
+                  marginTop: '4px',
+                }}
+              >
+                AI-Powered Career Intelligence &amp; Job Application Platform
+              </div>
+            </div>
+          </div>
+
+          {/* Short Introduction */}
           <p
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: '17px',
+              fontSize: '15px',
               lineHeight: 1.7,
               color: 'var(--text-secondary)',
-              maxWidth: '840px',
+              maxWidth: '820px',
+              margin: '0 0 24px 0',
             }}
           >
-            An intelligent career intelligence platform designed to replace opaque ATS rejections with transparent resume diagnostics, high-accuracy job requirement alignment, and structured application intelligence.
+            An intelligent career platform designed to replace opaque ATS rejections with transparent resume diagnostics, high-accuracy job requirement alignment, and structured application intelligence without fabricated suitability claims.
           </p>
 
           {/* Action Links */}
-          <div style={{ display: 'flex', gap: '16px', marginTop: '28px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             {project?.repositoryUrl && (
               <a
                 href={project.repositoryUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="btn-editorial-pill"
+                className="glass-btn-spring"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '9px 18px',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  color: '#FFFFFF',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid rgba(255, 255, 255, 0.14)',
+                  borderRadius: '9999px',
+                  textDecoration: 'none',
+                }}
               >
-                <Github size={14} />
+                <Github size={13} />
                 <span>Source Repository</span>
               </a>
             )}
@@ -92,104 +171,272 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
                 href={project.projectUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="btn-editorial-pill"
+                className="glass-btn-spring"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '9px 18px',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  color: '#FFFFFF',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.22)',
+                  borderRadius: '9999px',
+                  textDecoration: 'none',
+                }}
               >
                 <span>Live Platform</span>
-                <ArrowUpRight size={14} />
+                <ArrowUpRight size={13} />
               </a>
             )}
           </div>
         </div>
 
-        {/* Brand Banner / Official Visual Asset */}
-        <div style={{ marginBottom: '64px' }}>
-          <div
-            className="glass-card"
-            style={{
-              borderRadius: '16px',
-              padding: '60px 40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: 'var(--shadow-editorial)',
-            }}
-          >
-            <img
-              src="/images/applyvise/applyvise-logo.png"
-              alt="ApplyVise AI Official Identity"
-              style={{
-                maxWidth: '380px',
-                width: '100%',
-                height: 'auto',
-                filter: 'drop-shadow(0 10px 30px rgba(0,0,0,0.6))',
-              }}
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Interactive Career Flow */}
-        <div style={{ marginBottom: '72px' }}>
+        {/* ========================================================
+            KEY CAPABILITIES (COMPACT GRID)
+            ======================================================== */}
+        <div style={{ marginBottom: '28px' }}>
           <div
             style={{
               fontFamily: 'var(--font-body)',
               fontSize: '11px',
               textTransform: 'uppercase',
-              letterSpacing: '0.1em',
+              letterSpacing: '0.12em',
               color: 'var(--text-muted)',
-              marginBottom: '16px',
+              marginBottom: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            Intelligence &amp; Optimization Pipeline
+            <Boxes size={13} />
+            <span>Key Capabilities</span>
           </div>
+
           <div
             style={{
-              backgroundColor: 'var(--bg-card)',
-              borderRadius: '8px',
-              padding: '32px 24px',
-              border: '1px solid var(--border-subtle)',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+              gap: '16px',
             }}
           >
-            <ApplyViseCareerFlow />
+            {[
+              {
+                title: 'AST Resume Structure Parser',
+                desc: 'Analyzes structural syntax tree of CVs to prevent scanner rejection.',
+              },
+              {
+                title: 'Transparent Skill Gap Diagnostics',
+                desc: 'Highlights exact missing qualifications rather than spurious match percentages.',
+              },
+              {
+                title: 'Semantic Job Aggregation',
+                desc: 'Multi-channel role ingestion with deduplication heuristics.',
+              },
+              {
+                title: 'Application Preparation Hub',
+                desc: 'Structured asset generator customized to verified career milestones.',
+              },
+            ].map((cap, idx) => (
+              <div
+                key={idx}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '14px',
+                  padding: '18px 20px',
+                }}
+              >
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF', marginBottom: '6px' }}>
+                  {cap.title}
+                </div>
+                <div style={{ fontSize: '12px', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+                  {cap.desc}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Feature Lifecycle & Status Breakdown */}
+        {/* ========================================================
+            ARCHITECTURE OVERVIEW (COLLAPSIBLE / STREAMLINED)
+            ======================================================== */}
+        <div
+          style={{
+            background: 'rgba(255, 255, 255, 0.025)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '16px',
+            marginBottom: '28px',
+            overflow: 'hidden',
+          }}
+        >
+          <button
+            onClick={() => setShowArchitecture(!showArchitecture)}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '18px 24px',
+              background: 'none',
+              border: 'none',
+              color: '#FFFFFF',
+              cursor: 'pointer',
+              textAlign: 'left',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Layers size={16} color="var(--accent-silver)" />
+              <span style={{ fontSize: '14px', fontWeight: 600 }}>Intelligence &amp; Optimization Architecture</span>
+            </div>
+            {showArchitecture ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+
+          {showArchitecture && (
+            <div style={{ padding: '0 24px 24px 24px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+              <p
+                style={{
+                  fontSize: '13px',
+                  lineHeight: 1.6,
+                  color: 'var(--text-secondary)',
+                  marginTop: '16px',
+                  marginBottom: '20px',
+                }}
+              >
+                Client-side vector similarity combined with Gemini 1.5 structured schema extraction, deterministic AST parsing, and Cloudflare D1 distributed SQLite caching.
+              </p>
+              <ApplyViseCareerFlow />
+            </div>
+          )}
+        </div>
+
+        {/* ========================================================
+            IMPORTANT SCREENSHOTS (OPTIONAL THUMBNAILS & LIGHTBOX)
+            ======================================================== */}
+        {screenshots && screenshots.length > 0 && (
+          <div
+            style={{
+              background: 'rgba(255, 255, 255, 0.025)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '16px',
+              marginBottom: '28px',
+              overflow: 'hidden',
+            }}
+          >
+            <button
+              onClick={() => setShowScreenshots(!showScreenshots)}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '18px 24px',
+                background: 'none',
+                border: 'none',
+                color: '#FFFFFF',
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <ImageIcon size={16} color="var(--accent-silver)" />
+                <span style={{ fontSize: '14px', fontWeight: 600 }}>
+                  Brand Assets &amp; Interface Preview ({screenshots.length} available)
+                </span>
+              </div>
+              {showScreenshots ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {showScreenshots && (
+              <div style={{ padding: '0 24px 24px 24px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '16px' }}>
+                  {screenshots.map((imgUrl, i) => (
+                    <div
+                      key={i}
+                      onClick={() => setActiveScreenshot(activeScreenshot === imgUrl ? null : imgUrl)}
+                      style={{
+                        width: '180px',
+                        height: '110px',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        border:
+                          activeScreenshot === imgUrl
+                            ? '2px solid #FFFFFF'
+                            : '1px solid rgba(255, 255, 255, 0.12)',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={`Screenshot ${i + 1}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {activeScreenshot && (
+                  <div
+                    style={{
+                      marginTop: '20px',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      maxHeight: '480px',
+                      backgroundColor: '#000000',
+                    }}
+                  >
+                    <img
+                      src={activeScreenshot}
+                      alt="Enlarged screenshot"
+                      style={{ width: '100%', maxHeight: '480px', objectFit: 'contain', display: 'block' }}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ========================================================
+            PRODUCTION VS IN-DEVELOPMENT FEATURES (COMPACT GRID)
+            ======================================================== */}
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '32px',
+            gap: '20px',
+            marginBottom: '28px',
           }}
         >
           {/* Active Features */}
           <div
             style={{
-              backgroundColor: 'var(--bg-card)',
-              borderRadius: '8px',
-              padding: '32px 28px',
-              border: '1px solid var(--border-subtle)',
+              background: 'rgba(255, 255, 255, 0.03)',
+              borderRadius: '16px',
+              padding: '24px 26px',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
-              <CheckCircle2 size={16} color="var(--accent-emerald)" />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                Active &amp; Functional
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <CheckCircle2 size={15} color="#8CE8A0" />
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF' }}>
+                Active &amp; Functional &bull; Production / Completed
               </span>
             </div>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <li style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-secondary)' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 &bull; Full-stack reactive web interface with modern responsive layouts
               </li>
-              <li style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-secondary)' }}>
+              <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 &bull; Resume parsing engine and keyword ATS alignment diagnostics
               </li>
-              <li style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-secondary)' }}>
+              <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 &bull; Objective career suitability assessment without fabricated claims
               </li>
-              <li style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-secondary)' }}>
+              <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 &bull; Firebase-backed user profiles and application tracking logs
               </li>
             </ul>
@@ -198,30 +445,55 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
           {/* Planned Features */}
           <div
             style={{
-              backgroundColor: 'var(--bg-card)',
-              borderRadius: '8px',
-              padding: '32px 28px',
-              border: '1px solid var(--border-subtle)',
+              background: 'rgba(255, 255, 255, 0.03)',
+              borderRadius: '16px',
+              padding: '24px 26px',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
-              <Clock size={16} color="var(--text-accent-blue)" />
-              <span style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <Clock size={15} color="#90B8FF" />
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF' }}>
                 Planned Architecture &amp; Next Milestones
               </span>
             </div>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <li style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-secondary)' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 &bull; Multi-provider job board aggregation scraper with deduplication
               </li>
-              <li style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-secondary)' }}>
+              <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 &bull; Automated cover letter synthesis matching verified career milestones
               </li>
-              <li style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-secondary)' }}>
+              <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                 &bull; Chrome extension for one-click job application data capture
               </li>
             </ul>
           </div>
+        </div>
+
+        {/* ========================================================
+            TECHNOLOGY STACK (PILLS)
+            ======================================================== */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+            <Cpu size={13} />
+            <span>Technology Stack:</span>
+          </div>
+          {(project?.technologyStack || ['React 19', 'TypeScript', 'Google Gemini API', 'Vector Embeddings', 'Cloudflare D1 SQL']).map((tech, idx) => (
+            <span
+              key={idx}
+              style={{
+                fontSize: '11px',
+                color: '#C8C8CE',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '6px',
+                padding: '3px 10px',
+              }}
+            >
+              {tech}
+            </span>
+          ))}
         </div>
       </div>
     </section>

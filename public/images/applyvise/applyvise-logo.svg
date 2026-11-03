@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Dark Glass Container Gradient -->
+    <linearGradient id="avSquircleBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1A1B22" />
+      <stop offset="50%" stop-color="#101116" />
+      <stop offset="100%" stop-color="#070709" />
+    </linearGradient>
+
+    <!-- Chrome Metallic Gradients -->
+    <linearGradient id="chromeAV1" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="25%" stop-color="#E8E8EE" />
+      <stop offset="50%" stop-color="#B8B8C2" />
+      <stop offset="75%" stop-color="#7A7A85" />
+      <stop offset="100%" stop-color="#DCDCE2" />
+    </linearGradient>
+
+    <linearGradient id="chromeAV2" x1="0%" y1="10%" x2="100%" y2="90%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="30%" stop-color="#D0D0D8" />
+      <stop offset="60%" stop-color="#8E8E9A" />
+      <stop offset="85%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#60606B" />
+    </linearGradient>
+
+    <linearGradient id="avSwoopGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#70707C" stop-opacity="0.2" />
+      <stop offset="60%" stop-color="#E0E0E6" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="1" />
+    </linearGradient>
+
+    <!-- Ambient Glow Filter -->
+    <filter id="avGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <filter id="avStarGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="glow" />
+      <feMerge>
+        <feMergeNode in="glow" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Squircle Base with subtle silver border -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#avSquircleBg)" stroke="rgba(255, 255, 255, 0.16)" stroke-width="2.5" />
+  
+  <!-- Subtle Inner Top Highlight -->
+  <rect x="18" y="18" width="476" height="476" rx="110" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1.5" />
+
+  <!-- The AV Interconnected Emblem -->
+  <g transform="translate(48, 80)">
+    <!-- Orbital Swoop Arc -->
+    <path d="M 80 340 C 240 395, 385 285, 395 135 C 400 95, 395 70, 385 45" 
+          fill="none" stroke="url(#avSwoopGrad)" stroke-width="6.5" stroke-linecap="round" />
+
+    <!-- 4-point Sparkle Star -->
+    <g transform="translate(388, 40)" filter="url(#avStarGlow)">
+      <path d="M 0 -28 Q 0 0 28 0 Q 0 0 0 28 Q 0 0 -28 0 Q 0 0 0 -28 Z" fill="#FFFFFF" />
+      <circle cx="0" cy="0" r="3.5" fill="#FFFFFF" />
+    </g>
+
+    <!-- Intertwined 'A' and 'V' letterforms -->
+    <!-- 'A' Left leg and peak -->
+    <path d="M 175 110 L 80 330 L 132 330 L 165 250 L 255 250 L 270 215 L 180 215 L 210 145 L 255 250 L 290 250 L 230 110 Z" 
+          fill="url(#chromeAV1)" filter="url(#avGlow)" />
+
+    <!-- 'V' Right leg swooping through -->
+    <path d="M 235 340 L 320 140 L 375 140 L 265 375 L 205 375 L 175 305 L 218 305 Z" 
+          fill="url(#chromeAV2)" filter="url(#avGlow)" />
+  </g>
+</svg>

@@ -368,4 +368,56 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(storageRules.includes('ayush-admin@portfolio.internal'), 'Storage rules authorize mapped admin identity');
     assert.ok(storageRules.includes('allow write: if isAdmin()'), 'Storage restricts write operations to isAdmin');
   });
+
+  // Test 24: Main Projects Section Option 1 Compact Horizontal Cards
+  await t.test('24. Main Projects Section implements Option 1 Compact Horizontal Project Cards with 80-100px logos', () => {
+    const projComp = fs.readFileSync('src/components/editorial/EditorialProjects.tsx', 'utf-8');
+    assert.ok(projComp.includes('project-compact-card'), 'Must contain .project-compact-card');
+    assert.ok(projComp.includes('project-logo-container'), 'Must contain .project-logo-container');
+    assert.ok(projComp.includes('Case Study'), 'Must contain Case Study button');
+    assert.ok(projComp.includes('font-serif'), 'Must style subtitle with font-serif');
+    assert.ok(projComp.includes('fontStyle: \'italic\''), 'Subtitle must be italicized');
+
+    const seed = fs.readFileSync('src/data/seedData.ts', 'utf-8');
+    assert.ok(seed.includes('AI-Powered Autonomous Supply Chain Operating System'), 'Orion-9 has exact configured subtitle');
+    assert.ok(seed.includes('AI-Powered Career Intelligence & Job Application Platform'), 'ApplyVise AI has exact configured subtitle');
+  });
+
+  // Test 25: Compact Individual Project Detail Pages
+  await t.test('25. Individual project detail pages are compact, editorial, with collapsible architecture and optional screenshots', () => {
+    const orion = fs.readFileSync('src/components/editorial/EditorialOrion9.tsx', 'utf-8');
+    assert.ok(orion.includes('Key Capabilities'), 'Must feature Key Capabilities');
+    assert.ok(orion.includes('Architecture Overview'), 'Must feature Architecture Overview');
+    assert.ok(orion.includes('showArchitecture'), 'Must have collapsible architecture state');
+    assert.ok(orion.includes('showScreenshots'), 'Screenshots must be optional/collapsible');
+    assert.ok(orion.includes('Production / Completed'), 'Must render completed features');
+    assert.ok(orion.includes('In Development &amp; Architecture Roadmap') || orion.includes('In Development & Architecture Roadmap'), 'Must render in-development features');
+
+    const applyvise = fs.readFileSync('src/components/editorial/EditorialApplyVise.tsx', 'utf-8');
+    assert.ok(applyvise.includes('Key Capabilities'), 'Must feature Key Capabilities');
+    assert.ok(applyvise.includes('Architecture Overview') || applyvise.includes('Optimization Architecture'), 'Must feature Architecture');
+    assert.ok(applyvise.includes('showArchitecture'), 'Must have collapsible architecture state');
+    assert.ok(applyvise.includes('showScreenshots'), 'Screenshots must be optional/collapsible');
+  });
+
+  // Test 26: Project Logo & Screenshot Management in Admin
+  await t.test('26. ProjectEditorModal provides dedicated Project Logo upload, preview, replacement, removal, and screenshot reordering', () => {
+    const modal = fs.readFileSync('src/components/admin/editors/ProjectEditorModal.tsx', 'utf-8');
+    assert.ok(modal.includes('handleLogoUpload'), 'Must have dedicated handleLogoUpload');
+    assert.ok(modal.includes('handleRemoveLogo'), 'Must have handleRemoveLogo');
+    assert.ok(modal.includes('handleCoverUpload'), 'Must have handleCoverUpload');
+    assert.ok(modal.includes('handleRemoveCover'), 'Must have handleRemoveCover');
+    assert.ok(modal.includes('handleMoveScreenshot'), 'Must have handleMoveScreenshot reordering');
+    assert.ok(modal.includes('handleRemoveScreenshot'), 'Must have handleRemoveScreenshot');
+    assert.ok(modal.includes('image/png,image/svg+xml,image/webp,image/jpeg'), 'Accepts PNG, SVG, WebP, JPG formats');
+    assert.ok(modal.includes('optimizeImageFile'), 'Uses client-side image optimization');
+  });
+
+  // Test 27: Responsive Styling for Compact Project Cards
+  await t.test('27. CSS defines responsive rules for compact project cards on desktop, tablet, and mobile', () => {
+    const css = fs.readFileSync('src/styles/index.css', 'utf-8');
+    assert.ok(css.includes('.project-compact-card'), 'CSS contains .project-compact-card responsive rules');
+    assert.ok(css.includes('.project-logo-container'), 'CSS contains .project-logo-container responsive rules');
+    assert.ok(css.includes('.project-card-actions'), 'CSS contains .project-card-actions responsive rules');
+  });
 });

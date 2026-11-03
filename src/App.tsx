@@ -4,6 +4,7 @@ import { EditorialAbout } from './components/editorial/EditorialAbout';
 import { EditorialOpenToWork } from './components/editorial/EditorialOpenToWork';
 import { EditorialExperience } from './components/editorial/EditorialExperience';
 import { EditorialCapabilities } from './components/editorial/EditorialCapabilities';
+import { EditorialProjects } from './components/editorial/EditorialProjects';
 import { EditorialOrion9 } from './components/editorial/EditorialOrion9';
 import { EditorialApplyVise } from './components/editorial/EditorialApplyVise';
 import { EditorialCertifications } from './components/editorial/EditorialCertifications';
@@ -164,6 +165,8 @@ export const App: React.FC = () => {
         return <EditorialExperience key="experience" experiences={experiences} />;
       case 'capabilities':
         return <EditorialCapabilities key="capabilities" skills={skills} />;
+      case 'projects':
+        return <EditorialProjects key="projects" projects={projects} onSelectProject={scrollToSection} />;
       case 'orion9':
         return <EditorialOrion9 key="orion9" project={orionProject} />;
       case 'applyvise':
