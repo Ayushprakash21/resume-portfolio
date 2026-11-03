@@ -5,7 +5,6 @@ import {
   Download,
   Eye,
   CheckCircle,
-  FileCheck,
   Sparkles,
   ExternalLink,
   ShieldCheck,
@@ -27,7 +26,6 @@ import {
 import {
   extractResumeData,
   downloadPdf,
-  downloadDocx,
   ATSResumeData,
 } from '../../services/resumeGeneratorService';
 
@@ -58,7 +56,6 @@ export const ResumeGeneratorModal: React.FC<ResumeGeneratorModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'options' | 'preview'>('options');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const [isGeneratingDocx, setIsGeneratingDocx] = useState(false);
   const [copiedNotification, setCopiedNotification] = useState(false);
 
   // Close on Escape key
@@ -100,17 +97,6 @@ export const ResumeGeneratorModal: React.FC<ResumeGeneratorModalProps> = ({
       console.error('PDF generation error:', err);
     } finally {
       setTimeout(() => setIsGeneratingPdf(false), 600);
-    }
-  };
-
-  const handleDownloadDocx = async () => {
-    setIsGeneratingDocx(true);
-    try {
-      await downloadDocx(resumeData);
-    } catch (err) {
-      console.error('DOCX generation error:', err);
-    } finally {
-      setTimeout(() => setIsGeneratingDocx(false), 600);
     }
   };
 
@@ -411,7 +397,7 @@ export const ResumeGeneratorModal: React.FC<ResumeGeneratorModalProps> = ({
                           margin: 0,
                         }}
                       >
-                        Download ATS Resume (PDF)
+                        Download ATS-Friendly Resume (PDF)
                       </h3>
                       <span
                         style={{
@@ -475,105 +461,7 @@ export const ResumeGeneratorModal: React.FC<ResumeGeneratorModalProps> = ({
                 </button>
               </div>
 
-              {/* Option 2: DOCX Download */}
-              <div
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '12px',
-                  padding: '20px',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  justifyContent: 'space-between',
-                  gap: '16px',
-                  transition: 'border-color 0.2s ease, background 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(217, 221, 227, 0.3)';
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
-                }}
-              >
-                <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                  <div
-                    style={{
-                      width: '42px',
-                      height: '42px',
-                      borderRadius: '10px',
-                      backgroundColor: 'rgba(37, 99, 235, 0.15)',
-                      border: '1px solid rgba(37, 99, 235, 0.28)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#60A5FA',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <FileCheck size={22} />
-                  </div>
-                  <div>
-                    <h3
-                      style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '16px',
-                        fontWeight: 600,
-                        color: '#FFFFFF',
-                        margin: 0,
-                      }}
-                    >
-                      Download Editable Resume (DOCX)
-                    </h3>
-                    <p
-                      style={{
-                        fontFamily: 'var(--font-body)',
-                        fontSize: '12.5px',
-                        color: 'rgba(255, 255, 255, 0.65)',
-                        margin: '6px 0 0 0',
-                        lineHeight: 1.45,
-                      }}
-                    >
-                      Native Microsoft Word document with standard paragraph styles, bullet structures, and clickable contact links. Easily tailored for custom applications.
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleDownloadDocx}
-                  disabled={isGeneratingDocx}
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                    color: '#FFFFFF',
-                    border: '1px solid rgba(255, 255, 255, 0.16)',
-                    borderRadius: '8px',
-                    padding: '10px 18px',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    flexShrink: 0,
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.16)';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  <Download size={15} />
-                  {isGeneratingDocx ? 'Generating...' : 'Download DOCX'}
-                </button>
-              </div>
-
-              {/* Option 3: Preview Resume */}
+              {/* Option 2: Preview Resume */}
               <div
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.03)',
@@ -670,206 +558,6 @@ export const ResumeGeneratorModal: React.FC<ResumeGeneratorModalProps> = ({
                 </button>
               </div>
 
-              {/* Option: Original Uploaded Resume */}
-              {profile.isResumeDownloadEnabled !== false && profile.resumeUrl && (
-                <div
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    borderRadius: '12px',
-                    padding: '20px',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    justifyContent: 'space-between',
-                    gap: '16px',
-                    transition: 'border-color 0.2s ease, background 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(217, 221, 227, 0.3)';
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
-                  }}
-                >
-                  <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                    <div
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '10px',
-                        backgroundColor: 'rgba(234, 179, 8, 0.15)',
-                        border: '1px solid rgba(234, 179, 8, 0.28)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#FACC15',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Download size={22} />
-                    </div>
-                    <div>
-                      <h3
-                        style={{
-                          fontFamily: 'var(--font-display)',
-                          fontSize: '16px',
-                          fontWeight: 600,
-                          color: '#FFFFFF',
-                          margin: 0,
-                        }}
-                      >
-                        Download Original Resume
-                      </h3>
-                      <p
-                        style={{
-                          fontFamily: 'var(--font-body)',
-                          fontSize: '12.5px',
-                          color: 'rgba(255, 255, 255, 0.65)',
-                          margin: '6px 0 0 0',
-                          lineHeight: 1.45,
-                        }}
-                      >
-                        Download the original verified curriculum vitae document uploaded and authorized by Ayush Prakash.
-                      </p>
-                    </div>
-                  </div>
-
-                  <a
-                    href={profile.resumeUrl}
-                    download="Ayush_Prakash_Resume.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                      color: '#FFFFFF',
-                      border: '1px solid rgba(255, 255, 255, 0.16)',
-                      borderRadius: '8px',
-                      padding: '10px 18px',
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      flexShrink: 0,
-                      textDecoration: 'none',
-                      transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.16)';
-                      e.currentTarget.style.transform = 'translateY(-1px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    <Download size={15} />
-                    Download Original
-                  </a>
-                </div>
-              )}
-
-              {/* Option 3: Preview Resume */}
-              <div
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '12px',
-                  padding: '20px',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  justifyContent: 'space-between',
-                  gap: '16px',
-                  transition: 'border-color 0.2s ease, background 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(217, 221, 227, 0.3)';
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
-                }}
-              >
-                <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                  <div
-                    style={{
-                      width: '42px',
-                      height: '42px',
-                      borderRadius: '10px',
-                      backgroundColor: 'rgba(168, 85, 247, 0.15)',
-                      border: '1px solid rgba(168, 85, 247, 0.28)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#C084FC',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Eye size={22} />
-                  </div>
-                  <div>
-                    <h3
-                      style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '16px',
-                        fontWeight: 600,
-                        color: '#FFFFFF',
-                        margin: 0,
-                      }}
-                    >
-                      Preview Resume
-                    </h3>
-                    <p
-                      style={{
-                        fontFamily: 'var(--font-body)',
-                        fontSize: '12.5px',
-                        color: 'rgba(255, 255, 255, 0.65)',
-                        margin: '6px 0 0 0',
-                        lineHeight: 1.45,
-                      }}
-                    >
-                      Inspect the exact text hierarchy, section headings, competencies, and bullet formatting in real time before downloading.
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setActiveTab('preview')}
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                    color: '#FFFFFF',
-                    border: '1px solid rgba(255, 255, 255, 0.16)',
-                    borderRadius: '8px',
-                    padding: '10px 18px',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    flexShrink: 0,
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.16)';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  <Eye size={15} />
-                  Preview
-                </button>
-              </div>
-
               {/* ATS Compliance Checklist Note */}
               <div
                 style={{
@@ -941,25 +629,6 @@ export const ResumeGeneratorModal: React.FC<ResumeGeneratorModalProps> = ({
                   >
                     <Download size={13} />
                     Download PDF
-                  </button>
-                  <button
-                    onClick={handleDownloadDocx}
-                    style={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      color: '#FFFFFF',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
-                      borderRadius: '6px',
-                      padding: '7px 14px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    <Download size={13} />
-                    Download DOCX
                   </button>
                   <button
                     onClick={handleCopyText}

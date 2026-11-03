@@ -161,6 +161,21 @@ async function run() {
         } catch (e) {
           console.warn('Could not capture Orion-9 wheel screenshot', e);
         }
+
+        // Capture Updated Resume Modal
+        try {
+          await page.evaluate(() => {
+            const btns = Array.from(document.querySelectorAll('button'));
+            const target = btns.find(b => b.textContent && b.textContent.includes('Download Curriculum Vitae'));
+            if (target) target.click();
+          });
+          await page.waitForTimeout(600);
+          const resumeShotPath = path.join(SCREENSHOT_DIR, 'screenshot_resume_modal_updated.png');
+          await page.screenshot({ path: resumeShotPath, fullPage: false });
+          console.log(`  📸 Captured Resume Modal screenshot: ${resumeShotPath}`);
+        } catch (e) {
+          console.warn('Could not capture resume modal screenshot', e);
+        }
       }
 
       results.push({

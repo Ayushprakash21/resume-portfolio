@@ -523,9 +523,10 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
 
     const modal = fs.readFileSync('src/components/resume/ResumeGeneratorModal.tsx', 'utf-8');
     assert.ok(modal.includes('Generate My Resume'), 'Modal displays official title Generate My Resume');
-    assert.ok(modal.includes('Download ATS Resume (PDF)'), 'Modal has Option 1: Download ATS Resume (PDF)');
-    assert.ok(modal.includes('Download Editable Resume (DOCX)'), 'Modal has Option 2: Download Editable Resume (DOCX)');
-    assert.ok(modal.includes('Preview Resume'), 'Modal has Option 3: Preview Resume');
+    assert.ok(modal.includes('Download ATS-Friendly Resume (PDF)'), 'Modal has single primary download option: Download ATS-Friendly Resume (PDF)');
+    assert.ok(!modal.includes('Download Editable Resume (DOCX)'), 'Modal has completely removed DOCX download option');
+    assert.ok(!modal.includes('Download Original Resume'), 'Modal has completely removed Original Resume download option');
+    assert.ok(modal.includes('Preview Resume'), 'Modal has Preview Resume option');
     assert.ok(modal.includes('Live ATS Preview'), 'Modal has Live ATS Preview tab');
     assert.ok(modal.includes('Calibri, Arial, sans-serif'), 'Preview renders clean single-column ATS typography');
 
@@ -567,7 +568,7 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(cmsService.includes('getResumeAuditHistory'), 'cmsService provides getResumeAuditHistory');
 
     const modal = fs.readFileSync('src/components/resume/ResumeGeneratorModal.tsx', 'utf-8');
-    assert.ok(modal.includes('Original Uploaded Resume'), 'Public modal supports original uploaded resume download');
+    assert.ok(!modal.includes('Download Original Resume'), 'Public modal omits original uploaded resume download to keep ATS PDF as single primary option');
   });
 
   // Test 33: Premium React Bits Interaction System (Swarm Cursor, Holo Card, Option Wheel, Border Glow, Specular Button)
