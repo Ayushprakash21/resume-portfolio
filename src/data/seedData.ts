@@ -16,6 +16,7 @@ import {
   OpenToWorkSettings,
   PreferredLocation,
   ResumeGeneratorSettings,
+  ResumeVersionRecord,
 } from '../types/cms';
 
 export const DEFAULT_PROFILE: ProfileData = {
@@ -501,6 +502,26 @@ export const DEFAULT_RESUME_RECORD: ResumeRecord = {
   isPublicEnabled: true,
   buttonText: 'Download Curriculum Vitae',
 };
+
+export const DEFAULT_RESUME_VERSIONS: ResumeVersionRecord[] = [
+  {
+    id: 'res-v1',
+    versionNumber: 1,
+    fileName: 'Ayush_Prakash_Resume.pdf',
+    fileUrl: '/Ayush_Prakash_Resume.pdf',
+    fileType: 'pdf',
+    fileSizeBytes: 142800,
+    uploadedAt: '2026-11-01',
+    uploadedBy: 'Ayush Prakash (Admin)',
+    processingStatus: 'published',
+    extractionStatus: 'success',
+    isActive: true,
+    isPublicEnabled: true,
+    buttonText: 'Download Curriculum Vitae',
+    versionName: 'Authoritative Production Resume v1.0',
+    notes: 'Initial production baseline CV with verified credentials and contact info.',
+  },
+];
 
 export const DEFAULT_RESUME_GENERATOR_SETTINGS: ResumeGeneratorSettings = {
   enabled: true,

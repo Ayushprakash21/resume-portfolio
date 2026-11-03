@@ -217,7 +217,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
     { id: 'education', label: 'Education', icon: GraduationCap },
     { id: 'certifications', label: 'Licenses & Certifications', icon: Award },
     { id: 'skills', label: 'Skills', icon: Cpu },
-    { id: 'resume', label: 'Resume', icon: FileText },
+    { id: 'resume', label: 'Resume Management', icon: FileText },
     { id: 'media', label: 'Media Library', icon: ImageIcon },
     { id: 'sections', label: 'Website Sections', icon: ListOrdered },
     {

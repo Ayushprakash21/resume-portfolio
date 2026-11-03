@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FileText,
   Upload,
@@ -14,9 +14,34 @@ import {
   Sparkles,
   ShieldCheck,
   FileCheck,
+  RotateCcw,
+  AlertTriangle,
+  History,
+  Filter,
+  CheckSquare,
+  Square,
+  Edit2,
+  Layers,
+  ArrowRight,
+  RefreshCw,
+  Info,
 } from 'lucide-react';
-import { ResumeRecord, ResumeGeneratorSettings } from '../../../types/cms';
+import {
+  ResumeRecord,
+  ResumeGeneratorSettings,
+  ResumeVersionRecord,
+  ResumeDiffItem,
+  ResumeAuditEntry,
+  ExtractedResumeData,
+} from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
+import {
+  validateResumeFile,
+  extractRawTextFromResume,
+  extractResumeInformation,
+  generateResumeDiff,
+  applyApprovedDiffItems,
+} from '../../../services/resumeParserService';
 import {
   extractResumeData,
   downloadPdf,
@@ -30,87 +55,326 @@ interface ResumeManagerProps {
   showNotification: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }
 
+type TabType = 'overview' | 'review' | 'versions' | 'audit' | 'ats_engine';
+
 export const ResumeManager: React.FC<ResumeManagerProps> = ({
   currentResume,
   onUpdate,
   showNotification,
 }) => {
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [form, setForm] = useState<ResumeRecord>(currentResume);
-  const [isUploading, setIsUploading] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [genSettings, setGenSettings] = useState<ResumeGeneratorSettings>(() =>
-    cmsService.getResumeGeneratorSettings()
-  );
   const [showAtsModal, setShowAtsModal] = useState(false);
   const [isSavingAts, setIsSavingAts] = useState(false);
 
-  // Resume versions list stored locally/synced
-  const [versions, setVersions] = useState<ResumeRecord[]>([
-    currentResume,
-    {
-      id: 'resume-v-prev',
-      fileName: 'Ayush_Prakash_CV_Operations_2025.pdf',
-      fileUrl: currentResume.fileUrl,
-      fileSizeBytes: 138000,
-      uploadedAt: '2025-10-15',
-      isActive: false,
-      isPublicEnabled: true,
-      buttonText: 'Download Curriculum Vitae',
-      versionName: 'Operations & SCM Focus v2.1',
-    },
-  ]);
+  // Versions & Audit Log from CMS service
+  const [versions, setVersions] = useState<ResumeVersionRecord[]>(() => cmsService.getResumeVersions());
+  const [auditLog, setAuditLog] = useState<ResumeAuditEntry[]>(() => cmsService.getResumeAuditHistory());
+  const [genSettings, setGenSettings] = useState<ResumeGeneratorSettings>(() =>
+    cmsService.getResumeGeneratorSettings()
+  );
 
+  // Upload & Extraction processing states
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [processingStatus, setProcessingStatus] = useState<
+    'idle' | 'validating' | 'extracting' | 'awaiting_review' | 'approved' | 'published' | 'failed'
+  >('idle');
+  const [statusMessage, setStatusMessage] = useState<string>('');
+
+  // Active review state
+  const [currentDiffItems, setCurrentDiffItems] = useState<ResumeDiffItem[]>([]);
+  const [activeExtractedData, setActiveExtractedData] = useState<ExtractedResumeData | null>(null);
+  const [currentReviewVersion, setCurrentReviewVersion] = useState<ResumeVersionRecord | null>(null);
+  const [diffFilter, setDiffFilter] = useState<'all' | 'new' | 'changed' | 'unchanged'>('all');
+  const [sectionFilter, setSectionFilter] = useState<string>('all');
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState<string>('');
+  const [isApplyingChanges, setIsApplyingChanges] = useState(false);
+
+  // Subscribe to reactive CMS updates
+  useEffect(() => {
+    const unsubscribe = cmsService.subscribe(() => {
+      setVersions(cmsService.getResumeVersions());
+      setAuditLog(cmsService.getResumeAuditHistory());
+      setGenSettings(cmsService.getResumeGeneratorSettings());
+      setForm(cmsService.getResumeRecord());
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // ==========================================
+  // 1. FILE UPLOAD & AUTOMATIC EXTRACTION
+  // ==========================================
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-      showNotification('Please upload a valid PDF document.', 'error');
-      return;
-    }
-
-    if (file.size > 15 * 1024 * 1024) {
-      showNotification('PDF file size exceeds 15 MB limit.', 'error');
+    // Step 1: Validate file
+    setProcessingStatus('validating');
+    setStatusMessage(`Validating ${file.name}...`);
+    const validation = validateResumeFile(file);
+    if (!validation.isValid) {
+      setProcessingStatus('failed');
+      setStatusMessage(validation.error || 'Validation failed');
+      showNotification(validation.error || 'Invalid file', 'error');
       return;
     }
 
     setIsUploading(true);
+    setUploadProgress(25);
+
     try {
-      const updated = await cmsService.uploadResumeFile(file, form.buttonText);
-      setForm(updated);
-      setVersions((prev) => [updated, ...prev.filter((v) => v.id !== updated.id)]);
-      onUpdate(updated);
-      showNotification(`Resume "${file.name}" uploaded and set as active.`);
+      // Step 2: Upload to storage
+      setStatusMessage(`Uploading ${file.name} to storage...`);
+      setUploadProgress(45);
+      const uploadedRecord = await cmsService.uploadResumeFile(file, form.buttonText);
+      setForm(uploadedRecord);
+      onUpdate(uploadedRecord);
+
+      // Step 3: Extract textual information
+      setProcessingStatus('extracting');
+      setStatusMessage('Extracting structured profile, experience, skills, and certifications...');
+      setUploadProgress(70);
+
+      const rawText = await extractRawTextFromResume(file);
+      const extracted = extractResumeInformation(rawText);
+      setActiveExtractedData(extracted);
+
+      // Step 4: Compare with existing CMS data
+      setUploadProgress(85);
+      const currentCmsSnapshot = {
+        profile: cmsService.getProfile(),
+        about: cmsService.getAboutSettings(),
+        experiences: cmsService.getExperiences(false),
+        projects: cmsService.getProjects(false),
+        skills: cmsService.getSkills(),
+        education: cmsService.getEducation(),
+        certifications: cmsService.getCertifications(false),
+      };
+
+      const diff = generateResumeDiff(extracted, currentCmsSnapshot);
+      setCurrentDiffItems(diff);
+
+      // Step 5: Create a new Version Record
+      const newVersionNumber = versions.length > 0 ? Math.max(...versions.map((v) => v.versionNumber)) + 1 : 1;
+      const newVersionRecord: ResumeVersionRecord = {
+        id: `res-v${Date.now()}`,
+        versionNumber: newVersionNumber,
+        fileName: file.name,
+        fileUrl: uploadedRecord.fileUrl,
+        fileType: validation.fileType || 'pdf',
+        fileSizeBytes: file.size,
+        uploadedAt: new Date().toISOString().split('T')[0],
+        uploadedBy: 'Ayush Prakash (Admin)',
+        processingStatus: 'awaiting_review',
+        extractionStatus: 'success',
+        isActive: true,
+        isPublicEnabled: form.isPublicEnabled,
+        buttonText: form.buttonText,
+        versionName: `Resume v${newVersionNumber} (${file.name})`,
+        extractedData: extracted,
+        diffItems: diff,
+      };
+
+      await cmsService.addResumeVersion(newVersionRecord);
+      setCurrentReviewVersion(newVersionRecord);
+
+      setUploadProgress(100);
+      setProcessingStatus('awaiting_review');
+      setStatusMessage(`Successfully extracted ${diff.length} fields. Ready for review.`);
+      showNotification(`Extracted ${diff.length} fields from "${file.name}". Ready for review.`, 'success');
+
+      // Switch to review tab automatically
+      setActiveTab('review');
     } catch (err: any) {
-      showNotification('Resume upload failed: ' + (err.message || 'Error'), 'error');
+      setProcessingStatus('failed');
+      setStatusMessage('Extraction failed: ' + (err.message || 'Error'));
+      showNotification('Extraction error: ' + (err.message || 'Error'), 'error');
+    } finally {
+      setIsUploading(false);
+      setTimeout(() => setUploadProgress(0), 1000);
+    }
+  };
+
+  // Re-run extraction on current active resume
+  const handleExtractCurrentResume = async () => {
+    setIsUploading(true);
+    setProcessingStatus('extracting');
+    setStatusMessage('Re-extracting information from active document...');
+    try {
+      const res = await fetch(form.fileUrl);
+      const blob = await res.blob();
+      const file = new File([blob], form.fileName, { type: blob.type || 'application/pdf' });
+
+      const rawText = await extractRawTextFromResume(file);
+      const extracted = extractResumeInformation(rawText);
+      setActiveExtractedData(extracted);
+
+      const currentCmsSnapshot = {
+        profile: cmsService.getProfile(),
+        about: cmsService.getAboutSettings(),
+        experiences: cmsService.getExperiences(false),
+        projects: cmsService.getProjects(false),
+        skills: cmsService.getSkills(),
+        education: cmsService.getEducation(),
+        certifications: cmsService.getCertifications(false),
+      };
+
+      const diff = generateResumeDiff(extracted, currentCmsSnapshot);
+      setCurrentDiffItems(diff);
+      setProcessingStatus('awaiting_review');
+      setStatusMessage(`Extracted ${diff.length} fields. Comparison ready.`);
+      showNotification(`Extracted ${diff.length} fields from current document.`, 'success');
+      setActiveTab('review');
+    } catch (err: any) {
+      setProcessingStatus('failed');
+      setStatusMessage('Re-extraction failed: ' + (err.message || 'Error'));
+      showNotification('Extraction failed: ' + (err.message || 'Error'), 'error');
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleSaveSettings = async (e: React.FormEvent) => {
+  // ==========================================
+  // 2. REVIEW & APPROVAL ACTIONS
+  // ==========================================
+  const handleItemStatusChange = (id: string, newStatus: ResumeDiffItem['status']) => {
+    setCurrentDiffItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
+    );
+  };
+
+  const handleStartEdit = (item: ResumeDiffItem) => {
+    setEditingItemId(item.id);
+    setEditingValue(item.currentReviewValue || item.extractedValue || '');
+  };
+
+  const handleSaveEdit = (id: string) => {
+    setCurrentDiffItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, currentReviewValue: editingValue, status: 'edited' }
+          : item
+      )
+    );
+    setEditingItemId(null);
+    setEditingValue('');
+    showNotification('Field value updated in review draft.', 'info');
+  };
+
+  const handleApproveAll = (category?: 'new' | 'changed') => {
+    setCurrentDiffItems((prev) =>
+      prev.map((item) => {
+        if (!category || item.category === category) {
+          return { ...item, status: 'approved' };
+        }
+        return item;
+      })
+    );
+    showNotification(
+      category ? `All ${category} items approved.` : 'All items approved for publishing.',
+      'success'
+    );
+  };
+
+  const handleRejectAll = () => {
+    setCurrentDiffItems((prev) =>
+      prev.map((item) =>
+        item.category !== 'unchanged' ? { ...item, status: 'rejected' } : item
+      )
+    );
+    showNotification('All pending items rejected.', 'info');
+  };
+
+  const handleSaveReviewDraft = async () => {
+    if (currentReviewVersion) {
+      const updatedVersion: ResumeVersionRecord = {
+        ...currentReviewVersion,
+        diffItems: currentDiffItems,
+        processingStatus: 'awaiting_review',
+      };
+      await cmsService.updateResumeVersion(updatedVersion);
+      setCurrentReviewVersion(updatedVersion);
+      showNotification('Review draft saved successfully. Unapproved items were not published.', 'success');
+    } else {
+      showNotification('Review draft saved in local session.', 'info');
+    }
+  };
+
+  const handlePublishApproved = async () => {
+    setIsApplyingChanges(true);
+    try {
+      const versionNumber = currentReviewVersion?.versionNumber || 1;
+      const { updatedCount, auditEntry } = await applyApprovedDiffItems(
+        currentDiffItems,
+        cmsService,
+        versionNumber,
+        form.fileName
+      );
+
+      await cmsService.addResumeAuditEntry(auditEntry);
+
+      if (currentReviewVersion) {
+        const updatedVersion: ResumeVersionRecord = {
+          ...currentReviewVersion,
+          processingStatus: 'published',
+          publishedAt: new Date().toISOString(),
+          diffItems: currentDiffItems,
+        };
+        await cmsService.updateResumeVersion(updatedVersion);
+        setCurrentReviewVersion(updatedVersion);
+      }
+
+      setProcessingStatus('published');
+      showNotification(
+        `Successfully published ${updatedCount} approved fields to CMS central database!`,
+        'success'
+      );
+      setActiveTab('overview');
+    } catch (err: any) {
+      showNotification('Publish failed: ' + (err.message || 'Error'), 'error');
+    } finally {
+      setIsApplyingChanges(false);
+    }
+  };
+
+  // ==========================================
+  // 3. VERSION HISTORY RESTORE
+  // ==========================================
+  const handleRestoreVersion = async (version: ResumeVersionRecord) => {
+    try {
+      const restored = await cmsService.restoreResumeVersion(version.id);
+      setForm({
+        ...form,
+        fileName: restored.fileName,
+        fileUrl: restored.fileUrl,
+        fileSizeBytes: restored.fileSizeBytes,
+        uploadedAt: restored.uploadedAt,
+        isActive: true,
+      });
+      onUpdate(form);
+      showNotification(
+        `Version ${version.versionNumber} ("${version.fileName}") restored as the active live resume!`,
+        'success'
+      );
+    } catch (err: any) {
+      showNotification('Restore failed: ' + (err.message || 'Error'), 'error');
+    }
+  };
+
+  // ==========================================
+  // 4. GOVERNANCE & ATS SETTINGS
+  // ==========================================
+  const handleSaveGovernance = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await cmsService.updateResumeRecord(form);
       onUpdate(form);
-      showNotification('Resume download settings updated and published globally.', 'success');
+      showNotification('Resume download governance updated globally.', 'success');
     } catch (err: any) {
       showNotification('Save failed: ' + (err.message || 'Error'), 'error');
-    }
-  };
-
-  const handleSetActiveVersion = async (version: ResumeRecord) => {
-    try {
-      const updated = { ...version, isActive: true };
-      setForm(updated);
-      await cmsService.updateResumeRecord(updated);
-      onUpdate(updated);
-      setVersions((prev) =>
-        prev.map((v) => ({ ...v, isActive: v.id === version.id }))
-      );
-      showNotification(`Version "${version.fileName}" set as active on live site.`, 'success');
-    } catch (err: any) {
-      showNotification('Update failed: ' + (err.message || 'Error'), 'error');
     }
   };
 
@@ -156,30 +420,61 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
     showNotification('ATS Resume (DOCX) downloaded successfully.', 'success');
   };
 
+  const filteredDiffItems = currentDiffItems.filter((item) => {
+    if (diffFilter !== 'all' && item.category !== diffFilter) return false;
+    if (sectionFilter !== 'all' && item.section !== sectionFilter) return false;
+    return true;
+  });
+
+  const countNew = currentDiffItems.filter((i) => i.category === 'new').length;
+  const countChanged = currentDiffItems.filter((i) => i.category === 'changed').length;
+  const countUnchanged = currentDiffItems.filter((i) => i.category === 'unchanged').length;
+  const countApproved = currentDiffItems.filter((i) => i.status === 'approved' || i.status === 'edited').length;
+
   return (
-    <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-      {/* Header */}
+    <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
+      {/* Module Header */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '28px',
+          marginBottom: '24px',
           paddingBottom: '20px',
           borderBottom: '1px solid rgba(244, 243, 238, 0.08)',
+          flexWrap: 'wrap',
+          gap: '16px',
         }}
       >
         <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: '#4ADE80',
+                backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                padding: '2px 8px',
+                borderRadius: '4px',
+              }}
+            >
+              Enterprise Document Management &bull; Verified
+            </span>
+          </div>
           <h2
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '24px',
+              fontSize: '26px',
               fontWeight: 600,
               color: '#F4F3EE',
               margin: 0,
+              letterSpacing: '-0.02em',
             }}
           >
-            Dedicated Resume &amp; Curriculum Vitae Manager
+            Resume Management &amp; Intelligent Extraction Engine
           </h2>
           <p
             style={{
@@ -189,168 +484,1143 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
               margin: '4px 0 0',
             }}
           >
-            Upload, version, replace, and govern public download access for your verified CV document without redeployment.
+            Upload original resumes (PDF/DOCX/DOC), automatically extract career intelligence, review field diffs with conflict detection, and govern live public ATS downloads.
           </p>
+        </div>
+
+        {/* Global Quick Action Buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={() => setShowPreviewModal(true)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 14px',
+              borderRadius: '6px',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: '#FFFFFF',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            <Eye size={13} /> View Current
+          </button>
+          <a
+            href={form.fileUrl}
+            download={form.fileName}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 14px',
+              borderRadius: '6px',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: '#FFFFFF',
+              fontSize: '12px',
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            <Download size={13} /> Original
+          </a>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        {/* Active Resume Card */}
-        <div
+      {/* Navigation Tabs Bar */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '8px',
+          marginBottom: '24px',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          paddingBottom: '12px',
+          overflowX: 'auto',
+        }}
+      >
+        <button
+          onClick={() => setActiveTab('overview')}
           style={{
-            backgroundColor: 'rgba(18, 18, 22, 0.72)',
-            border: '1px solid rgba(244, 243, 238, 0.12)',
-            borderRadius: '8px',
-            padding: '24px',
+            fontFamily: 'var(--font-body)',
+            fontSize: '12.5px',
+            fontWeight: 600,
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: 'none',
+            cursor: 'pointer',
+            backgroundColor: activeTab === 'overview' ? 'rgba(255, 255, 255, 0.14)' : 'transparent',
+            color: activeTab === 'overview' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
           }}
         >
+          <FileText size={14} /> Active Resume &amp; Upload
+        </button>
+
+        <button
+          onClick={() => setActiveTab('review')}
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '12.5px',
+            fontWeight: 600,
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: 'none',
+            cursor: 'pointer',
+            backgroundColor: activeTab === 'review' ? 'rgba(255, 255, 255, 0.14)' : 'transparent',
+            color: activeTab === 'review' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <Sparkles size={14} color="#A78BFA" /> Review Extracted Data
+          {currentDiffItems.length > 0 && (
+            <span
+              style={{
+                fontSize: '11px',
+                padding: '1px 6px',
+                borderRadius: '10px',
+                backgroundColor: 'rgba(167, 139, 250, 0.25)',
+                color: '#C4B5FD',
+              }}
+            >
+              {currentDiffItems.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('versions')}
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '12.5px',
+            fontWeight: 600,
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: 'none',
+            cursor: 'pointer',
+            backgroundColor: activeTab === 'versions' ? 'rgba(255, 255, 255, 0.14)' : 'transparent',
+            color: activeTab === 'versions' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <Clock size={14} /> Version History ({versions.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('audit')}
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '12.5px',
+            fontWeight: 600,
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: 'none',
+            cursor: 'pointer',
+            backgroundColor: activeTab === 'audit' ? 'rgba(255, 255, 255, 0.14)' : 'transparent',
+            color: activeTab === 'audit' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <History size={14} /> Audit Trail ({auditLog.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('ats_engine')}
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '12.5px',
+            fontWeight: 600,
+            padding: '8px 16px',
+            borderRadius: '6px',
+            border: 'none',
+            cursor: 'pointer',
+            backgroundColor: activeTab === 'ats_engine' ? 'rgba(255, 255, 255, 0.14)' : 'transparent',
+            color: activeTab === 'ats_engine' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <ShieldCheck size={14} color="#4ADE80" /> ATS Generator Engine
+        </button>
+      </div>
+
+      {/* Upload Progress Alert */}
+      {isUploading && (
+        <div
+          style={{
+            backgroundColor: 'rgba(37, 99, 235, 0.12)',
+            border: '1px solid rgba(37, 99, 235, 0.3)',
+            borderRadius: '8px',
+            padding: '16px',
+            marginBottom: '20px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: '#93C5FD' }}>{statusMessage}</span>
+            <span style={{ fontSize: '12px', color: '#93C5FD' }}>{uploadProgress}%</span>
+          </div>
+          <div style={{ width: '100%', height: '6px', backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+            <div
+              style={{
+                width: `${uploadProgress}%`,
+                height: '100%',
+                backgroundColor: '#3B82F6',
+                transition: 'width 0.3s ease',
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* TAB 1: OVERVIEW */}
+      {activeTab === 'overview' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '18px',
+              backgroundColor: 'rgba(18, 18, 22, 0.72)',
+              border: '1px solid rgba(244, 243, 238, 0.12)',
+              borderRadius: '8px',
+              padding: '24px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '6px',
-                  backgroundColor: 'rgba(214, 168, 84, 0.12)',
-                  border: '1px solid rgba(214, 168, 84, 0.25)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--accent-gold)',
-                }}
-              >
-                <FileText size={22} />
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <h3
-                    style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: '17px',
-                      fontWeight: 600,
-                      color: '#F4F3EE',
-                      margin: 0,
-                    }}
-                  >
-                    {form.fileName}
-                  </h3>
-                  <span
-                    style={{
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                      backgroundColor: 'rgba(74, 180, 120, 0.15)',
-                      border: '1px solid rgba(74, 180, 120, 0.3)',
-                      color: '#6CE098',
-                      fontSize: '11px',
-                      fontWeight: 600,
-                    }}
-                  >
-                    ● Currently Active on Website
-                  </span>
-                </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '18px',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div
                   style={{
+                    width: '46px',
+                    height: '46px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(214, 168, 84, 0.12)',
+                    border: '1px solid rgba(214, 168, 84, 0.25)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '14px',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#8E948D',
-                    marginTop: '4px',
+                    justifyContent: 'center',
+                    color: 'var(--accent-gold)',
                   }}
                 >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <HardDrive size={12} />
-                    {(form.fileSizeBytes / 1024).toFixed(1)} KB
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Clock size={12} />
-                    Uploaded: {form.uploadedAt}
-                  </span>
+                  <FileText size={24} />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h3
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '18px',
+                        fontWeight: 600,
+                        color: '#F4F3EE',
+                        margin: 0,
+                      }}
+                    >
+                      {form.fileName}
+                    </h3>
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(74, 180, 120, 0.15)',
+                        border: '1px solid rgba(74, 180, 120, 0.3)',
+                        color: '#6CE098',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                      }}
+                    >
+                      &bull; Currently Active
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '4px', fontSize: '12px', color: '#889196' }}>
+                    <span>Size: {(form.fileSizeBytes / 1024).toFixed(1)} KB</span>
+                    <span>&bull;</span>
+                    <span>Uploaded: {form.uploadedAt}</span>
+                    <span>&bull;</span>
+                    <span>Public Button: &quot;{form.buttonText}&quot;</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Quick Actions */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <button
                 type="button"
-                onClick={() => setShowPreviewModal(true)}
+                onClick={handleExtractCurrentResume}
+                disabled={isUploading}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '8px 14px',
+                  padding: '9px 18px',
                   borderRadius: '6px',
-                  backgroundColor: 'rgba(244, 243, 238, 0.05)',
-                  border: '1px solid rgba(244, 243, 238, 0.12)',
-                  color: '#F4F3EE',
+                  backgroundColor: '#7C3AED',
+                  border: 'none',
+                  color: '#FFFFFF',
                   fontSize: '13px',
+                  fontWeight: 600,
                   cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(124, 58, 237, 0.3)',
                 }}
               >
-                <Eye size={14} />
-                Preview PDF
+                <Sparkles size={14} /> Extract Resume Information
               </button>
-              <a
-                href={form.fileUrl}
-                download={form.fileName}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 14px',
-                  borderRadius: '6px',
-                  backgroundColor: 'rgba(244, 243, 238, 0.05)',
-                  border: '1px solid rgba(244, 243, 238, 0.12)',
-                  color: '#F4F3EE',
-                  fontSize: '13px',
-                  textDecoration: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <Download size={14} />
-                Download
-              </a>
+            </div>
+
+            {/* Drag and Drop Upload Area */}
+            <div
+              style={{
+                border: '2px dashed rgba(244, 243, 238, 0.18)',
+                borderRadius: '8px',
+                padding: '32px 24px',
+                textAlign: 'center',
+                backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                marginTop: '12px',
+              }}
+            >
+              <Upload size={32} color="#D9DDE3" style={{ margin: '0 auto 12px' }} />
+              <div style={{ fontSize: '15px', fontWeight: 600, color: '#FFFFFF', marginBottom: '4px' }}>
+                Upload or Replace Verified Resume
+              </div>
+              <p style={{ fontSize: '12.5px', color: 'rgba(255, 255, 255, 0.6)', margin: '0 0 16px' }}>
+                Supported Formats: PDF (.pdf), Microsoft Word (.docx), Legacy Word (.doc) &bull; Maximum file size: 20 MB
+              </p>
               <label
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 16px',
+                  gap: '8px',
+                  padding: '10px 22px',
                   borderRadius: '6px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  border: 'none',
-                  color: '#F4F3EE',
+                  backgroundColor: '#FFFFFF',
+                  color: '#000000',
                   fontSize: '13px',
                   fontWeight: 600,
                   cursor: 'pointer',
                 }}
               >
                 <Upload size={14} />
-                {isUploading ? 'Uploading...' : 'Replace Active Resume'}
+                Select File to Upload &amp; Extract
                 <input
                   type="file"
-                  accept="application/pdf"
-                  onChange={handleFileUpload}
+                  accept=".pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
                   style={{ display: 'none' }}
+                  onChange={handleFileUpload}
                   disabled={isUploading}
                 />
               </label>
             </div>
           </div>
-        </div>
 
-        {/* Public Website Governance Form */}
-        <form
-          onSubmit={handleSaveSettings}
+          {/* Governance Form */}
+          <form
+            onSubmit={handleSaveGovernance}
+            style={{
+              backgroundColor: 'rgba(18, 18, 22, 0.72)',
+              border: '1px solid rgba(244, 243, 238, 0.12)',
+              borderRadius: '8px',
+              padding: '24px',
+            }}
+          >
+            <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#F4F3EE', marginBottom: '16px' }}>
+              Public Website Download Governance
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '18px', marginBottom: '20px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#FFFFFF', marginBottom: '6px' }}>
+                  Download CTA Button Text
+                </label>
+                <input
+                  type="text"
+                  value={form.buttonText}
+                  onChange={(e) => setForm({ ...form, buttonText: e.target.value })}
+                  style={{
+                    width: '100%',
+                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: '6px',
+                    padding: '9px 12px',
+                    color: '#FFFFFF',
+                    fontSize: '13px',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#FFFFFF', marginBottom: '6px' }}>
+                  Public Document Download Permission
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', fontSize: '13px', color: '#D9DDE3', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={form.isPublicEnabled}
+                    onChange={(e) => setForm({ ...form, isPublicEnabled: e.target.checked })}
+                  />
+                  Enable Public Download for Visitors &amp; Recruiters
+                </label>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="submit"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 20px',
+                  borderRadius: '6px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: '#FFFFFF',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                <Save size={14} /> Save Governance Settings
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* TAB 2: REVIEW */}
+      {activeTab === 'review' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div
+            style={{
+              backgroundColor: 'rgba(18, 18, 22, 0.85)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: '8px',
+              padding: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '14px',
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    color: '#A78BFA',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  Extraction Review Mode
+                </span>
+                <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.4)' }}>&bull;</span>
+                <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)' }}>
+                  {form.fileName}
+                </span>
+              </div>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>
+                Review Extracted Information vs Current CMS
+              </h3>
+              <p style={{ fontSize: '12.5px', color: 'rgba(255, 255, 255, 0.65)', margin: '4px 0 0' }}>
+                Examine differences across New, Changed, and Unchanged fields. Unapproved changes will never overwrite your live website.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => handleApproveAll('new')}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                  border: '1px solid rgba(34, 197, 94, 0.3)',
+                  color: '#4ADE80',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Approve All New ({countNew})
+              </button>
+              <button
+                type="button"
+                onClick={() => handleApproveAll('changed')}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: 'rgba(234, 179, 8, 0.15)',
+                  border: '1px solid rgba(234, 179, 8, 0.3)',
+                  color: '#FACC15',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Approve All Changed ({countChanged})
+              </button>
+              <button
+                type="button"
+                onClick={handleRejectAll}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  color: '#F87171',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Reject All
+              </button>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setDiffFilter('all')}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  backgroundColor: diffFilter === 'all' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)',
+                  color: diffFilter === 'all' ? '#000000' : '#FFFFFF',
+                }}
+              >
+                All Fields ({currentDiffItems.length})
+              </button>
+              <button
+                onClick={() => setDiffFilter('new')}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  border: '1px solid rgba(34, 197, 94, 0.3)',
+                  backgroundColor: diffFilter === 'new' ? 'rgba(34, 197, 94, 0.25)' : 'rgba(34, 197, 94, 0.08)',
+                  color: '#4ADE80',
+                }}
+              >
+                New Information ({countNew})
+              </button>
+              <button
+                onClick={() => setDiffFilter('changed')}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  border: '1px solid rgba(234, 179, 8, 0.3)',
+                  backgroundColor: diffFilter === 'changed' ? 'rgba(234, 179, 8, 0.25)' : 'rgba(234, 179, 8, 0.08)',
+                  color: '#FACC15',
+                }}
+              >
+                Changed Information ({countChanged})
+              </button>
+              <button
+                onClick={() => setDiffFilter('unchanged')}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  backgroundColor: diffFilter === 'unchanged' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                  color: '#9CA3AF',
+                }}
+              >
+                Unchanged ({countUnchanged})
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>Section:</span>
+              <select
+                value={sectionFilter}
+                onChange={(e) => setSectionFilter(e.target.value)}
+                style={{
+                  backgroundColor: '#0C0D12',
+                  border: '1px solid rgba(255, 255, 255, 0.14)',
+                  borderRadius: '6px',
+                  color: '#FFFFFF',
+                  padding: '5px 10px',
+                  fontSize: '12px',
+                }}
+              >
+                <option value="all">All Sections</option>
+                <option value="profile">Profile &amp; Contact</option>
+                <option value="summary">Professional Summary</option>
+                <option value="experience">Work Experience</option>
+                <option value="skills">Skills</option>
+                <option value="projects">Projects</option>
+                <option value="education">Education</option>
+                <option value="certifications">Certifications</option>
+              </select>
+            </div>
+          </div>
+
+          {filteredDiffItems.length === 0 ? (
+            <div
+              style={{
+                backgroundColor: 'rgba(18, 18, 22, 0.5)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '8px',
+                padding: '40px',
+                textAlign: 'center',
+                color: 'rgba(255, 255, 255, 0.6)',
+              }}
+            >
+              No extraction items match the selected filter.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {filteredDiffItems.map((item) => {
+                const isNew = item.category === 'new';
+                const isChanged = item.category === 'changed';
+                const isApproved = item.status === 'approved' || item.status === 'edited';
+                const isRejected = item.status === 'rejected';
+                const isLowConfidence = item.confidence < 0.75;
+
+                return (
+                  <div
+                    key={item.id}
+                    style={{
+                      backgroundColor: 'rgba(18, 18, 22, 0.75)',
+                      border: isApproved
+                        ? '1px solid rgba(34, 197, 94, 0.4)'
+                        : isRejected
+                        ? '1px solid rgba(239, 68, 68, 0.3)'
+                        : isNew
+                        ? '1px solid rgba(34, 197, 94, 0.2)'
+                        : isChanged
+                        ? '1px solid rgba(234, 179, 8, 0.2)'
+                        : '1px solid rgba(255, 255, 255, 0.08)',
+                      borderRadius: '8px',
+                      padding: '16px 20px',
+                      transition: 'border-color 0.2s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '10px',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            letterSpacing: '0.06em',
+                            textTransform: 'uppercase',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            backgroundColor: isNew
+                              ? 'rgba(34, 197, 94, 0.2)'
+                              : isChanged
+                              ? 'rgba(234, 179, 8, 0.2)'
+                              : 'rgba(255, 255, 255, 0.08)',
+                            color: isNew ? '#4ADE80' : isChanged ? '#FACC15' : '#9CA3AF',
+                          }}
+                        >
+                          {item.category}
+                        </span>
+
+                        <span style={{ fontSize: '14px', fontWeight: 600, color: '#FFFFFF' }}>
+                          {item.label}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        {isLowConfidence && (
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              padding: '2px 7px',
+                              borderRadius: '4px',
+                              backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                              color: '#F87171',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <AlertTriangle size={11} /> Low Confidence
+                          </span>
+                        )}
+                        <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)' }}>
+                          Confidence: {(item.confidence * 100).toFixed(0)}%
+                        </span>
+                        <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.4)' }}>
+                          &bull; {item.source}
+                        </span>
+                      </div>
+                    </div>
+
+                    {item.conflictWarning && (
+                      <div
+                        style={{
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.25)',
+                          borderRadius: '6px',
+                          padding: '8px 12px',
+                          marginBottom: '10px',
+                          fontSize: '12px',
+                          color: '#FCA5A5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <AlertTriangle size={14} color="#F87171" />
+                        <span>{item.conflictWarning}</span>
+                      </div>
+                    )}
+
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                        gap: '14px',
+                        marginBottom: '14px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          backgroundColor: 'rgba(0, 0, 0, 0.35)',
+                          padding: '10px 14px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(255, 255, 255, 0.05)',
+                        }}
+                      >
+                        <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.45)', marginBottom: '4px' }}>
+                          Current Live CMS Value:
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '13px',
+                            color: isChanged ? '#FCA5A5' : 'rgba(255, 255, 255, 0.85)',
+                            textDecoration: isChanged && isApproved ? 'line-through' : 'none',
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {item.existingValue ? String(item.existingValue) : '(Empty / None)'}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          backgroundColor: 'rgba(0, 0, 0, 0.35)',
+                          padding: '10px 14px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(255, 255, 255, 0.05)',
+                        }}
+                      >
+                        <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.45)', marginBottom: '4px' }}>
+                          Extracted from Resume:
+                        </div>
+                        {editingItemId === item.id ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <textarea
+                              rows={2}
+                              value={editingValue}
+                              onChange={(e) => setEditingValue(e.target.value)}
+                              style={{
+                                width: '100%',
+                                backgroundColor: '#000000',
+                                border: '1px solid #3B82F6',
+                                borderRadius: '4px',
+                                color: '#FFFFFF',
+                                fontSize: '12.5px',
+                                padding: '6px 8px',
+                              }}
+                            />
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button
+                                onClick={() => handleSaveEdit(item.id)}
+                                style={{
+                                  padding: '4px 10px',
+                                  borderRadius: '4px',
+                                  backgroundColor: '#22C55E',
+                                  border: 'none',
+                                  color: '#000000',
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => setEditingItemId(null)}
+                                style={{
+                                  padding: '4px 10px',
+                                  borderRadius: '4px',
+                                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                  border: 'none',
+                                  color: '#FFFFFF',
+                                  fontSize: '11px',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            style={{
+                              fontSize: '13px',
+                              color: isNew || isChanged ? '#86EFAC' : '#FFFFFF',
+                              fontWeight: isNew || isChanged ? 500 : 400,
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            {item.status === 'edited'
+                              ? `${item.currentReviewValue} (Edited)`
+                              : String(item.extractedValue)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        paddingTop: '8px',
+                        borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)' }}>Decision:</span>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            color: isApproved ? '#4ADE80' : isRejected ? '#F87171' : '#FACC15',
+                          }}
+                        >
+                          {item.status.toUpperCase()}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleItemStatusChange(item.id, 'approved')}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            backgroundColor: isApproved ? '#22C55E' : 'rgba(255, 255, 255, 0.08)',
+                            color: isApproved ? '#000000' : '#FFFFFF',
+                            border: 'none',
+                          }}
+                        >
+                          <Check size={12} /> Approve
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleItemStatusChange(item.id, 'rejected')}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            backgroundColor: isRejected ? '#EF4444' : 'rgba(255, 255, 255, 0.08)',
+                            color: '#FFFFFF',
+                            border: 'none',
+                          }}
+                        >
+                          <X size={12} /> Reject
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleStartEdit(item)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            fontSize: '11.5px',
+                            cursor: 'pointer',
+                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                            color: '#FFFFFF',
+                            border: 'none',
+                          }}
+                        >
+                          <Edit2 size={11} /> Edit
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Sticky Publishing Bar */}
+          <div
+            style={{
+              position: 'sticky',
+              bottom: '16px',
+              backgroundColor: '#0C0D12',
+              border: '1px solid rgba(255, 255, 255, 0.16)',
+              borderRadius: '10px',
+              padding: '16px 20px',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.8)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px',
+              zIndex: 30,
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF' }}>
+                {countApproved} of {currentDiffItems.length} Fields Approved
+              </div>
+              <div style={{ fontSize: '11.5px', color: 'rgba(255, 255, 255, 0.6)' }}>
+                Approved fields will be merged safely into existing Firestore models without replacing intact records.
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={handleSaveReviewDraft}
+                style={{
+                  padding: '9px 16px',
+                  borderRadius: '6px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  color: '#FFFFFF',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Save Review Draft
+              </button>
+              <button
+                type="button"
+                onClick={handlePublishApproved}
+                disabled={isApplyingChanges || countApproved === 0}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 22px',
+                  borderRadius: '6px',
+                  backgroundColor: countApproved > 0 ? '#FFFFFF' : 'rgba(255, 255, 255, 0.2)',
+                  border: 'none',
+                  color: '#000000',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: countApproved > 0 ? 'pointer' : 'not-allowed',
+                }}
+              >
+                <CheckCircle2 size={15} />
+                {isApplyingChanges ? 'Publishing Approved...' : 'Publish Approved Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: VERSIONS */}
+      {activeTab === 'versions' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div
+            style={{
+              backgroundColor: 'rgba(18, 18, 22, 0.72)',
+              border: '1px solid rgba(244, 243, 238, 0.08)',
+              borderRadius: '8px',
+              padding: '24px',
+            }}
+          >
+            <div style={{ marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '17px', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>
+                Resume Version History &amp; Rollback Archive
+              </h3>
+              <p style={{ fontSize: '12.5px', color: 'rgba(255, 255, 255, 0.6)', margin: '4px 0 0' }}>
+                Every uploaded resume creates an immutable version record. You can restore any previous version as the live document at any time.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {versions.map((ver) => {
+                const isActive = ver.id === form.id || ver.isActive;
+                return (
+                  <div
+                    key={ver.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '16px',
+                      backgroundColor: '#0E1412',
+                      borderRadius: '8px',
+                      border: isActive
+                        ? '1px solid rgba(74, 180, 120, 0.4)'
+                        : '1px solid rgba(244, 243, 238, 0.06)',
+                      flexWrap: 'wrap',
+                      gap: '12px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div
+                        style={{
+                          width: '38px',
+                          height: '38px',
+                          borderRadius: '6px',
+                          backgroundColor: isActive ? 'rgba(74, 180, 120, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: isActive ? '#6CE098' : '#D9DDE3',
+                        }}
+                      >
+                        <FileText size={20} />
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '14px', fontWeight: 600, color: '#FFFFFF' }}>
+                            {ver.fileName}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: 600,
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                              color: '#D9DDE3',
+                            }}
+                          >
+                            v{ver.versionNumber}
+                          </span>
+                          {isActive && (
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                fontWeight: 600,
+                                padding: '1px 7px',
+                                borderRadius: '10px',
+                                backgroundColor: 'rgba(74, 180, 120, 0.2)',
+                                color: '#6CE098',
+                              }}
+                            >
+                              &bull; Active
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#889196', marginTop: '2px' }}>
+                          Uploaded {ver.uploadedAt} by {ver.uploadedBy || 'Admin'} &bull;{' '}
+                          {(ver.fileSizeBytes / 1024).toFixed(0)} KB &bull; Status:{' '}
+                          {ver.processingStatus || 'published'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {!isActive && (
+                        <button
+                          type="button"
+                          onClick={() => handleRestoreVersion(ver)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '6px 12px',
+                            borderRadius: '4px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            border: '1px solid rgba(255, 255, 255, 0.15)',
+                            color: '#FFFFFF',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <RotateCcw size={12} /> Restore This Version
+                        </button>
+                      )}
+                      <a
+                        href={ver.fileUrl}
+                        download={ver.fileName}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '4px',
+                          backgroundColor: 'transparent',
+                          color: '#93C5FD',
+                          fontSize: '11.5px',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        Download Original
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: AUDIT LOG */}
+      {activeTab === 'audit' && (
+        <div
           style={{
             backgroundColor: 'rgba(18, 18, 22, 0.72)',
             border: '1px solid rgba(244, 243, 238, 0.08)',
@@ -358,115 +1628,54 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
             padding: '24px',
           }}
         >
-          <h3
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '16px',
-              fontWeight: 600,
-              color: '#F4F3EE',
-              marginBottom: '16px',
-            }}
-          >
-            Public Website Controls
-          </h3>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '20px',
-              marginBottom: '20px',
-            }}
-          >
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '12px',
-                  color: '#A7B0A9',
-                  marginBottom: '6px',
-                }}
-              >
-                Download Button CTA Label
-              </label>
-              <input
-                type="text"
-                value={form.buttonText}
-                onChange={(e) => setForm((prev) => ({ ...prev, buttonText: e.target.value }))}
-                placeholder="e.g. Download Curriculum Vitae"
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: '6px',
-                  backgroundColor: '#0E1412',
-                  border: '1px solid rgba(244, 243, 238, 0.12)',
-                  color: '#F4F3EE',
-                  fontSize: '14px',
-                  outline: 'none',
-                }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <label
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '14px',
-                  color: '#F4F3EE',
-                  cursor: 'pointer',
-                  marginTop: '12px',
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={form.isPublicEnabled}
-                  onChange={(e) => setForm((prev) => ({ ...prev, isPublicEnabled: e.target.checked }))}
-                  style={{ accentColor: '#4A5749', width: '18px', height: '18px' }}
-                />
-                <span>Enable Public Resume Download on Live Website</span>
-              </label>
-              <div
-                style={{
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '12px',
-                  color: '#8E948D',
-                  marginLeft: '28px',
-                  marginTop: '2px',
-                }}
-              >
-                When unchecked, the public download button is concealed from recruiters and visitors.
-              </div>
-            </div>
+          <div style={{ marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '17px', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>
+              Resume Extraction &amp; Modification Audit Trail
+            </h3>
+            <p style={{ fontSize: '12.5px', color: 'rgba(255, 255, 255, 0.6)', margin: '4px 0 0' }}>
+              Complete record of all resume uploads, approved field merges, rejected changes, and document restorations.
+            </p>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button
-              type="submit"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 18px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                border: 'none',
-                color: '#F4F3EE',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              <Save size={14} />
-              Save Governance Settings
-            </button>
-          </div>
-        </form>
+          {auditLog.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '32px', color: 'rgba(255, 255, 255, 0.5)', fontSize: '13px' }}>
+              No audit entries recorded yet. Upload a resume or approve extracted fields to populate the log.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {auditLog.map((log) => (
+                <div
+                  key={log.id}
+                  style={{
+                    padding: '14px',
+                    borderRadius: '6px',
+                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF' }}>
+                      {log.action}
+                    </span>
+                    <span style={{ fontSize: '11.5px', color: 'rgba(255, 255, 255, 0.45)' }}>
+                      {new Date(log.timestamp).toLocaleString()}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#93C5FD', marginBottom: '4px' }}>
+                    File: {log.fileName} (v{log.versionNumber}) &bull; Approved: {log.approvedFieldsCount} &bull; Rejected: {log.rejectedFieldsCount}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)', lineHeight: 1.4 }}>
+                    {log.details}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
-        {/* Dynamic ATS Resume Generator Governance Card */}
+      {/* TAB 5: ATS ENGINE */}
+      {activeTab === 'ats_engine' && (
         <div
           style={{
             backgroundColor: 'rgba(18, 18, 22, 0.72)',
@@ -504,25 +1713,10 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
                 <ShieldCheck size={22} />
               </div>
               <div>
-                <h3
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '17px',
-                    fontWeight: 600,
-                    color: '#FFFFFF',
-                    margin: 0,
-                  }}
-                >
+                <h3 style={{ fontSize: '17px', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>
                   Dynamic ATS Resume Generator Engine
                 </h3>
-                <p
-                  style={{
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: 'rgba(255, 255, 255, 0.6)',
-                    margin: '2px 0 0',
-                  }}
-                >
+                <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)', margin: '2px 0 0' }}>
                   Powers the live &quot;Generate My Resume&quot; modal with on-the-fly A4 PDF and DOCX generation from authoritative CMS data.
                 </p>
               </div>
@@ -546,8 +1740,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
                   cursor: 'pointer',
                 }}
               >
-                <Eye size={13} />
-                Preview Public Modal
+                <Eye size={13} /> Preview Public Modal
               </button>
               <button
                 type="button"
@@ -566,8 +1759,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
                   cursor: 'pointer',
                 }}
               >
-                <Download size={13} />
-                Download PDF
+                <Download size={13} /> Download PDF
               </button>
               <button
                 type="button"
@@ -586,15 +1778,12 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
                   cursor: 'pointer',
                 }}
               >
-                <FileCheck size={13} />
-                Download DOCX
+                <FileCheck size={13} /> Download DOCX
               </button>
             </div>
           </div>
 
-          {/* Settings Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '20px' }}>
-            {/* Section Inclusions */}
             <div style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
               <div style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF', marginBottom: '12px' }}>
                 Included Sections in Generated ATS Resume
@@ -651,7 +1840,6 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
               </div>
             </div>
 
-            {/* Contact Privacy Controls */}
             <div style={{ backgroundColor: 'rgba(0, 0, 0, 0.25)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
               <div style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF', marginBottom: '12px' }}>
                 Contact Information Privacy Controls
@@ -739,7 +1927,6 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
             </div>
           </div>
 
-          {/* Custom Summary Override */}
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#FFFFFF', marginBottom: '6px' }}>
               Custom ATS Summary Override (Optional &mdash; leave empty to use live About Bio)
@@ -763,7 +1950,6 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
             />
           </div>
 
-          {/* Save Settings Button */}
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button
               type="button"
@@ -788,126 +1974,9 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
             </button>
           </div>
         </div>
+      )}
 
-        {/* Version History Table */}
-        <div
-          style={{
-            backgroundColor: 'rgba(18, 18, 22, 0.72)',
-            border: '1px solid rgba(244, 243, 238, 0.08)',
-            borderRadius: '8px',
-            padding: '24px',
-          }}
-        >
-          <h3
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '16px',
-              fontWeight: 600,
-              color: '#F4F3EE',
-              marginBottom: '16px',
-            }}
-          >
-            Resume Versions &amp; Archive
-          </h3>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {versions.map((ver) => {
-              const isActive = ver.id === form.id;
-              return (
-                <div
-                  key={ver.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 16px',
-                    backgroundColor: '#0E1412',
-                    borderRadius: '6px',
-                    border: isActive
-                      ? '1px solid rgba(74, 180, 120, 0.3)'
-                      : '1px solid rgba(244, 243, 238, 0.06)',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <FileText size={18} color={isActive ? '#6CE098' : '#8E948D'} />
-                    <div>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-display)',
-                          fontSize: '13px',
-                          fontWeight: 600,
-                          color: '#F4F3EE',
-                        }}
-                      >
-                        {ver.fileName}
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-body)',
-                          fontSize: '11px',
-                          color: '#8E948D',
-                          marginTop: '2px',
-                        }}
-                      >
-                        {ver.versionName || 'Standard Version'} &bull; Uploaded {ver.uploadedAt}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    {isActive ? (
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          fontSize: '11px',
-                          color: '#6CE098',
-                          fontWeight: 600,
-                        }}
-                      >
-                        <Check size={12} /> Active
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleSetActiveVersion(ver)}
-                        style={{
-                          padding: '4px 10px',
-                          borderRadius: '4px',
-                          backgroundColor: 'rgba(244, 243, 238, 0.05)',
-                          border: '1px solid rgba(244, 243, 238, 0.1)',
-                          color: '#C1C4BE',
-                          fontSize: '11px',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Make Active
-                      </button>
-                    )}
-                    <a
-                      href={ver.fileUrl}
-                      download={ver.fileName}
-                      style={{
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        backgroundColor: 'transparent',
-                        color: '#8294A6',
-                        fontSize: '11px',
-                        textDecoration: 'none',
-                      }}
-                    >
-                      Download
-                    </a>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* PDF Preview Modal */}
+      {/* Preview Modal */}
       {showPreviewModal && (
         <div
           style={{
@@ -969,7 +2038,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
         </div>
       )}
 
-      {/* ATS Generator Live Modal */}
+      {/* ATS Generator Modal */}
       <ResumeGeneratorModal
         isOpen={showAtsModal}
         onClose={() => setShowAtsModal(false)}

@@ -539,4 +539,33 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(admin.includes('handleAdminAtsDownloadPdf'), 'Admin can download ATS PDF instantly');
     assert.ok(admin.includes('handleAdminAtsDownloadDocx'), 'Admin can download ATS DOCX instantly');
   });
+
+  // Test 32: Admin Resume Upload, Intelligent Data Extraction, Review Diff & Rollback
+  await t.test('32. Admin Resume Management: Upload, Intelligent Extraction, Review Diff, Version History and Audit Trail', () => {
+    const adminConsole = fs.readFileSync('src/components/admin/AdminConsole.tsx', 'utf-8');
+    assert.ok(adminConsole.includes('Resume Management'), 'Admin Console sidebar has Resume Management nav label');
+
+    const parserService = fs.readFileSync('src/services/resumeParserService.ts', 'utf-8');
+    assert.ok(parserService.includes('validateResumeFile'), 'resumeParserService provides validateResumeFile');
+    assert.ok(parserService.includes('extractRawTextFromResume'), 'resumeParserService provides extractRawTextFromResume');
+    assert.ok(parserService.includes('extractResumeInformation'), 'resumeParserService provides extractResumeInformation');
+    assert.ok(parserService.includes('generateResumeDiff'), 'resumeParserService provides generateResumeDiff');
+    assert.ok(parserService.includes('applyApprovedDiffItems'), 'resumeParserService provides applyApprovedDiffItems');
+
+    const resumeManager = fs.readFileSync('src/components/admin/editors/ResumeManager.tsx', 'utf-8');
+    assert.ok(resumeManager.includes('activeTab'), 'ResumeManager has multi-tab navigation');
+    assert.ok(resumeManager.includes('review'), 'ResumeManager includes review diff screen tab');
+    assert.ok(resumeManager.includes('versions'), 'ResumeManager includes version history tab');
+    assert.ok(resumeManager.includes('audit'), 'ResumeManager includes audit log tab');
+    assert.ok(resumeManager.includes('handleFileUpload'), 'ResumeManager implements upload and extract pipeline');
+    assert.ok(resumeManager.includes('handleRestoreVersion'), 'ResumeManager implements version restoration');
+
+    const cmsService = fs.readFileSync('src/services/cmsService.ts', 'utf-8');
+    assert.ok(cmsService.includes('getResumeVersions'), 'cmsService provides getResumeVersions');
+    assert.ok(cmsService.includes('restoreResumeVersion'), 'cmsService provides restoreResumeVersion');
+    assert.ok(cmsService.includes('getResumeAuditHistory'), 'cmsService provides getResumeAuditHistory');
+
+    const modal = fs.readFileSync('src/components/resume/ResumeGeneratorModal.tsx', 'utf-8');
+    assert.ok(modal.includes('Original Uploaded Resume'), 'Public modal supports original uploaded resume download');
+  });
 });

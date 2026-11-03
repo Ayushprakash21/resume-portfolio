@@ -573,6 +573,109 @@ export const ResumeGeneratorModal: React.FC<ResumeGeneratorModalProps> = ({
                 </button>
               </div>
 
+              {/* Option: Original Uploaded Resume */}
+              {profile.isResumeDownloadEnabled !== false && profile.resumeUrl && (
+                <div
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    gap: '16px',
+                    transition: 'border-color 0.2s ease, background 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(217, 221, 227, 0.3)';
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+                  }}
+                >
+                  <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                    <div
+                      style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '10px',
+                        backgroundColor: 'rgba(234, 179, 8, 0.15)',
+                        border: '1px solid rgba(234, 179, 8, 0.28)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#FACC15',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Download size={22} />
+                    </div>
+                    <div>
+                      <h3
+                        style={{
+                          fontFamily: 'var(--font-display)',
+                          fontSize: '16px',
+                          fontWeight: 600,
+                          color: '#FFFFFF',
+                          margin: 0,
+                        }}
+                      >
+                        Download Original Resume
+                      </h3>
+                      <p
+                        style={{
+                          fontFamily: 'var(--font-body)',
+                          fontSize: '12.5px',
+                          color: 'rgba(255, 255, 255, 0.65)',
+                          margin: '6px 0 0 0',
+                          lineHeight: 1.45,
+                        }}
+                      >
+                        Download the original verified curriculum vitae document uploaded and authorized by Ayush Prakash.
+                      </p>
+                    </div>
+                  </div>
+
+                  <a
+                    href={profile.resumeUrl}
+                    download="Ayush_Prakash_Resume.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      color: '#FFFFFF',
+                      border: '1px solid rgba(255, 255, 255, 0.16)',
+                      borderRadius: '8px',
+                      padding: '10px 18px',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      flexShrink: 0,
+                      textDecoration: 'none',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.16)';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <Download size={15} />
+                    Download Original
+                  </a>
+                </div>
+              )}
+
               {/* Option 3: Preview Resume */}
               <div
                 style={{

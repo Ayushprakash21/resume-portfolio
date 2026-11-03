@@ -26,6 +26,8 @@ import {
   AppearanceSettings,
   OpenToWorkSettings,
   ResumeGeneratorSettings,
+  ResumeVersionRecord,
+  ResumeAuditEntry,
 } from '../types/cms';
 import {
   DEFAULT_PROFILE,
@@ -40,6 +42,7 @@ import {
   DEFAULT_HOMEPAGE_SETTINGS,
   DEFAULT_ABOUT_SETTINGS,
   DEFAULT_RESUME_RECORD,
+  DEFAULT_RESUME_VERSIONS,
   DEFAULT_RESUME_GENERATOR_SETTINGS,
   DEFAULT_SECTIONS_CONFIG,
   DEFAULT_APPEARANCE_SETTINGS,
@@ -63,6 +66,8 @@ const STORAGE_KEYS = {
   appearance: 'ayush_cms_appearance_v1',
   openToWork: 'ayush_cms_opentowork_v1',
   resumeGenerator: 'ayush_cms_resume_generator_v1',
+  resumeVersions: 'ayush_cms_resume_versions_v1',
+  resumeAudit: 'ayush_cms_resume_audit_v1',
 };
 
 function safeStorageGet<T>(key: string, fallback: T): T {
@@ -98,6 +103,8 @@ interface CmsStore {
   resume: ResumeRecord;
   resumeDraft: ResumeRecord | null;
   resumeGenerator: ResumeGeneratorSettings;
+  resumeVersions: ResumeVersionRecord[];
+  resumeAudit: ResumeAuditEntry[];
   sections: SectionConfig[];
   appearance: AppearanceSettings;
   experiences: ExperienceRecord[];
@@ -122,6 +129,8 @@ const store: CmsStore = {
   resume: safeStorageGet(STORAGE_KEYS.resume, DEFAULT_RESUME_RECORD),
   resumeDraft: null,
   resumeGenerator: safeStorageGet(STORAGE_KEYS.resumeGenerator, DEFAULT_RESUME_GENERATOR_SETTINGS),
+  resumeVersions: safeStorageGet(STORAGE_KEYS.resumeVersions, DEFAULT_RESUME_VERSIONS),
+  resumeAudit: safeStorageGet(STORAGE_KEYS.resumeAudit, []),
   sections: safeStorageGet(STORAGE_KEYS.sections, DEFAULT_SECTIONS_CONFIG),
   appearance: safeStorageGet(STORAGE_KEYS.appearance, DEFAULT_APPEARANCE_SETTINGS),
   experiences: safeStorageGet(STORAGE_KEYS.experiences, DEFAULT_EXPERIENCES),
@@ -292,6 +301,40 @@ function initFirestoreSync() {
       (err) => console.warn('[CMS Firestore] ResumeGenerator sync notice:', err)
     );
     activeUnsubscribers.push(unsubResumeGenerator);
+
+    // 7c. Resume Versions
+    const unsubResumeVersions = onSnapshot(
+      doc(db, 'settings', 'resumeVersions'),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data() as { list?: ResumeVersionRecord[] };
+          if (Array.isArray(data.list) && data.list.length > 0) {
+            store.resumeVersions = data.list;
+            safeStorageSet(STORAGE_KEYS.resumeVersions, store.resumeVersions);
+            notifyListeners();
+          }
+        }
+      },
+      (err) => console.warn('[CMS Firestore] ResumeVersions sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubResumeVersions);
+
+    // 7d. Resume Audit Log
+    const unsubResumeAudit = onSnapshot(
+      doc(db, 'settings', 'resumeAudit'),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data() as { list?: ResumeAuditEntry[] };
+          if (Array.isArray(data.list)) {
+            store.resumeAudit = data.list;
+            safeStorageSet(STORAGE_KEYS.resumeAudit, store.resumeAudit);
+            notifyListeners();
+          }
+        }
+      },
+      (err) => console.warn('[CMS Firestore] ResumeAudit sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubResumeAudit);
 
     // 8. Experiences Collection
     const unsubExperiences = onSnapshot(
@@ -1126,6 +1169,116 @@ export const cmsService = {
 
     store.resumeGenerator = updated;
     safeStorageSet(STORAGE_KEYS.resumeGenerator, updated);
+    notifyListeners();
+  },
+
+  // ================= RESUME VERSIONS & AUDIT LOG =================
+  getResumeVersions(): ResumeVersionRecord[] {
+    return store.resumeVersions || DEFAULT_RESUME_VERSIONS;
+  },
+
+  async addResumeVersion(version: ResumeVersionRecord): Promise<void> {
+    const list = [version, ...(store.resumeVersions || []).filter((v) => v.id !== version.id)];
+    if (version.isActive) {
+      list.forEach((v) => {
+        v.isActive = v.id === version.id;
+      });
+    }
+    store.resumeVersions = list;
+    safeStorageSet(STORAGE_KEYS.resumeVersions, list);
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'settings', 'resumeVersions'), { list });
+      } catch (err) {
+        console.warn('[CMS Firestore] ResumeVersions write warning:', err);
+      }
+    }
+    notifyListeners();
+  },
+
+  async updateResumeVersion(version: ResumeVersionRecord): Promise<void> {
+    const list = (store.resumeVersions || []).map((v) => (v.id === version.id ? version : v));
+    store.resumeVersions = list;
+    safeStorageSet(STORAGE_KEYS.resumeVersions, list);
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'settings', 'resumeVersions'), { list });
+      } catch (err) {
+        console.warn('[CMS Firestore] ResumeVersions write warning:', err);
+      }
+    }
+    notifyListeners();
+  },
+
+  async restoreResumeVersion(versionId: string): Promise<ResumeVersionRecord> {
+    const list = [...(store.resumeVersions || [])];
+    const target = list.find((v) => v.id === versionId);
+    if (!target) throw new Error('Resume version not found.');
+
+    list.forEach((v) => {
+      v.isActive = v.id === versionId;
+    });
+    target.isActive = true;
+
+    store.resumeVersions = list;
+    safeStorageSet(STORAGE_KEYS.resumeVersions, list);
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'settings', 'resumeVersions'), { list });
+      } catch (err) {
+        console.warn('[CMS Firestore] ResumeVersions write warning:', err);
+      }
+    }
+
+    // Also update active resume record
+    const updatedRecord: ResumeRecord = {
+      ...store.resume,
+      id: target.id,
+      fileName: target.fileName,
+      fileUrl: target.fileUrl,
+      fileSizeBytes: target.fileSizeBytes,
+      uploadedAt: target.uploadedAt,
+      isActive: true,
+      buttonText: target.buttonText || store.resume.buttonText,
+      versionName: target.versionName,
+    };
+    await this.publishResumeRecord(updatedRecord);
+
+    // Record audit entry
+    await this.addResumeAuditEntry({
+      id: `audit-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      action: 'Restored Resume Version',
+      fileName: target.fileName,
+      versionNumber: target.versionNumber,
+      details: `Restored Version ${target.versionNumber} (${target.fileName}) as active live document.`,
+      approvedFieldsCount: 0,
+      rejectedFieldsCount: 0,
+    });
+
+    notifyListeners();
+    return target;
+  },
+
+  getResumeAuditHistory(): ResumeAuditEntry[] {
+    return store.resumeAudit || [];
+  },
+
+  async addResumeAuditEntry(entry: ResumeAuditEntry): Promise<void> {
+    const list = [entry, ...(store.resumeAudit || [])].slice(0, 50);
+    store.resumeAudit = list;
+    safeStorageSet(STORAGE_KEYS.resumeAudit, list);
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'settings', 'resumeAudit'), { list });
+      } catch (err) {
+        console.warn('[CMS Firestore] ResumeAudit write warning:', err);
+      }
+    }
     notifyListeners();
   },
 

@@ -356,3 +356,138 @@ export interface ResumeGeneratorSettings {
   sectionOrder?: ('summary' | 'skills' | 'experience' | 'projects' | 'education' | 'certifications')[];
   updatedAt?: string;
 }
+
+export interface ExtractedResumeField<T = string> {
+  value: T;
+  confidence: number;
+  source: string;
+}
+
+export interface ExtractedResumeData {
+  personalInfo: {
+    fullName?: ExtractedResumeField;
+    headline?: ExtractedResumeField;
+    email?: ExtractedResumeField;
+    phone?: ExtractedResumeField;
+    location?: ExtractedResumeField;
+    linkedinUrl?: ExtractedResumeField;
+    githubUrl?: ExtractedResumeField;
+    portfolioUrl?: ExtractedResumeField;
+  };
+  summary?: ExtractedResumeField;
+  skills: {
+    category: string;
+    skills: string[];
+    confidence: number;
+    source: string;
+  }[];
+  experience: {
+    id?: string;
+    jobTitle: string;
+    employer: string;
+    employmentType?: string;
+    location?: string;
+    startDate: string;
+    endDate: string;
+    isCurrent: boolean;
+    description?: string;
+    responsibilities: string[];
+    achievements: string[];
+    skillsUsed: string[];
+    confidence: number;
+    source: string;
+    conflictWarning?: string;
+  }[];
+  projects: {
+    id?: string;
+    name: string;
+    subtitle?: string;
+    description: string;
+    technologies: string[];
+    features: string[];
+    projectUrl?: string;
+    startDate?: string;
+    endDate?: string;
+    confidence: number;
+    source: string;
+  }[];
+  education: {
+    id?: string;
+    institution: string;
+    degree: string;
+    fieldOfStudy: string;
+    startYear?: string;
+    endYear?: string;
+    grade?: string;
+    confidence: number;
+    source: string;
+  }[];
+  certifications: {
+    id?: string;
+    title: string;
+    issuer: string;
+    completionDate: string;
+    expiryDate?: string;
+    credentialId?: string;
+    verificationUrl?: string;
+    confidence: number;
+    source: string;
+  }[];
+  rawText?: string;
+}
+
+export interface ResumeDiffItem {
+  id: string;
+  section: 'profile' | 'summary' | 'experience' | 'projects' | 'education' | 'certifications' | 'skills';
+  field: string;
+  label: string;
+  category: 'new' | 'changed' | 'unchanged';
+  existingValue: any;
+  extractedValue: any;
+  currentReviewValue: any;
+  status: 'pending' | 'approved' | 'rejected' | 'edited';
+  confidence: number;
+  source: string;
+  recordId?: string;
+  conflictWarning?: string;
+}
+
+export interface ResumeAuditEntry {
+  id: string;
+  timestamp: string;
+  action: string;
+  fileName: string;
+  versionNumber: number;
+  details: string;
+  approvedFieldsCount: number;
+  rejectedFieldsCount: number;
+}
+
+export interface ResumeVersionRecord {
+  id: string;
+  versionNumber: number;
+  fileName: string;
+  fileUrl: string;
+  fileType: 'pdf' | 'docx' | 'doc';
+  fileSizeBytes: number;
+  uploadedAt: string;
+  uploadedBy: string;
+  processingStatus:
+    | 'uploaded'
+    | 'validating'
+    | 'extracting'
+    | 'awaiting_review'
+    | 'approved'
+    | 'published'
+    | 'failed';
+  extractionStatus: 'pending' | 'success' | 'partial' | 'failed';
+  isActive: boolean;
+  isPublicEnabled: boolean;
+  buttonText: string;
+  versionName?: string;
+  notes?: string;
+  extractedData?: ExtractedResumeData;
+  diffItems?: ResumeDiffItem[];
+  auditLog?: ResumeAuditEntry[];
+  publishedAt?: string;
+}
