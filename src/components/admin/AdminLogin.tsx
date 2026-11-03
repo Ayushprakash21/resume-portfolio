@@ -92,8 +92,8 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
       >
         {/* AP Official Brand Header */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ display: 'inline-block', marginBottom: '16px' }}>
-            <ApMonogram size={52} withGlow />
+          <div style={{ display: 'inline-block', marginBottom: '18px' }}>
+            <ApMonogram width={84} withGlow={true} />
           </div>
 
           <h1

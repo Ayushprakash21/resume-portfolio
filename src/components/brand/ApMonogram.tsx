@@ -1,7 +1,8 @@
 import React from 'react';
 
-interface ApMonogramProps {
-  size?: number;
+export interface ApMonogramProps {
+  width?: number;
+  size?: number; // Backwards compatibility: treated as height if width is omitted
   className?: string;
   variant?: 'transparent' | 'primary' | 'monochrome';
   withGlow?: boolean;
@@ -10,7 +11,8 @@ interface ApMonogramProps {
 }
 
 export const ApMonogram: React.FC<ApMonogramProps> = ({
-  size = 36,
+  width,
+  size,
   className = '',
   variant = 'transparent',
   withGlow = false,
@@ -24,9 +26,10 @@ export const ApMonogram: React.FC<ApMonogramProps> = ({
       ? '/brand/ap-monochrome.png'
       : '/brand/ap-transparent.png';
 
-  // Proportions: ~432 x 276 (aspect ratio ~ 1.565)
-  const width = Math.round(size * 1.565);
-  const height = size;
+  // Original Monogram Aspect Ratio: 432px wide / 276px high (~1.5652)
+  // If width is specified, compute proportional height
+  const targetWidth = width ? Math.round(width) : size ? Math.round(size * 1.5652) : 72;
+  const targetHeight = Math.round(targetWidth / 1.5652);
 
   return (
     <span
@@ -36,6 +39,7 @@ export const ApMonogram: React.FC<ApMonogramProps> = ({
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
+        flexShrink: 0,
         lineHeight: 1,
         ...style,
       }}
@@ -43,29 +47,33 @@ export const ApMonogram: React.FC<ApMonogramProps> = ({
       <img
         src={src}
         alt={alt}
-        width={width}
-        height={height}
+        width={targetWidth}
+        height={targetHeight}
+        className="ap-monogram-img"
         style={{
-          width: `${width}px`,
-          height: `${height}px`,
+          width: `${targetWidth}px`,
+          height: 'auto',
+          maxHeight: `${targetHeight}px`,
           objectFit: 'contain',
+          flexShrink: 0,
+          display: 'block',
           filter: withGlow
-            ? 'drop-shadow(0 0 16px rgba(255, 255, 255, 0.32)) drop-shadow(0 2px 8px rgba(0,0,0,0.8))'
-            : 'drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6))',
+            ? 'drop-shadow(0 0 16px rgba(255, 255, 255, 0.38)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.85))'
+            : 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.65))',
           transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease',
           verticalAlign: 'middle',
           userSelect: 'none',
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.06)';
+          e.currentTarget.style.transform = 'scale(1.04)';
           e.currentTarget.style.filter =
-            'drop-shadow(0 0 20px rgba(242, 242, 244, 0.55)) drop-shadow(0 4px 12px rgba(0,0,0,0.9))';
+            'drop-shadow(0 0 22px rgba(255, 255, 255, 0.58)) drop-shadow(0 6px 16px rgba(0, 0, 0, 0.95))';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'scale(1)';
           e.currentTarget.style.filter = withGlow
-            ? 'drop-shadow(0 0 16px rgba(255, 255, 255, 0.32)) drop-shadow(0 2px 8px rgba(0,0,0,0.8))'
-            : 'drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6))';
+            ? 'drop-shadow(0 0 16px rgba(255, 255, 255, 0.38)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.85))'
+            : 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.65))';
         }}
       />
     </span>

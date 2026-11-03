@@ -34,27 +34,29 @@ export const Footer: React.FC<FooterProps> = () => {
           }}
         >
           {/* Brand Presentation: AP Monogram + Identity + Positioning */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <ApMonogram size={42} withGlow />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+            <ApMonogram width={88} className="ap-footer-monogram" withGlow={true} />
             <div>
               <div
                 style={{
                   fontFamily: 'var(--font-display)',
-                  fontSize: '18px',
+                  fontSize: '24px',
                   fontWeight: 700,
-                  letterSpacing: '0.04em',
+                  letterSpacing: '0.02em',
                   textTransform: 'uppercase',
-                  color: 'var(--text-primary)',
+                  color: '#FFFFFF',
+                  lineHeight: 1.1,
                 }}
               >
                 AYUSH PRAKASH
               </div>
               <div
                 style={{
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '13px',
-                  color: 'var(--text-secondary)',
-                  marginTop: '4px',
+                  fontFamily: 'var(--font-serif)',
+                  fontSize: '14px',
+                  fontStyle: 'italic',
+                  color: 'var(--accent-silver)',
+                  marginTop: '5px',
                   letterSpacing: '0.02em',
                 }}
               >

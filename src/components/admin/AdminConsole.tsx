@@ -252,8 +252,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
               justifyContent: 'space-between',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <ApMonogram size={26} withGlow />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <ApMonogram width={48} withGlow={true} />
               <div>
                 <div
                   style={{

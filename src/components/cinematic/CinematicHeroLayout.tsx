@@ -103,7 +103,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             userSelect: 'none',
             display: 'flex',
             alignItems: 'center',
-            gap: isScrolled ? '12px' : '16px',
+            gap: isScrolled ? '14px' : '20px',
             transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}
           className="brand-logo-trigger"
@@ -114,21 +114,23 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             e.currentTarget.style.transform = 'scale(1)';
           }}
         >
-          {/* AP Monogram Logo */}
+          {/* AP Monogram Logo (Prominent 64–76px desktop width) */}
           <ApMonogram
-            size={isScrolled ? 26 : 38}
-            withGlow={isScrolled}
+            width={isScrolled ? 64 : 72}
+            className="ap-header-monogram"
+            withGlow={true}
           />
 
           <span
+            className="ap-header-name"
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: isScrolled ? '15px' : 'clamp(1.6rem, 3.2vw, 2.6rem)',
+              fontSize: isScrolled ? '22px' : '34px',
               fontWeight: 700,
               letterSpacing: '-0.02em',
-              lineHeight: 0.95,
+              lineHeight: 1,
               textTransform: 'uppercase',
-              color: 'var(--text-primary)',
+              color: '#FFFFFF',
               transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
               display: 'inline-block',
             }}
@@ -243,35 +245,37 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           width: '100%',
         }}
       >
-        {/* BOTTOM LEFT: AP MONOGRAM + HEADLINE */}
+        {/* BOTTOM LEFT: AP BRAND SIGNATURE + HEADLINE */}
         <div>
-          {/* AP Monogram Hero Mark */}
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '14px',
-              marginBottom: '16px',
-              padding: '6px 14px 6px 8px',
-              borderRadius: '9999px',
-              backgroundColor: 'rgba(255, 255, 255, 0.035)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              backdropFilter: 'blur(12px)',
-            }}
-          >
-            <ApMonogram size={24} />
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '12px',
-                fontWeight: 600,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: 'var(--accent-bright-silver)',
-              }}
-            >
-              {name}
-            </span>
+          {/* Prominent AP Identity Treatment (Hero Brand Signature) */}
+          <div className="hero-brand-signature">
+            <ApMonogram width={62} withGlow={true} />
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: '#FFFFFF',
+                  lineHeight: 1.2,
+                }}
+              >
+                {name}
+              </span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-serif)',
+                  fontSize: '12px',
+                  fontStyle: 'italic',
+                  color: 'var(--accent-silver)',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                Personal Brand &bull; Digital Universe
+              </span>
+            </div>
           </div>
 
           <div
