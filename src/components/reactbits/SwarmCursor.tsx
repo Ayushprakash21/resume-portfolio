@@ -33,11 +33,12 @@ export const SwarmCursor: React.FC<SwarmCursorProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    // 1. Check for reduced motion and pointer capabilities
+    // 1. Check for reduced motion, screen size (<1024px), and pointer capabilities
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const isTouchOnly = !window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const isSmallScreen = window.innerWidth < 1024;
 
-    if (prefersReducedMotion || isTouchOnly) {
+    if (prefersReducedMotion || isTouchOnly || isSmallScreen) {
       return;
     }
 

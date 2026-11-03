@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowUpRight, ArrowRight, ExternalLink } from 'lucide-react';
 import { ProjectRecord } from '../../types/cms';
+import { BorderGlow, SpecularButton } from '../reactbits';
 
 interface EditorialProjectsProps {
   projects: ProjectRecord[];
@@ -89,24 +90,30 @@ export const EditorialProjects: React.FC<EditorialProjectsProps> = ({
               : [proj.category];
 
             return (
-              <div
+              <BorderGlow
                 key={proj.id}
-                className="project-compact-card"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(22, 23, 28, 0.72) 0%, rgba(10, 11, 14, 0.88) 100%)',
-                  backdropFilter: 'blur(16px)',
-                  WebkitBackdropFilter: 'blur(16px)',
-                  border: '1px solid rgba(255, 255, 255, 0.10)',
-                  borderRadius: '20px',
-                  padding: '28px 32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '28px',
-                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: '0 12px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-                }}
+                borderRadius="20px"
+                glowRadius={360}
+                glowIntensity={0.34}
+                glowColor="#D9DDE3"
               >
+                <div
+                  className="project-compact-card"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(22, 23, 28, 0.72) 0%, rgba(10, 11, 14, 0.88) 100%)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    border: '1px solid rgba(255, 255, 255, 0.10)',
+                    borderRadius: '20px',
+                    padding: '28px 32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '28px',
+                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                    boxShadow: '0 12px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+                  }}
+                >
                 {/* ================= LEFT: PROJECT LOGO ================= */}
                 <div
                   className="project-logo-container"
@@ -225,28 +232,16 @@ export const EditorialProjects: React.FC<EditorialProjectsProps> = ({
                     flexShrink: 0,
                   }}
                 >
-                  {/* Case Study Button */}
-                  <button
+                  {/* Case Study Specular Button */}
+                  <SpecularButton
                     onClick={() => scrollToCaseStudy(proj.id)}
-                    className="glass-btn-spring"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '10px 22px',
-                      fontSize: '13px',
-                      fontWeight: 500,
-                      color: '#FFFFFF',
-                      backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                      border: '1px solid rgba(255, 255, 255, 0.18)',
-                      borderRadius: '9999px',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                    }}
+                    size="sm"
+                    variant="primary"
+                    icon={<ArrowUpRight size={14} color="#FFFFFF" />}
+                    iconPosition="right"
                   >
-                    <span>Case Study</span>
-                    <ArrowUpRight size={14} color="#FFFFFF" />
-                  </button>
+                    Case Study
+                  </SpecularButton>
 
                   {/* External Live Platform / Demo Link */}
                   {proj.projectUrl ? (
@@ -315,8 +310,9 @@ export const EditorialProjects: React.FC<EditorialProjectsProps> = ({
                   )}
                 </div>
               </div>
-            );
-          })}
+            </BorderGlow>
+          );
+        })}
         </div>
       </div>
     </section>

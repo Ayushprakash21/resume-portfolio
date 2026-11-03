@@ -29,6 +29,9 @@ export const HoloCard: React.FC<HoloCardProps> = ({
   const [coords, setCoords] = useState({ x: 50, y: 50 });
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
   const [isHovered, setIsHovered] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  const effectiveImageSrc = (!imgError && imageSrc) ? imageSrc : '/images/creator/ayush-profile.jpg';
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -90,11 +93,12 @@ export const HoloCard: React.FC<HoloCardProps> = ({
           willChange: 'transform',
         }}
       >
-        {/* Base Image if provided */}
-        {imageSrc ? (
+        {/* Base Image with guaranteed fallback */}
+        {effectiveImageSrc ? (
           <img
-            src={imageSrc}
+            src={effectiveImageSrc}
             alt={imageAlt}
+            onError={() => setImgError(true)}
             style={{
               width: '100%',
               height: 'auto',

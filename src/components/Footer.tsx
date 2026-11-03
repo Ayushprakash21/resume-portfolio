@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowUp, Linkedin, Github, Mail } from 'lucide-react';
 import { ApMonogram } from './brand/ApMonogram';
 import { ProfileData } from '../types/cms';
+import { SpecularButton } from './reactbits';
 
 interface FooterProps {
   profile?: ProfileData;
@@ -68,46 +69,50 @@ export const Footer: React.FC<FooterProps> = ({ profile }) => {
           </div>
 
           {/* Social Links & Back to Top */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <a
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <SpecularButton
               href="https://www.linkedin.com/in/ayushprakash"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-editorial-pill"
-              style={{ padding: '8px 16px', fontSize: '12px' }}
+              size="sm"
+              variant="secondary"
+              icon={<Linkedin size={13} />}
+              iconPosition="left"
             >
-              <Linkedin size={13} />
-              <span>LinkedIn</span>
-            </a>
+              LinkedIn
+            </SpecularButton>
 
-            <a
+            <SpecularButton
               href="https://github.com/Ayushprakash21"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-editorial-pill"
-              style={{ padding: '8px 16px', fontSize: '12px' }}
+              size="sm"
+              variant="secondary"
+              icon={<Github size={13} />}
+              iconPosition="left"
             >
-              <Github size={13} />
-              <span>GitHub</span>
-            </a>
+              GitHub
+            </SpecularButton>
 
-            <a
+            <SpecularButton
               href="mailto:ayushprakash0021@gmail.com"
-              className="btn-editorial-pill"
-              style={{ padding: '8px 16px', fontSize: '12px' }}
+              size="sm"
+              variant="secondary"
+              icon={<Mail size={13} />}
+              iconPosition="left"
             >
-              <Mail size={13} />
-              <span>Email</span>
-            </a>
+              Email
+            </SpecularButton>
 
-            <button
+            <SpecularButton
               onClick={scrollToTop}
-              className="btn-editorial-pill"
-              style={{ padding: '8px 18px', fontSize: '12px' }}
+              size="sm"
+              variant="primary"
+              icon={<ArrowUp size={12} />}
+              iconPosition="right"
             >
-              <span>Back to Top</span>
-              <ArrowUp size={12} />
-            </button>
+              Back to Top
+            </SpecularButton>
           </div>
         </div>
 

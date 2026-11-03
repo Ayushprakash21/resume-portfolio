@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Award, CheckCircle2, ExternalLink, X, Eye } from 'lucide-react';
 import { CertificationRecord } from '../../types/cms';
+import { BorderGlow } from '../reactbits';
 
 interface EditorialCertificationsProps {
   certifications: CertificationRecord[];
@@ -59,17 +60,24 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
           }}
         >
           {certifications.map((cert) => (
-            <div
+            <BorderGlow
               key={cert.id}
-              className="glass-card"
-              style={{
-                borderRadius: '16px',
-                padding: 'clamp(20px, 3.5vw, 32px)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
+              borderRadius="16px"
+              glowRadius={300}
+              glowIntensity={0.30}
+              glowColor="#D9DDE3"
             >
+              <div
+                className="glass-card"
+                style={{
+                  borderRadius: '16px',
+                  padding: 'clamp(20px, 3.5vw, 32px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  height: '100%',
+                }}
+              >
               <div>
                 <div
                   style={{
@@ -220,7 +228,8 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                 )}
               </div>
             </div>
-          ))}
+          </BorderGlow>
+        ))}
         </div>
       </div>
 

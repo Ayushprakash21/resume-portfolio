@@ -568,4 +568,59 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     const modal = fs.readFileSync('src/components/resume/ResumeGeneratorModal.tsx', 'utf-8');
     assert.ok(modal.includes('Original Uploaded Resume'), 'Public modal supports original uploaded resume download');
   });
+
+  // Test 33: Premium React Bits Interaction System (Swarm Cursor, Holo Card, Option Wheel, Border Glow, Specular Button)
+  await t.test('33. Premium React Bits System: Swarm Cursor, Holo Card, Option Wheel, Border Glow, and Specular Button', () => {
+    // 1. Swarm Cursor
+    const swarmFile = fs.readFileSync('src/components/reactbits/SwarmCursor.tsx', 'utf-8');
+    assert.ok(swarmFile.includes('pointerEvents: \'none\''), 'SwarmCursor canvas must have pointerEvents: none');
+    assert.ok(swarmFile.includes('prefers-reduced-motion'), 'SwarmCursor respects prefers-reduced-motion');
+    assert.ok(swarmFile.includes('visibilitychange'), 'SwarmCursor pauses when tab is hidden');
+    assert.ok(swarmFile.includes('cancelAnimationFrame'), 'SwarmCursor cleans up animation frame on unmount');
+
+    const appFile = fs.readFileSync('src/App.tsx', 'utf-8');
+    assert.ok(appFile.includes('SwarmCursor'), 'App mounts SwarmCursor globally');
+
+    // 2. Holo Card
+    const holoFile = fs.readFileSync('src/components/reactbits/HoloCard.tsx', 'utf-8');
+    assert.ok(holoFile.includes('maxTilt'), 'HoloCard supports customizable maxTilt');
+    assert.ok(holoFile.includes('foilIntensity'), 'HoloCard supports silver foil intensity');
+    assert.ok(holoFile.includes('glareIntensity'), 'HoloCard supports specular glare intensity');
+    assert.ok(holoFile.includes('effectiveImageSrc'), 'HoloCard implements portrait fallback');
+
+    const aboutFile = fs.readFileSync('src/components/editorial/EditorialAbout.tsx', 'utf-8');
+    assert.ok(aboutFile.includes('HoloCard'), 'EditorialAbout integrates HoloCard on founder portrait');
+
+    // 3. Option Wheel
+    const wheelFile = fs.readFileSync('src/components/reactbits/OptionWheel.tsx', 'utf-8');
+    assert.ok(wheelFile.includes('Orion-9 Overview'), 'OptionWheel provides Orion-9 navigational items');
+    assert.ok(wheelFile.includes('handleWheel'), 'OptionWheel supports wheel scroll interaction');
+    assert.ok(wheelFile.includes('handleKeyDown'), 'OptionWheel supports keyboard navigation');
+    assert.ok(wheelFile.includes('role="combobox"'), 'OptionWheel has accessible combobox role');
+
+    const heroLayout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
+    assert.ok(heroLayout.includes('OptionWheel'), 'CinematicHeroLayout integrates OptionWheel in header');
+
+    // 4. Border Glow
+    const borderGlowFile = fs.readFileSync('src/components/reactbits/BorderGlow.tsx', 'utf-8');
+    assert.ok(borderGlowFile.includes('--mouse-x') && borderGlowFile.includes('--mouse-y'), 'BorderGlow uses CSS custom properties without re-render');
+    assert.ok(borderGlowFile.includes('radial-gradient'), 'BorderGlow renders cursor-following halo');
+
+    const projectsFile = fs.readFileSync('src/components/editorial/EditorialProjects.tsx', 'utf-8');
+    assert.ok(projectsFile.includes('BorderGlow'), 'EditorialProjects applies BorderGlow to featured cards');
+
+    const certsFile = fs.readFileSync('src/components/editorial/EditorialCertifications.tsx', 'utf-8');
+    assert.ok(certsFile.includes('BorderGlow'), 'EditorialCertifications applies BorderGlow to credential cards');
+
+    const contactFile = fs.readFileSync('src/components/editorial/EditorialContact.tsx', 'utf-8');
+    assert.ok(contactFile.includes('BorderGlow'), 'EditorialContact applies BorderGlow to direct coordinates & form');
+
+    // 5. Specular Button
+    const specularFile = fs.readFileSync('src/components/reactbits/SpecularButton.tsx', 'utf-8');
+    assert.ok(specularFile.includes('--shine-x') && specularFile.includes('--shine-y'), 'SpecularButton tracks cursor highlight');
+    assert.ok(specularFile.includes('specular-highlight-layer'), 'SpecularButton includes specular reflection layer');
+
+    const footerFile = fs.readFileSync('src/components/Footer.tsx', 'utf-8');
+    assert.ok(footerFile.includes('SpecularButton'), 'Footer uses SpecularButton for actions');
+  });
 });

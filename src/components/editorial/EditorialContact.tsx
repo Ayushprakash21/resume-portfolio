@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Github, Linkedin, Copy, Check, Send, CheckCircle2 } from 'lucide-react';
 import { cmsService } from '../../services/cmsService';
 import { ProfileData } from '../../types/cms';
+import { BorderGlow, SpecularButton } from '../reactbits';
 
 interface EditorialContactProps {
   profile: ProfileData;
@@ -99,57 +100,63 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
         <div className="contact-grid-responsive">
           {/* Column 1: Direct Coordinates */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-            <div
-              className="glass-card"
-              style={{
-                padding: 'clamp(20px, 4vw, 36px)',
-                borderRadius: '16px',
-              }}
-            >
+            <BorderGlow borderRadius="16px" glowRadius={320} glowIntensity={0.32} glowColor="#D9DDE3">
               <div
+                className="glass-card"
                 style={{
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '11px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                  color: 'var(--text-muted)',
-                  marginBottom: '10px',
+                  padding: 'clamp(20px, 4vw, 36px)',
+                  borderRadius: '16px',
                 }}
               >
-                Direct Email
-              </div>
-
-              <div
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '20px',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  marginBottom: '20px',
-                  wordBreak: 'break-all',
-                }}
-              >
-                {profile.email}
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <a
-                  href={`mailto:${profile.email}`}
-                  className="btn-editorial-pill"
+                <div
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '11px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    color: 'var(--text-muted)',
+                    marginBottom: '10px',
+                  }}
                 >
-                  <Mail size={13} />
-                  <span>Send Email</span>
-                </a>
+                  Direct Email
+                </div>
 
-                <button
-                  onClick={copyEmail}
-                  className="btn-editorial-pill"
+                <div
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '20px',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)',
+                    marginBottom: '20px',
+                    wordBreak: 'break-all',
+                  }}
                 >
-                  {copied ? <Check size={13} color="var(--accent-emerald)" /> : <Copy size={13} />}
-                  <span>{copied ? 'Copied' : 'Copy'}</span>
-                </button>
+                  {profile.email}
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  <SpecularButton
+                    href={`mailto:${profile.email}`}
+                    size="sm"
+                    variant="primary"
+                    icon={<Mail size={13} />}
+                    iconPosition="left"
+                  >
+                    Send Email
+                  </SpecularButton>
+
+                  <SpecularButton
+                    onClick={copyEmail}
+                    size="sm"
+                    variant="secondary"
+                    icon={copied ? <Check size={13} color="var(--accent-emerald)" /> : <Copy size={13} />}
+                    iconPosition="left"
+                  >
+                    {copied ? 'Copied' : 'Copy'}
+                  </SpecularButton>
+                </div>
               </div>
-            </div>
+            </BorderGlow>
 
             {/* Social Network Links */}
             <div
@@ -224,13 +231,15 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
           </div>
 
           {/* Column 2: Minimal Editorial Contact Form */}
-          <div
-            className="glass-card"
-            style={{
-              padding: 'clamp(20px, 4vw, 36px)',
-              borderRadius: '16px',
-            }}
-          >
+          <BorderGlow borderRadius="16px" glowRadius={340} glowIntensity={0.32} glowColor="#D9DDE3">
+            <div
+              className="glass-card"
+              style={{
+                padding: 'clamp(20px, 4vw, 36px)',
+                borderRadius: '16px',
+                height: '100%',
+              }}
+            >
             <div
               style={{
                 fontFamily: 'var(--font-display)',
@@ -405,24 +414,21 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                   />
                 </div>
 
-                <button
+                <SpecularButton
                   type="submit"
                   disabled={submitting}
-                  className="btn-editorial-pill"
-                  style={{
-                    width: '100%',
-                    justifyContent: 'center',
-                    padding: '14px',
-                    backgroundColor: 'rgba(244, 243, 238, 0.08)',
-                    borderColor: 'rgba(244, 243, 238, 0.4)',
-                  }}
+                  variant="primary"
+                  size="md"
+                  style={{ width: '100%', marginTop: '6px' }}
+                  icon={<Send size={14} />}
+                  iconPosition="right"
                 >
-                  <Send size={14} />
-                  <span>{submitting ? 'Transmitting...' : 'Send Message'}</span>
-                </button>
+                  {submitting ? 'Transmitting...' : 'Send Message'}
+                </SpecularButton>
               </form>
             )}
           </div>
+        </BorderGlow>
         </div>
       </div>
     </section>
