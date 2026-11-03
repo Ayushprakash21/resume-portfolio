@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { UniverseCanvas } from './components/3d/UniverseCanvas';
-import { HeroSpatial } from './components/public/HeroSpatial';
+import { Universe3DScene } from './components/3d/Universe3DScene';
 import { NavbarRedesigned } from './components/public/NavbarRedesigned';
-import { AboutSection } from './components/public/AboutSection';
-import { ExperienceSection } from './components/public/ExperienceSection';
-import { SkillsSection } from './components/public/SkillsSection';
-import { OrionSectionRedesigned } from './components/public/OrionSectionRedesigned';
-import { ApplyViseSectionRedesigned } from './components/public/ApplyViseSectionRedesigned';
-import { ArchitectureSection } from './components/public/ArchitectureSection';
-import { CertificationsSectionRedesigned } from './components/public/CertificationsSectionRedesigned';
-import { EducationSection } from './components/public/EducationSection';
+import { EditorialAbout } from './components/editorial/EditorialAbout';
+import { EditorialExperience } from './components/editorial/EditorialExperience';
+import { EditorialCapabilities } from './components/editorial/EditorialCapabilities';
+import { EditorialOrion9 } from './components/editorial/EditorialOrion9';
+import { EditorialApplyVise } from './components/editorial/EditorialApplyVise';
+import { EditorialCertifications } from './components/editorial/EditorialCertifications';
+import { EditorialEducation } from './components/editorial/EditorialEducation';
+import { EditorialContact } from './components/editorial/EditorialContact';
 import { RecruiterModeModal } from './components/public/RecruiterModeModal';
-import { ContactSectionRedesigned } from './components/public/ContactSectionRedesigned';
 import { Footer } from './components/Footer';
 
 // Admin Console Components
@@ -41,11 +39,16 @@ export const App: React.FC = () => {
     return authService.isCurrentSessionAdmin();
   });
 
-  // Spatial 3D Active Zone
-  const [activeZone, setActiveZone] = useState<string | null>(null);
+  // Spatial 3D Active Landmark
+  const [activeLandmarkId, setActiveLandmarkId] = useState<string | null>(null);
 
-  // Recruiter Brief Modal
+  // Recruiter Dossier Modal
   const [isRecruiterModalOpen, setIsRecruiterModalOpen] = useState(false);
+
+  // Reduced motion preference
+  const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
+    return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
 
   // Reactive Public State loaded directly from CMS
   const [profile, setProfile] = useState<ProfileData>(() => cmsService.getProfile());
@@ -56,13 +59,12 @@ export const App: React.FC = () => {
   const [education, setEducation] = useState<EducationRecord[]>(() => cmsService.getEducation());
   const [settings, setSettings] = useState<SiteSettings>(() => cmsService.getSiteSettings());
 
-  // Listen for Firebase Auth changes
+  // Listen for Firebase Auth changes & URL hash / history
   useEffect(() => {
     const unsubscribeAuth = authService.onAuthStateChange((user, isAdmin) => {
       setIsAdminAuthenticated(isAdmin);
     });
 
-    // Listen for browser history / popstate
     const handlePopState = () => {
       const isAdm = window.location.pathname.startsWith('/admin') || window.location.hash.startsWith('#/admin');
       setIsAdminRoute(isAdm);
@@ -102,16 +104,22 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleZoneSelection = (zoneId: string) => {
-    setActiveZone(zoneId);
-    // Smooth scroll to corresponding section if not overview
-    if (zoneId !== 'overview') {
-      const el = document.getElementById(zoneId);
+  const handleSelectLandmark = (landmarkId: string) => {
+    setActiveLandmarkId(landmarkId);
+    if (landmarkId !== 'overview') {
+      const el = document.getElementById(landmarkId);
       if (el) {
-        setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 200);
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 300);
       }
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleSkipToEditorial = () => {
+    const el = document.getElementById('about');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -134,71 +142,58 @@ export const App: React.FC = () => {
     }
   }
 
-  // ROUTE: PUBLIC IMMERSIVE 3D PORTFOLIO
+  // Projects
   const orionProject = projects.find((p) => p.id === 'orion-9');
   const applywiseProject = projects.find((p) => p.id === 'applywise-ai');
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', backgroundColor: 'var(--bg-primary)' }}>
-      {/* Navigation */}
+    <div style={{ position: 'relative', minHeight: '100vh', backgroundColor: '#07090D', color: '#F5F7FA' }}>
+      {/* Conventional Sticky Top Navigation */}
       <NavbarRedesigned
         profile={profile}
         onNavigateAdmin={navigateToAdmin}
         onToggleRecruiterMode={() => setIsRecruiterModalOpen(true)}
-        onSelectZone={handleZoneSelection}
+        onSelectZone={handleSelectLandmark}
       />
 
-      {/* SECTION 1: INTERACTIVE 3D HOME UNIVERSE */}
-      <section
-        id="3d-universe"
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '100vh',
-          overflow: 'hidden',
-        }}
-      >
-        <UniverseCanvas onSelectZone={handleZoneSelection} activeZone={activeZone} />
-        <HeroSpatial
-          profile={profile}
-          projects={projects}
-          onExploreZone={handleZoneSelection}
-          onToggleRecruiterMode={() => setIsRecruiterModalOpen(true)}
-          isRecruiterMode={isRecruiterModalOpen}
+      {/* PART 2: HOMEPAGE INTERACTIVE 3D WORLD */}
+      <section id="3d-universe" style={{ position: 'relative', width: '100%', height: '100vh' }}>
+        <Universe3DScene
+          onSelectLandmark={handleSelectLandmark}
+          activeLandmarkId={activeLandmarkId}
+          onSkipToEditorial={handleSkipToEditorial}
+          reducedMotion={reducedMotion}
         />
       </section>
 
-      {/* PUBLIC CONTENT SECTIONS (LOADED FROM CMS) */}
-      <main style={{ position: 'relative', zIndex: 5 }}>
-        {/* SECTION 2: ABOUT */}
-        <AboutSection profile={profile} />
+      {/* PART 3: PREMIUM EDITORIAL PAGES */}
+      <main style={{ position: 'relative', zIndex: 10 }}>
+        {/* ABOUT */}
+        <EditorialAbout profile={profile} />
 
-        {/* SECTION 3: PROFESSIONAL EXPERIENCE */}
-        <ExperienceSection experiences={experiences} />
+        {/* EXPERIENCE */}
+        <EditorialExperience experiences={experiences} />
 
-        {/* SECTION 4: SKILLS & CAPABILITIES */}
-        <SkillsSection skills={skills} />
+        {/* CAPABILITIES */}
+        <EditorialCapabilities skills={skills} />
 
-        {/* SECTION 5: ORION-9 SHOWCASE & INTERACTIVE SUPPLY CHAIN VISUALIZATION */}
-        <OrionSectionRedesigned project={orionProject} />
+        {/* ORION-9 PROJECT SHOWCASE */}
+        <EditorialOrion9 project={orionProject} />
 
-        {/* SECTION 6: APPLYVISE AI SHOWCASE & INTERACTIVE CAREER INTELLIGENCE VISUALIZATION */}
-        <ApplyViseSectionRedesigned project={applywiseProject} />
+        {/* APPLYVISE AI PROJECT SHOWCASE */}
+        <EditorialApplyVise project={applywiseProject} />
 
-        {/* SECTION 7: ARCHITECTURE & TECHNICAL EXPLORATION */}
-        <ArchitectureSection />
+        {/* CERTIFICATIONS */}
+        <EditorialCertifications certifications={certifications} />
 
-        {/* SECTION 8: CERTIFICATIONS & HONORS */}
-        <CertificationsSectionRedesigned certifications={certifications} />
+        {/* EDUCATION */}
+        <EditorialEducation education={education} />
 
-        {/* SECTION 9: EDUCATION */}
-        <EducationSection education={education} />
-
-        {/* SECTION 11: CONTACT */}
-        <ContactSectionRedesigned profile={profile} />
+        {/* CONTACT */}
+        <EditorialContact profile={profile} />
       </main>
 
-      {/* SECTION 10: RECRUITER MODE DOSSIER MODAL */}
+      {/* RECRUITER MODE DOSSIER MODAL */}
       <RecruiterModeModal
         isOpen={isRecruiterModalOpen}
         onClose={() => setIsRecruiterModalOpen(false)}
