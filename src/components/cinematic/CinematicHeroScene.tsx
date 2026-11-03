@@ -30,42 +30,42 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     let width = container.clientWidth || window.innerWidth;
     let height = container.clientHeight || window.innerHeight;
 
-    // Scene setup with atmospheric fog matching LE:MMA palette (#18211D to #2B3738)
+    // 1. SCENE SETUP
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#141C1A');
-    scene.fog = new THREE.FogExp2('#162220', 0.012);
+    scene.background = new THREE.Color('#1A201C');
+    // Atmospheric fog matching the olive-charcoal moody sky
+    scene.fog = new THREE.FogExp2('#222B26', 0.014);
 
-    // Camera setup
-    const camera = new THREE.PerspectiveCamera(48, width / height, 0.1, 400);
-    camera.position.set(0, 2.2, 12);
-    camera.lookAt(0, 3.2, -60);
+    // 2. CAMERA SETUP
+    const camera = new THREE.PerspectiveCamera(46, width / height, 0.1, 300);
+    camera.position.set(0, 1.8, 8.5);
+    camera.lookAt(0, 2.2, -40);
 
-    // Renderer setup
+    // 3. RENDERER SETUP
     const renderer = new THREE.WebGLRenderer({
       powerPreference: 'high-performance',
       antialias: true,
       alpha: false,
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.1;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     container.appendChild(renderer.domElement);
 
-    // --- ATMOSPHERIC SKY DOME ---
-    // Smooth vertical hemisphere with subtle dusk / twilight gradation
-    const skyGeo = new THREE.SphereGeometry(250, 32, 24);
+    // --- SKY DOME (MOODY OLIVE-CHARCOAL OVERCAST ATMOSPHERE) ---
+    const skyGeo = new THREE.SphereGeometry(220, 32, 20);
     const skyMat = new THREE.ShaderMaterial({
       side: THREE.BackSide,
       uniforms: {
-        topColor: { value: new THREE.Color('#0F1514') },
-        midColor: { value: new THREE.Color('#22312F') },
-        horizonColor: { value: new THREE.Color('#38494A') },
-        offset: { value: 30 },
-        exponent: { value: 0.65 },
+        topColor: { value: new THREE.Color('#161C19') },      // Deep olive charcoal
+        midColor: { value: new THREE.Color('#2C362F') },      // Muted moody olive
+        horizonColor: { value: new THREE.Color('#465348') },  // Soft horizon haze
+        offset: { value: 18 },
+        exponent: { value: 0.7 },
       },
       vertexShader: `
         varying vec3 vWorldPosition;
@@ -85,8 +85,8 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
         void main() {
           float h = normalize(vWorldPosition + vec3(0.0, offset, 0.0)).y;
           float factor = max(pow(max(h, 0.0), exponent), 0.0);
-          vec3 sky = mix(horizonColor, midColor, smoothstep(0.0, 0.4, factor));
-          sky = mix(sky, topColor, smoothstep(0.4, 1.0, factor));
+          vec3 sky = mix(horizonColor, midColor, smoothstep(0.0, 0.45, factor));
+          sky = mix(sky, topColor, smoothstep(0.45, 1.0, factor));
           gl_FragColor = vec4(sky, 1.0);
         }
       `,
@@ -94,290 +94,244 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     const skyMesh = new THREE.Mesh(skyGeo, skyMat);
     scene.add(skyMesh);
 
-    // --- CINEMATIC LIGHTING ---
-    const ambientLight = new THREE.HemisphereLight('#4A5F63', '#111615', 1.4);
+    // --- LIGHTING ---
+    const ambientLight = new THREE.HemisphereLight('#4A5A4E', '#111714', 1.5);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight('#8FA6A0', 1.6);
-    dirLight.position.set(-25, 30, -35);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 1024;
-    dirLight.shadow.mapSize.height = 1024;
-    dirLight.shadow.camera.near = 5;
-    dirLight.shadow.camera.far = 120;
-    scene.add(dirLight);
+    // Key directional light from above right, casting soft specular sheen on water and rocks
+    const keyLight = new THREE.DirectionalLight('#9FB4A2', 1.4);
+    keyLight.position.set(15, 25, -10);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 1024;
+    keyLight.shadow.mapSize.height = 1024;
+    scene.add(keyLight);
 
-    const softFillLight = new THREE.DirectionalLight('#546E7A', 0.8);
-    softFillLight.position.set(30, 15, 10);
-    scene.add(softFillLight);
+    // Soft frontal fill
+    const fillLight = new THREE.DirectionalLight('#54695D', 0.8);
+    fillLight.position.set(-15, 12, 12);
+    scene.add(fillLight);
 
-    // --- MOUNTAINS / DISTANT HILLS ---
-    // Mountain ridges sculpted with multiple natural octaves
-    const createMountainRidge = (
-      zPos: number,
-      heightScale: number,
-      colorHex: string,
-      roughnessVal: number
-    ) => {
-      const segmentsX = 90;
-      const segmentsY = 24;
-      const widthM = 220;
-      const depthM = 40;
-      const mGeo = new THREE.PlaneGeometry(widthM, depthM, segmentsX, segmentsY);
-      mGeo.rotateX(-Math.PI / 2);
+    // Subtle golden glow light over the flower bank
+    const floralGlowLight = new THREE.PointLight('#E5BF72', 2.0, 50);
+    floralGlowLight.position.set(0, 4.5, -28);
+    scene.add(floralGlowLight);
 
-      const pos = mGeo.attributes.position;
+    // --- DISTANT HILL / MOUNTAIN SILHOUETTES & FLORAL BANK ---
+    const createMountainRidge = (zPos: number, heightScale: number, colorHex: string) => {
+      const geo = new THREE.PlaneGeometry(160, 40, 60, 20);
+      geo.rotateX(-Math.PI / 2);
+      const pos = geo.attributes.position;
       for (let i = 0; i < pos.count; i++) {
         const x = pos.getX(i);
         const z = pos.getZ(i);
-
-        // Natural mountain noise: major ridges + jagged peaks + smooth valleys
-        const n1 = Math.sin(x * 0.045) * Math.cos(z * 0.05);
-        const n2 = Math.sin(x * 0.09 + 1.2) * 0.5 * Math.cos(z * 0.08);
-        const n3 = Math.cos(x * 0.18 + 2.5) * 0.25;
-        const peakEnvelope = Math.max(0, 1 - Math.pow(x / (widthM * 0.48), 2));
-        const zEnvelope = Math.sin(((z + depthM / 2) / depthM) * Math.PI);
-
-        const elevation = (n1 + n2 + n3) * heightScale * peakEnvelope * zEnvelope;
-        pos.setY(i, Math.max(0, elevation));
+        const h1 = Math.sin(x * 0.05) * 4.5;
+        const h2 = Math.cos(x * 0.12 + 1.0) * 2.2;
+        const zRamp = Math.max(0, (z + 20) * 0.25);
+        pos.setY(i, Math.max(0, (h1 + h2 + 4.0) * heightScale + zRamp));
       }
-      mGeo.computeVertexNormals();
-
-      const mMat = new THREE.MeshStandardMaterial({
+      geo.computeVertexNormals();
+      const mat = new THREE.MeshStandardMaterial({
         color: new THREE.Color(colorHex),
-        roughness: roughnessVal,
+        roughness: 0.9,
         metalness: 0.05,
         flatShading: true,
       });
-
-      const mesh = new THREE.Mesh(mGeo, mMat);
-      mesh.position.set(0, -0.5, zPos);
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(0, 0, zPos);
       mesh.receiveShadow = true;
       return mesh;
     };
 
-    // Far mountain silhouettes (atmospheric deep slate)
-    const farMountains = createMountainRidge(-110, 34, '#1B2728', 0.95);
-    scene.add(farMountains);
+    // Distant background ridge
+    const distantRidge = createMountainRidge(-48, 0.85, '#121A16');
+    scene.add(distantRidge);
 
-    // Mid-distance rugged hills (muted dark forest)
-    const midMountains = createMountainRidge(-65, 20, '#162320', 0.9);
-    scene.add(midMountains);
+    // Middleground lush floral bank
+    const bankMesh = createMountainRidge(-32, 0.65, '#15201A');
+    scene.add(bankMesh);
 
-    // Near lake hills (flanking sides to create a natural bay)
-    const nearHillsLeft = createMountainRidge(-35, 12, '#141E1C', 0.92);
-    nearHillsLeft.position.set(-45, -0.2, -40);
-    nearHillsLeft.rotation.y = 0.35;
-    scene.add(nearHillsLeft);
+    // --- INSTANCED SHIMMERING FLOWERS (GOLDEN & PALE BLUE) ---
+    // Creates that magical field of lights from LE:MMA Studio
+    const flowerCount = 1400;
+    const flowerGeo = new THREE.DodecahedronGeometry(0.18, 0);
 
-    const nearHillsRight = createMountainRidge(-35, 14, '#141E1C', 0.92);
-    nearHillsRight.position.set(50, -0.2, -42);
-    nearHillsRight.rotation.y = -0.3;
-    scene.add(nearHillsRight);
+    // Golden blossoms
+    const goldFlowerMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#F2CE80'),
+      emissive: new THREE.Color('#D8A447'),
+      emissiveIntensity: 0.6,
+      roughness: 0.4,
+    });
+    const goldInstanced = new THREE.InstancedMesh(flowerGeo, goldFlowerMat, flowerCount / 2);
+
+    // Pale blue blossoms
+    const blueFlowerMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#94D2E6'),
+      emissive: new THREE.Color('#4DA2BD'),
+      emissiveIntensity: 0.5,
+      roughness: 0.4,
+    });
+    const blueInstanced = new THREE.InstancedMesh(flowerGeo, blueFlowerMat, flowerCount / 2);
+
+    const dummy = new THREE.Object3D();
+    let gIdx = 0;
+    let bIdx = 0;
+
+    for (let i = 0; i < flowerCount; i++) {
+      const x = (Math.random() - 0.5) * 110;
+      const z = -22 - Math.random() * 22;
+      // Calculate approximate height on bank
+      const h1 = Math.sin(x * 0.05) * 4.5;
+      const h2 = Math.cos(x * 0.12 + 1.0) * 2.2;
+      const y = Math.max(0.4, (h1 + h2 + 4.0) * 0.65 * 0.8 + Math.random() * 0.8);
+
+      dummy.position.set(x, y, z);
+      const scale = 0.5 + Math.random() * 0.9;
+      dummy.scale.set(scale, scale, scale);
+      dummy.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+      dummy.updateMatrix();
+
+      if (i % 2 === 0 && gIdx < flowerCount / 2) {
+        goldInstanced.setMatrixAt(gIdx++, dummy.matrix);
+      } else if (bIdx < flowerCount / 2) {
+        blueInstanced.setMatrixAt(bIdx++, dummy.matrix);
+      }
+    }
+    goldInstanced.instanceMatrix.needsUpdate = true;
+    blueInstanced.instanceMatrix.needsUpdate = true;
+    // Foliage container for all floral & shrubbery elements
+    const foliageGroup = new THREE.Group();
+    foliageGroup.add(goldInstanced);
+    foliageGroup.add(blueInstanced);
+    scene.add(foliageGroup);
 
     // --- REFLECTIVE WATER PLANE ---
-    // Smooth natural water with gentle rippling shader
-    const waterGeo = new THREE.PlaneGeometry(260, 150, 80, 80);
+    const waterGeo = new THREE.PlaneGeometry(160, 80, 60, 40);
     waterGeo.rotateX(-Math.PI / 2);
 
     const waterMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#0F1716'),
-      roughness: 0.18,
-      metalness: 0.85,
-      envMapIntensity: 1.2,
+      color: new THREE.Color('#0D1513'),
+      roughness: 0.14,
+      metalness: 0.92,
+      envMapIntensity: 1.4,
     });
 
     const waterMesh = new THREE.Mesh(waterGeo, waterMat);
-    waterMesh.position.set(0, -0.15, -45);
+    waterMesh.position.set(0, -0.15, -16);
     waterMesh.receiveShadow = true;
     scene.add(waterMesh);
 
-    // Save initial water vertex positions for wave animation
+    // Save initial water positions for ripple animation
     const waterPos = waterGeo.attributes.position;
     const initialWaterY = new Float32Array(waterPos.count);
     for (let i = 0; i < waterPos.count; i++) {
       initialWaterY[i] = waterPos.getY(i);
     }
 
-    // --- FOREGROUND ROCKS & SHORELINE (DARK BASALT / NATURAL STONE) ---
-    const rockGroup = new THREE.Group();
+    // --- FOREGROUND ROCKS & BOULDERS (EXACT COMPOSITION) ---
+    // Right large rock boulder, Left outcrop, Center viewing rock
     const rockMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#19211F'),
+      color: new THREE.Color('#222B27'),
       roughness: 0.88,
       metalness: 0.08,
       flatShading: true,
     });
 
-    // Central viewing ledge where the human figure stands
-    const centerLedgeGeo = new THREE.DodecahedronGeometry(3.6, 1);
-    centerLedgeGeo.scale(2.2, 0.65, 1.6);
-    const centerLedge = new THREE.Mesh(centerLedgeGeo, rockMat);
-    centerLedge.position.set(0, -0.65, 1.2);
-    centerLedge.rotation.set(0.1, 0.2, -0.05);
-    centerLedge.receiveShadow = true;
+    // Custom helper to generate craggy rock mesh
+    const createCragRock = (radius: number, scaleX: number, scaleY: number, scaleZ: number) => {
+      const geo = new THREE.DodecahedronGeometry(radius, 2);
+      const pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const vx = pos.getX(i);
+        const vy = pos.getY(i);
+        const vz = pos.getZ(i);
+        // Craggy noise displacement
+        const n = Math.sin(vx * 2.2) * Math.cos(vy * 2.5) * Math.sin(vz * 2.1) * 0.16;
+        pos.setXYZ(i, vx + vx * n, vy + vy * n, vz + vz * n);
+      }
+      geo.computeVertexNormals();
+      geo.scale(scaleX, scaleY, scaleZ);
+      return new THREE.Mesh(geo, rockMat);
+    };
+
+    const rockGroup = new THREE.Group();
+
+    // 1. Right Large Prominent Rock Boulder (Iconic LE:MMA feature)
+    const rightBigRock = createCragRock(3.8, 1.25, 0.95, 1.1);
+    rightBigRock.position.set(6.6, 0.5, 2.2);
+    rightBigRock.rotation.set(0.15, -0.4, 0.1);
+    rightBigRock.castShadow = true;
+    rightBigRock.receiveShadow = true;
+    rockGroup.add(rightBigRock);
+
+    // Secondary right rock base
+    const rightBaseRock = createCragRock(2.4, 1.3, 0.6, 1.2);
+    rightBaseRock.position.set(5.2, -0.4, 3.8);
+    rightBaseRock.rotation.set(0.1, 0.2, -0.05);
+    rockGroup.add(rightBaseRock);
+
+    // 2. Left Foreground Outcrop
+    const leftRock = createCragRock(3.2, 1.15, 0.8, 1.05);
+    leftRock.position.set(-6.2, 0.1, 2.0);
+    leftRock.rotation.set(0.1, 0.45, -0.08);
+    leftRock.castShadow = true;
+    leftRock.receiveShadow = true;
+    rockGroup.add(leftRock);
+
+    const leftBaseRock = createCragRock(2.1, 1.4, 0.6, 1.1);
+    leftBaseRock.position.set(-4.5, -0.5, 3.6);
+    rockGroup.add(leftBaseRock);
+
+    // 3. Center Rocky Ledge (Where the figure stands)
+    const centerLedge = createCragRock(2.6, 1.6, 0.55, 1.4);
+    centerLedge.position.set(0, -0.6, 2.8);
+    centerLedge.rotation.set(0.08, 0.1, -0.02);
     centerLedge.castShadow = true;
+    centerLedge.receiveShadow = true;
     rockGroup.add(centerLedge);
-
-    // Flanking natural rocks along the water edge
-    const rockCoords = [
-      { x: -3.8, y: -0.4, z: 2.5, s: 1.8, rx: 0.2, ry: 0.5 },
-      { x: -6.5, y: -0.3, z: 0.5, s: 2.6, rx: 0.1, ry: 1.2 },
-      { x: -9.5, y: 0.1, z: -2.0, s: 3.2, rx: -0.2, ry: 0.8 },
-      { x: 3.6, y: -0.4, z: 2.2, s: 1.9, rx: 0.15, ry: -0.4 },
-      { x: 6.8, y: -0.2, z: 0.2, s: 2.8, rx: 0.2, ry: -1.0 },
-      { x: 10.2, y: 0.2, z: -2.5, s: 3.4, rx: -0.1, ry: 0.6 },
-      // Foreground low stones
-      { x: -1.6, y: -0.7, z: 3.8, s: 1.2, rx: 0.3, ry: 0.2 },
-      { x: 1.8, y: -0.7, z: 3.6, s: 1.3, rx: 0.1, ry: 0.7 },
-    ];
-
-    rockCoords.forEach((c) => {
-      const rGeo = new THREE.DodecahedronGeometry(c.s, 1);
-      rGeo.scale(1.2, 0.7, 1.0);
-      const rMesh = new THREE.Mesh(rGeo, rockMat);
-      rMesh.position.set(c.x, c.y, c.z);
-      rMesh.rotation.set(c.rx, c.ry, 0);
-      rMesh.receiveShadow = true;
-      rMesh.castShadow = true;
-      rockGroup.add(rMesh);
-    });
 
     scene.add(rockGroup);
 
-    // --- SHORELINE VEGETATION & NATURAL FOLIAGE ---
-    // Dark forest clusters and shoreline grasses
-    const foliageGroup = new THREE.Group();
-    const foliageMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#1B2621'),
-      roughness: 0.92,
-      metalness: 0.02,
-      flatShading: true,
-    });
-
-    // Create stylized conifer trees along the slopes
-    const treeGeo = new THREE.ConeGeometry(1.2, 4.2, 5);
-    const treeCoords = [
-      { x: -14, y: 1.2, z: -8, s: 1.4 },
-      { x: -17, y: 1.8, z: -11, s: 1.8 },
-      { x: -12, y: 0.8, z: -6, s: 1.1 },
-      { x: -21, y: 2.4, z: -15, s: 2.2 },
-      { x: 15, y: 1.4, z: -9, s: 1.5 },
-      { x: 18, y: 2.0, z: -12, s: 1.9 },
-      { x: 13, y: 0.9, z: -7, s: 1.2 },
-      { x: 23, y: 2.8, z: -16, s: 2.4 },
-    ];
-
-    treeCoords.forEach((tc) => {
-      const tree = new THREE.Mesh(treeGeo, foliageMat);
-      tree.position.set(tc.x, tc.y + (4.2 * tc.s) / 2 - 0.2, tc.z);
-      tree.scale.set(tc.s, tc.s, tc.s);
-      tree.rotation.y = Math.random() * Math.PI * 2;
-      tree.castShadow = true;
-      tree.receiveShadow = true;
-      foliageGroup.add(tree);
-    });
-
-    // Natural reed / shoreline grass stalks
-    const grassBladeGeo = new THREE.ConeGeometry(0.08, 1.4, 3);
-    for (let i = 0; i < 48; i++) {
-      const grass = new THREE.Mesh(grassBladeGeo, foliageMat);
-      const angle = Math.random() * Math.PI * 2;
-      const dist = 3.5 + Math.random() * 5.0;
-      const side = Math.random() > 0.5 ? 1 : -1;
-      grass.position.set(
-        side * (2.8 + Math.random() * 4.5),
-        -0.2 + Math.random() * 0.3,
-        1.0 + Math.random() * 2.5
-      );
-      grass.rotation.set(
-        (Math.random() - 0.5) * 0.3,
-        angle,
-        (Math.random() - 0.5) * 0.3
-      );
-      grass.scale.set(0.8 + Math.random() * 0.6, 0.7 + Math.random() * 0.6, 0.8 + Math.random() * 0.6);
-      foliageGroup.add(grass);
-    }
-
-    scene.add(foliageGroup);
-
-    // --- ART-DIRECTED HUMAN FIGURE VIEWED FROM BEHIND ---
-    // Positioned near lower-middle (x: 0, z: 1.8), standing on the rock ledge
-    // Minimalist tailored dark silhouette, natural proportions, viewing the landscape
+    // --- ART-DIRECTED SOLITARY FIGURE VIEWED FROM BEHIND ---
+    // Positioned on the center rock (x: 0, z: 2.8), gazing over the water toward the glowing bank
     const figureGroup = new THREE.Group();
-    figureGroup.position.set(0, 0.15, 1.8);
+    figureGroup.position.set(0, 0.25, 2.8);
 
-    const coatMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#141817'),
-      roughness: 0.85,
-      metalness: 0.05,
+    // Figure cloak / sleek coat material with subtle specular sheen
+    const cloakMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#161D1A'),
+      roughness: 0.55,
+      metalness: 0.35,
     });
-    const trousersMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#101413'),
-      roughness: 0.9,
-      metalness: 0.04,
-    });
-    const hairMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#0A0C0C'),
-      roughness: 0.95,
-      metalness: 0.02,
+    const headMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#2A332E'),
+      roughness: 0.6,
+      metalness: 0.25,
     });
 
-    // Torso / Overcoat (viewed from back)
-    const coatGeo = new THREE.CylinderGeometry(0.34, 0.44, 1.15, 12);
-    coatGeo.scale(1.0, 1.0, 0.75); // Flatter depth
-    const coat = new THREE.Mesh(coatGeo, coatMat);
-    coat.position.set(0, 0.85, 0);
-    coat.castShadow = true;
-    figureGroup.add(coat);
+    // Flowing cloak torso
+    const cloakGeo = new THREE.CylinderGeometry(0.36, 0.58, 1.35, 16);
+    cloakGeo.scale(1.0, 1.0, 0.7);
+    const cloak = new THREE.Mesh(cloakGeo, cloakMat);
+    cloak.position.set(0, 0.95, 0);
+    cloak.castShadow = true;
+    figureGroup.add(cloak);
 
-    // Shoulders & Collar
-    const shoulderGeo = new THREE.BoxGeometry(0.78, 0.22, 0.34);
-    const shoulders = new THREE.Mesh(shoulderGeo, coatMat);
-    shoulders.position.set(0, 1.38, 0);
-    shoulders.castShadow = true;
-    figureGroup.add(shoulders);
+    // Sculpted mantle / draped shoulders
+    const mantleGeo = new THREE.SphereGeometry(0.48, 14, 12);
+    mantleGeo.scale(1.0, 0.5, 0.65);
+    const mantle = new THREE.Mesh(mantleGeo, cloakMat);
+    mantle.position.set(0, 1.55, 0.02);
+    mantle.castShadow = true;
+    figureGroup.add(mantle);
 
-    // Neck
-    const neckGeo = new THREE.CylinderGeometry(0.12, 0.14, 0.18, 8);
-    const neck = new THREE.Mesh(neckGeo, coatMat);
-    neck.position.set(0, 1.54, 0);
-    figureGroup.add(neck);
-
-    // Head / Hair (viewed from behind)
-    const headGeo = new THREE.SphereGeometry(0.19, 14, 12);
+    // Figure Head (viewed from behind, serene posture)
+    const headGeo = new THREE.SphereGeometry(0.2, 14, 12);
     headGeo.scale(0.85, 1.05, 0.92);
-    const head = new THREE.Mesh(headGeo, hairMat);
-    head.position.set(0, 1.72, -0.02);
+    const head = new THREE.Mesh(headGeo, headMat);
+    head.position.set(0, 1.88, -0.03);
     head.castShadow = true;
     figureGroup.add(head);
-
-    // Arms resting naturally by the sides
-    const leftArmGeo = new THREE.CylinderGeometry(0.1, 0.09, 0.95, 8);
-    const leftArm = new THREE.Mesh(leftArmGeo, coatMat);
-    leftArm.position.set(-0.44, 0.95, 0.02);
-    leftArm.rotation.z = 0.08;
-    leftArm.castShadow = true;
-    figureGroup.add(leftArm);
-
-    const rightArmGeo = new THREE.CylinderGeometry(0.1, 0.09, 0.95, 8);
-    const rightArm = new THREE.Mesh(rightArmGeo, coatMat);
-    rightArm.position.set(0.44, 0.95, 0.02);
-    rightArm.rotation.z = -0.08;
-    rightArm.castShadow = true;
-    figureGroup.add(rightArm);
-
-    // Legs / Trousers
-    const leftLegGeo = new THREE.CylinderGeometry(0.13, 0.11, 0.85, 8);
-    const leftLeg = new THREE.Mesh(leftLegGeo, trousersMat);
-    leftLeg.position.set(-0.17, 0.15, 0);
-    leftLeg.castShadow = true;
-    figureGroup.add(leftLeg);
-
-    const rightLegGeo = new THREE.CylinderGeometry(0.13, 0.11, 0.85, 8);
-    const rightLeg = new THREE.Mesh(rightLegGeo, trousersMat);
-    rightLeg.position.set(0.17, 0.15, 0);
-    rightLeg.castShadow = true;
-    figureGroup.add(rightLeg);
 
     scene.add(figureGroup);
 
@@ -391,13 +345,12 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
       if (reducedMotion) return;
       const normX = (e.clientX / window.innerWidth) * 2 - 1;
       const normY = -(e.clientY / window.innerHeight) * 2 + 1;
-      targetParallaxX = normX * 0.55;
-      targetParallaxY = normY * 0.35;
+      targetParallaxX = normX * 0.45;
+      targetParallaxY = normY * 0.25;
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-    // Handle Resize
     const handleResize = () => {
       if (!container) return;
       width = container.clientWidth || window.innerWidth;
@@ -405,26 +358,26 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     };
 
     window.addEventListener('resize', handleResize);
 
-    // Render loop
+    // Animation Loop
     const clock = new THREE.Clock();
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      // Subtle water ripple animation
+      // Gentle water ripple
       if (!reducedMotion) {
         const pos = waterGeo.attributes.position;
         for (let i = 0; i < pos.count; i++) {
           const x = pos.getX(i);
           const z = pos.getZ(i);
-          const wave1 = Math.sin(x * 0.12 + elapsedTime * 0.5) * 0.04;
-          const wave2 = Math.cos(z * 0.16 + elapsedTime * 0.4) * 0.03;
+          const wave1 = Math.sin(x * 0.18 + elapsedTime * 0.6) * 0.03;
+          const wave2 = Math.cos(z * 0.22 + elapsedTime * 0.5) * 0.025;
           pos.setY(i, initialWaterY[i] + wave1 + wave2);
         }
         waterGeo.computeVertexNormals();
@@ -437,8 +390,8 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
         currentParallaxY += (targetParallaxY - currentParallaxY) * 0.04;
 
         camera.position.x = currentParallaxX;
-        camera.position.y = 2.2 + currentParallaxY;
-        camera.lookAt(currentParallaxX * 0.4, 3.2 + currentParallaxY * 0.2, -60);
+        camera.position.y = 1.8 + currentParallaxY;
+        camera.lookAt(currentParallaxX * 0.35, 2.2 + currentParallaxY * 0.15, -40);
       }
 
       renderer.render(scene, camera);
@@ -456,15 +409,18 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
       renderer.dispose();
       skyGeo.dispose();
       skyMat.dispose();
+      flowerGeo.dispose();
+      goldFlowerMat.dispose();
+      blueFlowerMat.dispose();
       waterGeo.dispose();
       waterMat.dispose();
       rockMat.dispose();
-      foliageMat.dispose();
+      cloakMat.dispose();
+      headMat.dispose();
     };
   }, [reducedMotion]);
 
   if (webGLFailed) {
-    // Elegant Art-Directed Fallback
     return (
       <div
         style={{
@@ -473,7 +429,7 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
           position: 'absolute',
           top: 0,
           left: 0,
-          background: 'linear-gradient(180deg, #0F1514 0%, #1A2624 45%, #253533 70%, #111716 100%)',
+          background: 'linear-gradient(180deg, #161C19 0%, #2C362F 45%, #465348 70%, #0D1513 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -485,9 +441,9 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
             bottom: '22%',
             width: '28px',
             height: '75px',
-            backgroundColor: '#111514',
+            backgroundColor: '#161D1A',
             borderRadius: '14px 14px 0 0',
-            opacity: 0.85,
+            opacity: 0.9,
           }}
         />
       </div>

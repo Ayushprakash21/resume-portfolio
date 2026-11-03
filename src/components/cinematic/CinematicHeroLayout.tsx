@@ -41,13 +41,13 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '36px 48px',
+        padding: '40px 48px',
         zIndex: 5,
-        pointerEvents: 'none', // Allow clicks only on children
+        pointerEvents: 'none',
       }}
     >
       {/* ========================================================
-          TOP HEADER ROW: TOP LEFT NAME + TOP NAVIGATION
+          STICKY TOP NAVIGATION BAR (APPEARS ON SCROLL)
           ======================================================== */}
       <header
         style={{
@@ -55,19 +55,19 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           top: 0,
           left: 0,
           right: 0,
-          padding: isScrolled ? '18px 48px' : '36px 48px',
+          padding: isScrolled ? '18px 48px' : '40px 48px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           zIndex: 40,
           pointerEvents: 'auto',
-          backgroundColor: isScrolled ? 'rgba(17, 21, 20, 0.92)' : 'transparent',
+          backgroundColor: isScrolled ? 'rgba(17, 21, 20, 0.94)' : 'transparent',
           backdropFilter: isScrolled ? 'blur(16px)' : 'none',
           borderBottom: isScrolled ? '1px solid rgba(244, 243, 238, 0.08)' : '1px solid transparent',
           transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
-        {/* TOP LEFT: AYUSH PRAKASH */}
+        {/* TOP LEFT NAME (When scrolled, compact branding) */}
         <div
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           style={{
@@ -78,11 +78,14 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           <span
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '18px',
-              fontWeight: 600,
-              letterSpacing: '0.06em',
+              fontSize: isScrolled ? '16px' : 'clamp(2.0rem, 4.5vw, 3.8rem)',
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              lineHeight: 0.95,
               textTransform: 'uppercase',
               color: 'var(--text-primary)',
+              transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+              display: 'block',
             }}
           >
             AYUSH PRAKASH
@@ -94,7 +97,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '32px',
+            gap: '36px',
           }}
         >
           {[
@@ -114,7 +117,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
                 fontFamily: 'var(--font-body)',
                 fontSize: '13px',
                 fontWeight: 400,
-                letterSpacing: '0.04em',
+                letterSpacing: '0.02em',
                 cursor: 'pointer',
                 padding: '4px 0',
                 transition: 'color 0.2s ease',
@@ -126,7 +129,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             </button>
           ))}
 
-          {/* Understated Admin Key link */}
+          {/* Understated CMS Key */}
           {onOpenAdmin && (
             <button
               onClick={onOpenAdmin}
@@ -158,23 +161,23 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
         </nav>
       </header>
 
-      {/* Spacing spacer for top header */}
-      <div style={{ height: '60px' }} />
+      {/* Spacer to prevent overlap when hero is at top */}
+      <div style={{ height: '70px' }} />
 
       {/* ========================================================
-          LEFT INTRODUCTION (Narrow text column, Section 4)
+          LEFT INTRODUCTION (Narrow text column, matching LE:MMA composition)
           ======================================================== */}
       <div
         style={{
-          maxWidth: '340px',
+          maxWidth: '320px',
           pointerEvents: 'auto',
-          marginTop: '40px',
+          marginTop: '32px',
         }}
       >
         <p
           style={{
             fontFamily: 'var(--font-body)',
-            fontSize: '14px',
+            fontSize: '13px',
             lineHeight: 1.6,
             fontWeight: 400,
             color: 'var(--text-secondary)',
@@ -186,7 +189,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
       </div>
 
       {/* ========================================================
-          BOTTOM ROW:
+          BOTTOM ROW (EXACT LE:MMA MATCH):
           - BOTTOM LEFT: Headline (BUSINESS. SYSTEMS. / Intelligence & Innovation.)
           - BOTTOM CENTRE: SCROLL TO EXPLORE
           - BOTTOM RIGHT: Let's Connect ↗
@@ -198,22 +201,22 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           justifyContent: 'space-between',
           width: '100%',
           marginTop: 'auto',
-          paddingBottom: '16px',
+          paddingBottom: '12px',
         }}
       >
         {/* BOTTOM LEFT HEADLINE */}
         <div
           style={{
-            maxWidth: '540px',
+            maxWidth: '560px',
             pointerEvents: 'auto',
           }}
         >
           <div
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(2.4rem, 4.8vw, 4.4rem)',
-              lineHeight: 1.02,
-              fontWeight: 500,
+              fontSize: 'clamp(2.4rem, 4.6vw, 4.4rem)',
+              lineHeight: 1.0,
+              fontWeight: 600,
               letterSpacing: '-0.02em',
               color: 'var(--text-primary)',
               textTransform: 'uppercase',
@@ -224,13 +227,13 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           <div
             style={{
               fontFamily: 'var(--font-serif)',
-              fontSize: 'clamp(2.2rem, 4.5vw, 4.2rem)',
+              fontSize: 'clamp(2.4rem, 4.8vw, 4.6rem)',
               lineHeight: 1.15,
               fontWeight: 400,
               fontStyle: 'italic',
-              color: 'var(--text-secondary)',
+              color: 'var(--text-primary)',
               letterSpacing: '0.005em',
-              marginTop: '4px',
+              marginTop: '2px',
             }}
           >
             Intelligence &amp; Innovation.
@@ -274,28 +277,28 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '11px 24px',
+              gap: '10px',
+              padding: '12px 26px',
               borderRadius: '9999px',
-              border: '1px solid rgba(244, 243, 238, 0.32)',
-              backgroundColor: 'rgba(17, 21, 20, 0.25)',
-              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(244, 243, 238, 0.38)',
+              backgroundColor: 'rgba(17, 21, 20, 0.4)',
+              backdropFilter: 'blur(10px)',
               color: 'var(--text-primary)',
               fontFamily: 'var(--font-body)',
               fontSize: '13px',
               fontWeight: 400,
-              letterSpacing: '0.03em',
+              letterSpacing: '0.02em',
               cursor: 'pointer',
               transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(244, 243, 238, 0.8)';
-              e.currentTarget.style.backgroundColor = 'rgba(244, 243, 238, 0.12)';
+              e.currentTarget.style.borderColor = 'rgba(244, 243, 238, 0.85)';
+              e.currentTarget.style.backgroundColor = 'rgba(244, 243, 238, 0.14)';
               e.currentTarget.style.transform = 'translateY(-2px)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(244, 243, 238, 0.32)';
-              e.currentTarget.style.backgroundColor = 'rgba(17, 21, 20, 0.25)';
+              e.currentTarget.style.borderColor = 'rgba(244, 243, 238, 0.38)';
+              e.currentTarget.style.backgroundColor = 'rgba(17, 21, 20, 0.4)';
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
