@@ -3,7 +3,7 @@ import { ArrowUpRight, ArrowDown, Menu, X } from 'lucide-react';
 import { ProfileData, HomepageSettings } from '../../types/cms';
 import { ApMonogram } from '../brand/ApMonogram';
 import { HeroSignature } from '../brand/HeroSignature';
-import { OptionWheel, SpecularButton } from '../reactbits';
+import { SpecularButton } from '../reactbits';
 
 interface CinematicHeroLayoutProps {
   profile?: ProfileData;
@@ -82,6 +82,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
 
   const navItems = [
     { label: nav.work || 'Work', id: 'projects' },
+    { label: 'Orion-9', id: 'orion-9' },
     { label: nav.experience || 'Experience', id: 'experience' },
     { label: nav.about || 'About', id: 'about' },
     { label: 'Open to Work', id: 'opentowork' },
@@ -210,9 +211,6 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
               {item.label}
             </button>
           ))}
-
-          {/* REACT BITS: OPTION WHEEL (Flagship Orion-9 Selector Instrument) */}
-          <OptionWheel onSelect={(item) => scrollTo(item.targetId)} />
         </nav>
 
         {/* MOBILE MENU TOGGLE BUTTON (Touch target >= 44x44px) */}
@@ -313,9 +311,6 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
                 gap: '12px',
               }}
             >
-              <div style={{ marginBottom: '8px' }}>
-                <OptionWheel onSelect={(item) => { scrollTo(item.targetId); setIsMobileMenuOpen(false); }} />
-              </div>
               <SpecularButton
                 onClick={() => scrollTo(ctaTarget)}
                 icon={<ArrowUpRight size={15} />}

@@ -148,6 +148,19 @@ async function run() {
         const shotPath = path.join(SCREENSHOT_DIR, 'screenshot_1440x900_desktop.png');
         await page.screenshot({ path: shotPath, fullPage: false });
         console.log(`  📸 Captured desktop screenshot: ${shotPath}`);
+
+        // Capture Orion-9 3D Option Wheel section
+        try {
+          await page.evaluate(() => {
+            document.getElementById('orion-subsystems')?.scrollIntoView({ behavior: 'instant', block: 'center' });
+          });
+          await page.waitForTimeout(500);
+          const wheelShotPath = path.join(SCREENSHOT_DIR, 'screenshot_orion9_option_wheel.png');
+          await page.screenshot({ path: wheelShotPath, fullPage: false });
+          console.log(`  📸 Captured Orion-9 Option Wheel screenshot: ${wheelShotPath}`);
+        } catch (e) {
+          console.warn('Could not capture Orion-9 wheel screenshot', e);
+        }
       }
 
       results.push({

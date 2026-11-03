@@ -1,305 +1,416 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Compass, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useRef, useState, useCallback, useEffect, CSSProperties } from 'react';
+import './OptionWheel.css';
 
-export interface OptionWheelItem {
+export type OptionWheelSide = 'left' | 'right' | 'center';
+
+export interface OptionWheelItemObject {
   id: string;
   label: string;
-  targetId: string;
+  targetId?: string;
   badge?: string;
+  description?: string;
 }
 
-interface OptionWheelProps {
-  items?: OptionWheelItem[];
-  onSelect?: (item: OptionWheelItem) => void;
+export type OptionWheelItemInput = string | OptionWheelItemObject;
+
+export interface OptionWheelProps {
+  items?: OptionWheelItemInput[];
+  defaultSelected?: number;
+  onChange?: (index: number, item: OptionWheelItemInput) => void;
+  onSelect?: (item: OptionWheelItemInput, index: number) => void;
+  textColor?: string;
+  activeColor?: string;
+  side?: OptionWheelSide;
+  fontSize?: number;
+  spacing?: number;
+  curve?: number;
+  tilt?: number;
+  blur?: number;
+  fade?: number;
+  minOpacity?: number;
+  smoothing?: number;
+  inset?: number;
+  loop?: boolean;
+  draggable?: boolean;
+  soundUrl?: string;
+  soundVolume?: number;
   className?: string;
-  compactOnMobile?: boolean;
+  style?: CSSProperties;
+  height?: string | number;
 }
 
-const DEFAULT_ORION9_ITEMS: OptionWheelItem[] = [
-  { id: 'overview', label: 'Orion-9 Overview', targetId: 'orion-9', badge: 'OS' },
-  { id: 'control-tower', label: 'Control Tower', targetId: 'orion-9', badge: 'Live' },
-  { id: 'inventory', label: 'Inventory Intelligence', targetId: 'orion-9', badge: 'Auto' },
-  { id: 'analytics', label: 'Supply Chain Analytics', targetId: 'orion-9', badge: 'Data' },
-  { id: 'copilot', label: 'AI Copilot', targetId: 'orion-9', badge: 'LLM' },
-  { id: 'architecture', label: 'Architecture', targetId: 'orion-9', badge: 'Spec' },
-  { id: 'case-study', label: 'Case Study', targetId: 'orion-9', badge: 'Full' },
+interface WheelConfig {
+  count: number;
+  items: OptionWheelItemInput[];
+  rowH: number;
+  curve: number;
+  tilt: number;
+  blur: number;
+  fade: number;
+  minOpacity: number;
+  side: OptionWheelSide;
+  loop: boolean;
+  smoothing: number;
+  draggable: boolean;
+  soundUrl: string;
+  soundVolume: number;
+}
+
+export const DEFAULT_ORION9_ITEMS: OptionWheelItemObject[] = [
+  { id: 'overview', label: 'Orion-9 Overview', targetId: 'orion-9', badge: 'OS', description: 'Autonomous Supply Chain Architecture' },
+  { id: 'control-tower', label: 'Control Tower', targetId: 'orion-9', badge: 'Live', description: 'Real-time Telemetry & Global Operations' },
+  { id: 'inventory', label: 'Inventory Intelligence', targetId: 'orion-9', badge: 'Auto', description: 'Predictive Stock & Automated Reordering' },
+  { id: 'analytics', label: 'Supply Chain Analytics', targetId: 'orion-9', badge: 'Data', description: 'Freight Logistics & Cost Forecasting' },
+  { id: 'copilot', label: 'AI Copilot', targetId: 'orion-9', badge: 'LLM', description: 'Generative Decision Support System' },
+  { id: 'architecture', label: 'Architecture', targetId: 'orion-9', badge: 'Spec', description: 'Distributed Cloud & Edge Nodes' },
+  { id: 'case-study', label: 'Case Study', targetId: 'orion-9', badge: 'Full', description: 'End-to-End Enterprise Implementation' },
 ];
 
 export const OptionWheel: React.FC<OptionWheelProps> = ({
   items = DEFAULT_ORION9_ITEMS,
+  defaultSelected = 0,
+  onChange,
   onSelect,
+  textColor = '#8A8F98',
+  activeColor = '#FFFFFF',
+  side = 'left',
+  fontSize = 1.6,
+  spacing = 1.45,
+  curve = 1,
+  tilt = 7.5,
+  blur = 1.5,
+  fade = 0.28,
+  minOpacity = 0.08,
+  smoothing = 180,
+  inset = 36,
+  loop = false,
+  draggable = true,
+  soundUrl = '',
+  soundVolume = 0.5,
   className = '',
-  compactOnMobile = true,
+  style,
+  height = '280px',
 }) => {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const posRef = useRef(defaultSelected);
+  const targetRef = useRef(defaultSelected);
+  const rafRef = useRef<number | null>(null);
+  const lastRef = useRef(0);
+  const cfgRef = useRef<WheelConfig>({} as WheelConfig);
+  const onChangeRef = useRef(onChange);
+  const onSelectRef = useRef(onSelect);
+  const selectedRef = useRef(defaultSelected);
+  const wheelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dragRef = useRef<{ y: number; start: number; id: number } | null>(null);
+  const dragMovedRef = useRef(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef('');
+  const lastTickRef = useRef(0);
+  const [selectedIndex, setSelectedIndex] = useState(defaultSelected);
+  const [isDragging, setIsDragging] = useState(false);
 
-  const selectedItem = items[selectedIndex] || items[0];
+  const remPx = typeof window !== 'undefined'
+    ? parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+    : 16;
 
-  const handleSelect = useCallback(
-    (index: number) => {
-      const idx = (index + items.length) % items.length;
-      setSelectedIndex(idx);
-      const chosen = items[idx];
-      if (onSelect) {
-        onSelect(chosen);
-      } else if (chosen.targetId) {
-        const el = document.getElementById(chosen.targetId);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' });
-        }
+  onChangeRef.current = onChange;
+  onSelectRef.current = onSelect;
+
+  cfgRef.current = {
+    count: items.length,
+    items,
+    rowH: Math.max(fontSize * spacing * remPx, 1),
+    curve,
+    tilt,
+    blur,
+    fade,
+    minOpacity,
+    side,
+    loop,
+    smoothing,
+    draggable,
+    soundUrl,
+    soundVolume,
+  };
+
+  const getItemLabel = (item: OptionWheelItemInput): string => {
+    return typeof item === 'string' ? item : item.label;
+  };
+
+  // Single rAF loop that eases the wheel position toward its target with
+  // frame-rate independent exponential smoothing, then lays every option out
+  // along the curve based on its distance from the current position.
+  const runFrame = useCallback((now: number) => {
+    const dt = Math.min((now - lastRef.current) / 1000, 0.05);
+    lastRef.current = now;
+    const cfg = cfgRef.current;
+    const tau = Math.max(cfg.smoothing, 1) / 1000;
+    const k = 1 - Math.exp(-dt / tau);
+
+    const target = targetRef.current;
+    const cur = posRef.current;
+    let next = cur + (target - cur) * k;
+    const settled = Math.abs(target - next) < 0.001;
+    if (settled) next = target;
+    posRef.current = next;
+
+    const els = itemRefs.current;
+    const n = cfg.count;
+    const mirror = cfg.side === 'right' ? -1 : 1;
+    // Options sit on a virtual cylindrical drum whose radius keeps the arc length
+    // between two neighbors equal to one row height, so tilt controls how tightly it curls.
+    const tiltRad = (cfg.tilt * Math.PI) / 180;
+    const R = tiltRad > 0.0005 ? cfg.rowH / tiltRad : 0;
+
+    for (let i = 0; i < n; i++) {
+      const el = els[i];
+      if (!el) continue;
+      let d = i - next;
+      if (cfg.loop && n > 1) {
+        d = ((d % n) + n) % n;
+        if (d > n / 2) d -= n;
       }
+      const dist = Math.abs(d);
+      let x = 0;
+      let y = d * cfg.rowH;
+      let rot = 0;
+      if (R > 0) {
+        const ang = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, d * tiltRad));
+        y = R * Math.sin(ang);
+        x = -mirror * R * (1 - Math.cos(ang)) * cfg.curve;
+        rot = (mirror * ang * 180) / Math.PI;
+      }
+
+      if (cfg.side === 'center') {
+        el.style.transform = `translate(calc(-50% + ${x.toFixed(2)}px), calc(${y.toFixed(2)}px - 50%)) rotate(${rot.toFixed(3)}deg)`;
+      } else {
+        el.style.transform = `translate(${x.toFixed(2)}px, calc(${y.toFixed(2)}px - 50%)) rotate(${rot.toFixed(3)}deg)`;
+      }
+
+      el.style.opacity = String(Math.max(cfg.minOpacity, 1 - dist * cfg.fade));
+      el.style.filter = cfg.blur > 0 && dist > 0.1 ? `blur(${(dist * cfg.blur).toFixed(2)}px)` : 'none';
+      el.style.setProperty('--ow-p', Math.max(0, 1 - Math.min(dist, 1)).toFixed(4));
+    }
+
+    rafRef.current = settled ? null : requestAnimationFrame(runFrame);
+  }, []);
+
+  const startLoop = useCallback(() => {
+    if (rafRef.current != null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    lastRef.current = performance.now();
+    rafRef.current = requestAnimationFrame(runFrame);
+  }, [runFrame]);
+
+  // Optional tick on selection change
+  const playTick = useCallback(() => {
+    const { soundUrl, soundVolume } = cfgRef.current;
+    if (!soundUrl) return;
+    const now = performance.now();
+    if (now - lastTickRef.current < 70) return;
+    lastTickRef.current = now;
+    if (!audioRef.current || audioUrlRef.current !== soundUrl) {
+      audioRef.current = new Audio(soundUrl);
+      audioRef.current.preload = 'auto';
+      audioUrlRef.current = soundUrl;
+    }
+    const audio = audioRef.current;
+    audio.volume = Math.min(Math.max(soundVolume, 0), 1);
+    audio.currentTime = 0;
+    audio.play()?.catch(() => {});
+  }, []);
+
+  const applyTarget = useCallback(
+    (value: number, snap: boolean) => {
+      const cfg = cfgRef.current;
+      let v = value;
+      if (!cfg.loop) v = Math.min(Math.max(v, 0), Math.max(cfg.count - 1, 0));
+      if (snap) v = Math.round(v);
+      targetRef.current = v;
+      const idx = ((Math.round(v) % cfg.count) + cfg.count) % cfg.count;
+      if (idx !== selectedRef.current) {
+        selectedRef.current = idx;
+        setSelectedIndex(idx);
+        const item = cfg.items[idx];
+        onChangeRef.current?.(idx, item);
+        if (snap) {
+          onSelectRef.current?.(item, idx);
+        }
+        playTick();
+      }
+      startLoop();
     },
-    [items, onSelect]
+    [startLoop, playTick]
   );
 
   // Wheel scroll interaction
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    if (e.deltaY > 0) {
-      handleSelect(selectedIndex + 1);
-    } else {
-      handleSelect(selectedIndex - 1);
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      e.preventDefault();
+      const cfg = cfgRef.current;
+      const delta = e.deltaMode === 1 ? e.deltaY * 24 : e.deltaY;
+      const step = Math.max(-1, Math.min(1, delta / cfg.rowH));
+      applyTarget(targetRef.current + step, false);
+      if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current);
+      wheelTimerRef.current = setTimeout(() => applyTarget(targetRef.current, true), 140);
+    },
+    [applyTarget]
+  );
+
+  // Native non-passive wheel attachment for smooth gestures
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const onNativeWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const cfg = cfgRef.current;
+      const delta = e.deltaMode === 1 ? e.deltaY * 24 : e.deltaY;
+      const step = Math.max(-1, Math.min(1, delta / cfg.rowH));
+      applyTarget(targetRef.current + step, false);
+      if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current);
+      wheelTimerRef.current = setTimeout(() => applyTarget(targetRef.current, true), 140);
+    };
+    el.addEventListener('wheel', onNativeWheel, { passive: false });
+    return () => {
+      el.removeEventListener('wheel', onNativeWheel);
+      if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current);
+    };
+  }, [applyTarget]);
+
+  // Pointer drag interaction
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!cfgRef.current.draggable) return;
+    dragRef.current = { y: e.clientY, start: targetRef.current, id: e.pointerId };
+    dragMovedRef.current = false;
+    setIsDragging(true);
+  }, []);
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      const drag = dragRef.current;
+      if (!drag) return;
+      const dy = e.clientY - drag.y;
+      if (!dragMovedRef.current && Math.abs(dy) > 4) {
+        dragMovedRef.current = true;
+        rootRef.current?.setPointerCapture(drag.id);
+      }
+      if (dragMovedRef.current) {
+        applyTarget(drag.start - dy / cfgRef.current.rowH, false);
+      }
+    },
+    [applyTarget]
+  );
+
+  const handlePointerEnd = useCallback(() => {
+    if (!dragRef.current) return;
+    dragRef.current = null;
+    setIsDragging(false);
+    if (dragMovedRef.current) {
+      applyTarget(targetRef.current, true);
     }
-  };
+  }, [applyTarget]);
+
+  const handleItemClick = useCallback(
+    (index: number) => {
+      if (dragMovedRef.current) return;
+      const cfg = cfgRef.current;
+      const cur = targetRef.current;
+      let d = index - (((cur % cfg.count) + cfg.count) % cfg.count);
+      if (cfg.loop && cfg.count > 1) {
+        if (d > cfg.count / 2) d -= cfg.count;
+        else if (d < -cfg.count / 2) d += cfg.count;
+      }
+      applyTarget(cur + d, true);
+      const chosen = cfg.items[index];
+      onSelectRef.current?.(chosen, index);
+    },
+    [applyTarget]
+  );
 
   // Keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-      e.preventDefault();
-      handleSelect(selectedIndex + 1);
-    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-      e.preventDefault();
-      handleSelect(selectedIndex - 1);
-    } else if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleSelect(selectedIndex);
-      setIsOpen((prev) => !prev);
-    } else if (e.key === 'Escape') {
-      setIsOpen(false);
-    }
-  };
-
-  // Close on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      let delta: number | null = null;
+      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') delta = -1;
+      else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') delta = 1;
+      if (delta != null) {
+        e.preventDefault();
+        applyTarget(Math.round(targetRef.current) + delta, true);
+        return;
       }
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const chosen = cfgRef.current.items[selectedIndex];
+        onSelectRef.current?.(chosen, selectedIndex);
+      }
+    },
+    [applyTarget, selectedIndex]
+  );
+
+  useEffect(() => {
+    applyTarget(targetRef.current, false);
+  }, [items, fontSize, spacing, curve, tilt, blur, fade, minOpacity, side, loop, smoothing, applyTarget]);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+      audioRef.current?.pause();
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
     <div
-      ref={containerRef}
-      className={`option-wheel-wrapper ${className}`}
-      onKeyDown={handleKeyDown}
+      ref={rootRef}
+      role="listbox"
       tabIndex={0}
-      role="combobox"
-      aria-expanded={isOpen}
-      aria-haspopup="listbox"
-      aria-label="Orion-9 Navigation Control Instrument"
+      aria-label="Orion-9 3D Option Wheel"
+      className={`option-wheel${side === 'right' ? ' option-wheel--right' : side === 'center' ? ' option-wheel--center' : ''}${isDragging ? ' option-wheel--dragging' : ''}${className ? ` ${className}` : ''}`}
       style={{
-        position: 'relative',
-        display: 'inline-flex',
-        alignItems: 'center',
-        outline: 'none',
-      }}
+        '--ow-text-color': textColor,
+        '--ow-active-color': activeColor,
+        '--ow-font-size': `${fontSize}rem`,
+        '--ow-inset': `${inset}px`,
+        height,
+        ...style,
+      } as CSSProperties}
+      onWheel={handleWheel}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerEnd}
+      onPointerCancel={handlePointerEnd}
+      onKeyDown={handleKeyDown}
     >
-      {/* Mechanical Instrument Trigger */}
-      <button
-        type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        onWheel={handleWheel}
-        title="Orion-9 Control Instrument (Scroll wheel or click to navigate)"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '6px 12px',
-          backgroundColor: 'rgba(18, 18, 22, 0.72)',
-          backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(217, 221, 227, 0.18)',
-          borderRadius: '20px',
-          color: '#F2F2F4',
-          cursor: 'pointer',
-          transition: 'all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
-          boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 4px 14px rgba(0, 0, 0, 0.4)',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '20px',
-            height: '20px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(217, 221, 227, 0.12)',
-            border: '1px solid rgba(217, 221, 227, 0.3)',
-            transform: `rotate(${selectedIndex * 51.4}deg)`,
-            transition: 'transform 0.4s cubic-bezier(0.2, 0.9, 0.2, 1)',
-          }}
-        >
-          <Compass size={11} color="#C8C8CE" />
-        </div>
+      {/* 3D Vignette Shading */}
+      <div className="option-wheel__vignette-top" />
+      <div className="option-wheel__vignette-bottom" />
 
-        <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', minWidth: '85px' }}>
-          <span
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '9px',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: '#929299',
-              lineHeight: 1,
-            }}
-          >
-            Orion-9
-          </span>
-          <span
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '11px',
-              fontWeight: 500,
-              color: '#F2F2F4',
-              lineHeight: 1.3,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              maxWidth: '120px',
-            }}
-          >
-            {selectedItem.label}
-          </span>
-        </div>
+      {/* Center Target Indicator Brackets */}
+      <div className="option-wheel__slot-indicator" />
 
-        <ChevronDown
-          size={12}
-          color="#929299"
-          style={{
-            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.2s ease',
-          }}
-        />
-      </button>
-
-      {/* Expanded Curved Reel / Dropdown Menu */}
-      {isOpen && (
-        <div
-          role="listbox"
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 8px)',
-            right: 0,
-            width: '240px',
-            backgroundColor: 'rgba(10, 10, 14, 0.92)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(217, 221, 227, 0.2)',
-            borderRadius: '12px',
-            boxShadow: '0 16px 40px rgba(0, 0, 0, 0.8), 0 0 24px rgba(217, 221, 227, 0.08)',
-            padding: '6px',
-            zIndex: 100,
-            overflow: 'hidden',
-          }}
-        >
+      {/* Curved 3D Option Elements */}
+      {items.map((item, index) => {
+        const label = getItemLabel(item);
+        const isSelected = selectedIndex === index;
+        return (
           <div
-            style={{
-              padding: '6px 10px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+            key={`${label}-${index}`}
+            ref={(el) => {
+              itemRefs.current[index] = el;
             }}
+            role="option"
+            aria-selected={isSelected}
+            className={`option-wheel__item${isSelected ? ' option-wheel__item--selected' : ''}`}
+            onClick={() => handleItemClick(index)}
           >
-            <span
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '10px',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: '#C8C8CE',
-              }}
-            >
-              Orion-9 Modules
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: '9px',
-                color: '#777F8A',
-              }}
-            >
-              Scroll / Click
-            </span>
+            {label}
           </div>
-
-          <div
-            onWheel={handleWheel}
-            style={{
-              maxHeight: '220px',
-              overflowY: 'auto',
-              padding: '4px 0',
-            }}
-          >
-            {items.map((item, idx) => {
-              const isSelected = idx === selectedIndex;
-              return (
-                <div
-                  key={item.id}
-                  role="option"
-                  aria-selected={isSelected}
-                  onClick={() => {
-                    handleSelect(idx);
-                    setIsOpen(false);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    backgroundColor: isSelected ? 'rgba(217, 221, 227, 0.12)' : 'transparent',
-                    borderLeft: isSelected ? '2px solid #D9DDE3' : '2px solid transparent',
-                    color: isSelected ? '#FFFFFF' : '#929299',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '12px',
-                      fontWeight: isSelected ? 600 : 400,
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                  {item.badge && (
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '9px',
-                        padding: '2px 5px',
-                        borderRadius: '4px',
-                        backgroundColor: isSelected
-                          ? 'rgba(217, 221, 227, 0.2)'
-                          : 'rgba(255, 255, 255, 0.04)',
-                        color: isSelected ? '#F2F2F4' : '#777F8A',
-                      }}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 };
+
+export default OptionWheel;

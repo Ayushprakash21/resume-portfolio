@@ -592,15 +592,20 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     const aboutFile = fs.readFileSync('src/components/editorial/EditorialAbout.tsx', 'utf-8');
     assert.ok(aboutFile.includes('HoloCard'), 'EditorialAbout integrates HoloCard on founder portrait');
 
-    // 3. Option Wheel
+    // 3. Option Wheel (Official React Bits 3D Cylindrical Drum Implementation)
     const wheelFile = fs.readFileSync('src/components/reactbits/OptionWheel.tsx', 'utf-8');
     assert.ok(wheelFile.includes('Orion-9 Overview'), 'OptionWheel provides Orion-9 navigational items');
     assert.ok(wheelFile.includes('handleWheel'), 'OptionWheel supports wheel scroll interaction');
     assert.ok(wheelFile.includes('handleKeyDown'), 'OptionWheel supports keyboard navigation');
-    assert.ok(wheelFile.includes('role="combobox"'), 'OptionWheel has accessible combobox role');
+    assert.ok(wheelFile.includes('role="listbox"'), 'OptionWheel has accessible listbox role');
+    assert.ok(wheelFile.includes('requestAnimationFrame'), 'OptionWheel uses rAF physics loop');
+    assert.ok(wheelFile.includes('tiltRad'), 'OptionWheel implements cylindrical barrel curvature geometry');
 
     const heroLayout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
-    assert.ok(heroLayout.includes('OptionWheel'), 'CinematicHeroLayout integrates OptionWheel in header');
+    assert.ok(!heroLayout.includes('OptionWheel onSelect'), 'CinematicHeroLayout has removed the incorrect header pill dropdown');
+
+    const orionFile = fs.readFileSync('src/components/editorial/EditorialOrion9.tsx', 'utf-8');
+    assert.ok(orionFile.includes('OptionWheel'), 'EditorialOrion9 integrates authentic OptionWheel for Orion-9 subsystem navigation');
 
     // 4. Border Glow
     const borderGlowFile = fs.readFileSync('src/components/reactbits/BorderGlow.tsx', 'utf-8');
