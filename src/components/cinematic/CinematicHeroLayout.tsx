@@ -189,23 +189,36 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
       <div style={{ height: '70px' }} />
 
       {/* ========================================================
-          LEFT INTRODUCTION (Narrow text column, matching LE:MMA composition)
+          LEFT INTRODUCTION (PROTECTED BY LOCAL GLASS BACKDROP)
           ======================================================== */}
       <div
+        className="hero-intro-panel"
         style={{
-          maxWidth: '330px',
+          position: 'relative',
+          zIndex: 20,
           pointerEvents: 'auto',
-          marginTop: '32px',
+          marginTop: '28px',
+          background: 'linear-gradient(135deg, rgba(5, 5, 5, 0.85), rgba(9, 9, 12, 0.52))',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255, 255, 255, 0.10)',
+          borderRadius: '14px',
+          padding: '18px 22px',
+          maxWidth: '430px',
+          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
         }}
       >
         <p
+          className="hero-intro"
           style={{
             fontFamily: 'var(--font-body)',
-            fontSize: '13px',
-            lineHeight: 1.6,
+            fontSize: 'clamp(15px, 1.15vw, 17px)',
+            lineHeight: 1.7,
             fontWeight: 400,
-            color: 'var(--text-secondary)',
+            color: '#F5F5F5',
             letterSpacing: '0.01em',
+            margin: 0,
+            textShadow: '0 2px 12px rgba(0, 0, 0, 0.95)',
           }}
         >
           {intro}

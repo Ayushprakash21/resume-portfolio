@@ -265,4 +265,32 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(adminConsole.includes('AYUSH PRAKASH'), 'AdminConsole has AYUSH PRAKASH');
     assert.ok(adminConsole.includes('Portfolio Administration'), 'AdminConsole has Portfolio Administration in sidebar');
   });
+
+  // Test 20: Hero Introduction Text Visibility & Local Glass Backdrop
+  await t.test('20. Hero introduction is protected by local glass backdrop with high-contrast readable typography', () => {
+    const layout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
+    assert.ok(layout.includes('hero-intro-panel'), 'CinematicHeroLayout must contain hero-intro-panel');
+    assert.ok(layout.includes('hero-intro'), 'CinematicHeroLayout must contain hero-intro');
+    assert.ok(layout.includes('rgba(5, 5, 5, 0.85)'), 'Must contain local glass backdrop background');
+    assert.ok(layout.includes('blur(16px)'), 'Must apply blur backdrop filter');
+    assert.ok(layout.includes('#F5F5F5'), 'Must render high-contrast bright white text (#F5F5F5)');
+
+    const css = fs.readFileSync('src/styles/index.css', 'utf-8');
+    assert.ok(css.includes('.hero-intro-panel'), 'CSS must define .hero-intro-panel');
+    assert.ok(css.includes('.hero-intro'), 'CSS must define .hero-intro');
+    assert.ok(css.includes('text-shadow: 0 2px 12px rgba(0, 0, 0, 0.95)'), 'CSS must specify text-shadow for readability');
+  });
+
+  // Test 21: Controlled 3D Background Layering and Elimination of Visual Clutter
+  await t.test('21. 3D Scene eliminates competing particle swarms and keeps left rock grounded below text zone', () => {
+    const scene = fs.readFileSync('src/components/cinematic/CinematicHeroScene.tsx', 'utf-8');
+    assert.ok(!scene.includes('blossomInstanced'), 'Must not contain blossomInstanced particle swarm');
+    assert.ok(!scene.includes('blossomGeo'), 'Must not create blossom particles geometry');
+    assert.ok(scene.includes('leftRock.position.set(-7.2, -0.75, 1.8)'), 'Left rock must be grounded low to not compete with text');
+
+    const hero = fs.readFileSync('src/components/cinematic/CinematicHero.tsx', 'utf-8');
+    assert.ok(hero.includes('LAYER 1: 3D Natural Landscape Scene'), 'Hero has explicit Layer 1');
+    assert.ok(hero.includes('LAYER 2: Dark Atmospheric Contrast Vignette'), 'Hero has explicit Layer 2 contrast vignette');
+    assert.ok(hero.includes('LAYER 3, 4, 5: Exact Layout Elements Overlay'), 'Hero has explicit Layer 3-5 UI overlays');
+  });
 });

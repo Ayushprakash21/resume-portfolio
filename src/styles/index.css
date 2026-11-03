@@ -223,6 +223,50 @@ h1, h2, h3, h4, .font-display {
   border-color: #FFFFFF;
 }
 
+/* ========================================================
+   HERO INTRODUCTION GLASS BACKDROP & HIGH-CONTRAST TYPOGRAPHY
+   ======================================================== */
+.hero-intro-panel {
+  position: relative;
+  z-index: 20;
+  background: linear-gradient(
+    135deg,
+    rgba(5, 5, 5, 0.85),
+    rgba(9, 9, 12, 0.52)
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+  padding: 18px 22px;
+  max-width: 430px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.hero-intro {
+  position: relative;
+  z-index: 20;
+  color: #F5F5F5;
+  font-size: clamp(15px, 1.15vw, 18px);
+  font-weight: 400;
+  line-height: 1.7;
+  max-width: 390px;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.95);
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 768px) {
+  .hero-intro-panel {
+    background: linear-gradient(
+      135deg,
+      rgba(5, 5, 5, 0.92),
+      rgba(5, 5, 5, 0.75)
+    );
+    padding: 16px 18px;
+    max-width: min(92vw, 380px);
+  }
+}
+
 /* Subtle Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

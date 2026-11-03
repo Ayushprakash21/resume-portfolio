@@ -27,13 +27,25 @@ export const CinematicHero: React.FC<CinematicHeroProps> = ({
         height: '100vh',
         minHeight: '700px',
         overflow: 'hidden',
-        backgroundColor: 'var(--bg-primary)',
+        backgroundColor: '#050505',
       }}
     >
-      {/* 3D Natural Landscape Scene with proper ambient, key, rim lighting & no fake particles */}
+      {/* LAYER 1: 3D Natural Landscape Scene (pointer-events: none) */}
       <CinematicHeroScene reducedMotion={reducedMotion} />
 
-      {/* Exact Layout Elements Overlay (Section 4 + CMS reactive fields) */}
+      {/* LAYER 2: Dark Atmospheric Contrast Vignette (prevents 3D background from visually competing with text) */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 2,
+          pointerEvents: 'none',
+          background:
+            'radial-gradient(ellipse at 20% 32%, rgba(5, 5, 5, 0.85) 0%, rgba(5, 5, 5, 0.45) 55%, rgba(5, 5, 5, 0.85) 100%), linear-gradient(180deg, rgba(5, 5, 5, 0.6) 0%, transparent 40%, rgba(5, 5, 5, 0.9) 100%)',
+        }}
+      />
+
+      {/* LAYER 3, 4, 5: Exact Layout Elements Overlay with Local Glass Backdrop & High-Contrast Typography */}
       <CinematicHeroLayout
         profile={profile}
         homepageSettings={homepageSettings}
