@@ -1,5 +1,6 @@
 import React from 'react';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, Linkedin, Github, Mail } from 'lucide-react';
+import { ApMonogram } from './brand/ApMonogram';
 
 interface FooterProps {
   onOpenAdmin?: () => void;
@@ -15,7 +16,7 @@ export const Footer: React.FC<FooterProps> = () => {
       style={{
         backgroundColor: 'var(--bg-primary)',
         borderTop: '1px solid var(--border-subtle)',
-        padding: '60px 0 40px',
+        padding: '70px 0 45px',
         position: 'relative',
         zIndex: 10,
       }}
@@ -27,37 +28,74 @@ export const Footer: React.FC<FooterProps> = () => {
             flexWrap: 'wrap',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '24px',
-            paddingBottom: '32px',
+            gap: '32px',
+            paddingBottom: '40px',
             borderBottom: '1px solid var(--border-subtle)',
           }}
         >
-          <div>
-            <div
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '16px',
-                fontWeight: 600,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                color: 'var(--text-primary)',
-              }}
-            >
-              AYUSH PRAKASH
-            </div>
-            <div
-              style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: '13px',
-                color: 'var(--text-muted)',
-                marginTop: '4px',
-              }}
-            >
-              Business Operations &bull; Supply Chain Intelligence &bull; Systems Architecture
+          {/* Brand Presentation: AP Monogram + Identity + Positioning */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <ApMonogram size={42} withGlow />
+            <div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                AYUSH PRAKASH
+              </div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '13px',
+                  color: 'var(--text-secondary)',
+                  marginTop: '4px',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                Business. Systems. Intelligence &amp; Innovation.
+              </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          {/* Social Links & Back to Top */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <a
+              href="https://www.linkedin.com/in/ayushprakash"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-editorial-pill"
+              style={{ padding: '8px 16px', fontSize: '12px' }}
+            >
+              <Linkedin size={13} />
+              <span>LinkedIn</span>
+            </a>
+
+            <a
+              href="https://github.com/Ayushprakash21"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-editorial-pill"
+              style={{ padding: '8px 16px', fontSize: '12px' }}
+            >
+              <Github size={13} />
+              <span>GitHub</span>
+            </a>
+
+            <a
+              href="mailto:ayushprakash0021@gmail.com"
+              className="btn-editorial-pill"
+              style={{ padding: '8px 16px', fontSize: '12px' }}
+            >
+              <Mail size={13} />
+              <span>Email</span>
+            </a>
+
             <button
               onClick={scrollToTop}
               className="btn-editorial-pill"
@@ -71,7 +109,7 @@ export const Footer: React.FC<FooterProps> = () => {
 
         <div
           style={{
-            paddingTop: '24px',
+            paddingTop: '28px',
             display: 'flex',
             flexWrap: 'wrap',
             justifyContent: 'space-between',
@@ -86,7 +124,7 @@ export const Footer: React.FC<FooterProps> = () => {
               color: 'var(--text-muted)',
             }}
           >
-            &copy; {new Date().getFullYear()} Ayush Prakash. Black Luxury Editorial Portfolio.
+            &copy; {new Date().getFullYear()} Ayush Prakash. Official Brand Identity &bull; Black Luxury Glassmorphism.
           </div>
 
           <div

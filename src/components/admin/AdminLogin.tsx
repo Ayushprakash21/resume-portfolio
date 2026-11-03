@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Lock, Mail, Key, AlertCircle, ArrowLeft, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Mail, Key, AlertCircle, ArrowLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { authService } from '../../services/authService';
+import { ApMonogram } from '../brand/ApMonogram';
 
 interface AdminLoginProps {
   onLoginSuccess: () => void;
@@ -53,7 +54,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: '#07090D',
+        backgroundColor: '#050505',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -64,85 +65,78 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
       {/* Return to public site button */}
       <button
         onClick={onReturnToSite}
+        className="glass-btn-spring"
         style={{
           position: 'absolute',
-          top: '24px',
-          left: '24px',
+          top: '28px',
+          left: '28px',
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          background: '#151E29',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          color: '#A7B2C0',
-          padding: '8px 16px',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          fontFamily: 'Inter, sans-serif',
-          fontSize: '13px',
+          padding: '8px 18px',
+          fontSize: '12px',
         }}
       >
-        <ArrowLeft size={14} />
-        <span>Return to 3D Portfolio</span>
+        <ArrowLeft size={13} />
+        <span>Return to Portfolio</span>
       </button>
 
+      {/* Main Glass Login Card */}
       <div
+        className="glass-panel"
         style={{
           width: '100%',
-          maxWidth: '420px',
-          backgroundColor: '#0C1118',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          borderRadius: '12px',
-          padding: '36px',
-          boxShadow: '0 16px 40px rgba(0, 0, 0, 0.6)',
+          maxWidth: '430px',
+          padding: '44px 36px',
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div
-            style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '10px',
-              backgroundColor: 'rgba(69, 214, 255, 0.1)',
-              border: '1px solid rgba(69, 214, 255, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 16px',
-              color: '#45D6FF',
-            }}
-          >
-            <ShieldCheck size={24} />
+        {/* AP Official Brand Header */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ display: 'inline-block', marginBottom: '16px' }}>
+            <ApMonogram size={52} withGlow />
           </div>
+
           <h1
             style={{
-              fontFamily: 'Space Grotesk, sans-serif',
+              fontFamily: 'var(--font-display)',
               fontSize: '22px',
               fontWeight: 700,
-              color: '#F5F7FA',
+              color: 'var(--text-primary)',
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
               marginBottom: '6px',
             }}
           >
-            Private CMS Console
+            AYUSH PRAKASH
           </h1>
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '13px', color: '#738195' }}>
-            Authorized Administrator Access Only
+
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '13px',
+              color: 'var(--text-muted)',
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Portfolio Administration
           </p>
         </div>
 
         {error && (
           <div
             style={{
-              backgroundColor: 'rgba(255, 107, 117, 0.1)',
-              border: '1px solid rgba(255, 107, 117, 0.3)',
-              borderRadius: '6px',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '8px',
               padding: '12px 14px',
               marginBottom: '20px',
               display: 'flex',
               alignItems: 'flex-start',
               gap: '10px',
               fontSize: '13px',
-              color: '#FF6B75',
-              fontFamily: 'Inter, sans-serif',
+              color: '#F87171',
+              fontFamily: 'var(--font-body)',
             }}
           >
             <AlertCircle size={16} style={{ marginTop: '2px', flexShrink: 0 }} />
@@ -150,18 +144,21 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <label
               style={{
                 display: 'block',
-                fontFamily: 'JetBrains Mono, monospace',
+                fontFamily: 'var(--font-body)',
                 fontSize: '11px',
-                color: '#738195',
-                marginBottom: '6px',
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--text-muted)',
+                marginBottom: '8px',
               }}
             >
-              ADMIN EMAIL
+              Admin Email
             </label>
             <div style={{ position: 'relative' }}>
               <input
@@ -171,19 +168,19 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
                 onChange={(e) => setEmail(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '10px 14px 10px 36px',
-                  backgroundColor: '#151E29',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '6px',
-                  color: '#F5F7FA',
-                  fontFamily: 'Inter, sans-serif',
+                  padding: '12px 14px 12px 38px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: '8px',
+                  color: '#FFFFFF',
+                  fontFamily: 'var(--font-body)',
                   fontSize: '14px',
                   outline: 'none',
                 }}
               />
               <Mail
                 size={16}
-                color="#738195"
+                color="var(--accent-silver)"
                 style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}
               />
             </div>
@@ -193,13 +190,16 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
             <label
               style={{
                 display: 'block',
-                fontFamily: 'JetBrains Mono, monospace',
+                fontFamily: 'var(--font-body)',
                 fontSize: '11px',
-                color: '#738195',
-                marginBottom: '6px',
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--text-muted)',
+                marginBottom: '8px',
               }}
             >
-              PASSWORD
+              Password
             </label>
             <div style={{ position: 'relative' }}>
               <input
@@ -210,19 +210,19 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
                 onChange={(e) => setPassword(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '10px 14px 10px 36px',
-                  backgroundColor: '#151E29',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '6px',
-                  color: '#F5F7FA',
-                  fontFamily: 'Inter, sans-serif',
+                  padding: '12px 14px 12px 38px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderRadius: '8px',
+                  color: '#FFFFFF',
+                  fontFamily: 'var(--font-body)',
                   fontSize: '14px',
                   outline: 'none',
                 }}
               />
               <Key
                 size={16}
-                color="#738195"
+                color="var(--accent-silver)"
                 style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}
               />
             </div>
@@ -235,10 +235,10 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#45D6FF',
+                color: 'var(--accent-silver)',
                 fontSize: '12px',
                 cursor: 'pointer',
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: 'var(--font-body)',
               }}
             >
               Forgot Password?
@@ -248,17 +248,12 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
           <button
             type="submit"
             disabled={loading}
+            className="btn-luxury-primary"
             style={{
-              backgroundColor: 'rgba(69, 214, 255, 0.15)',
-              border: '1px solid #45D6FF',
-              color: '#FFFFFF',
               padding: '12px',
-              borderRadius: '6px',
-              fontWeight: 500,
+              width: '100%',
               fontSize: '14px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              fontFamily: 'Inter, sans-serif',
-              transition: 'background 0.2s',
+              fontWeight: 600,
             }}
           >
             {loading ? 'Authenticating with Firebase...' : 'Sign In to Console'}
@@ -267,16 +262,17 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
 
         <div
           style={{
-            marginTop: '24px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+            marginTop: '28px',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
             paddingTop: '16px',
-            fontFamily: 'JetBrains Mono, monospace',
+            fontFamily: 'var(--font-body)',
             fontSize: '11px',
-            color: '#738195',
+            color: 'var(--text-muted)',
             textAlign: 'center',
+            letterSpacing: '0.04em',
           }}
         >
-          FIREBASE AUTHENTICATION • ZERO-HARDCODED BACKDOOR
+          FIREBASE AUTHENTICATION &bull; ENCRYPTED ACCESS
         </div>
       </div>
 
@@ -289,7 +285,8 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(16px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -298,34 +295,25 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
           }}
         >
           <div
+            className="glass-panel"
             style={{
               width: '100%',
               maxWidth: '380px',
-              backgroundColor: '#0C1118',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '8px',
               padding: '28px',
             }}
           >
-            <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#FFFFFF', marginBottom: '12px' }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', color: '#FFFFFF', marginBottom: '12px' }}>
               Reset Admin Password
             </h3>
             {resetSent ? (
               <div>
-                <p style={{ fontSize: '13px', color: '#42D6A4', marginBottom: '16px' }}>
+                <p style={{ fontSize: '13px', color: '#34D399', marginBottom: '16px' }}>
                   A secure password reset link has been dispatched to {resetEmail}.
                 </p>
                 <button
                   onClick={() => setShowResetModal(false)}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    backgroundColor: '#151E29',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    color: '#FFFFFF',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                  }}
+                  className="btn-editorial-pill"
+                  style={{ width: '100%' }}
                 >
                   Close
                 </button>
@@ -340,40 +328,27 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
                   style={{
                     width: '100%',
                     padding: '10px 14px',
-                    backgroundColor: '#151E29',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '6px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: '8px',
                     color: '#FFFFFF',
                     marginBottom: '16px',
+                    outline: 'none',
                   }}
                 />
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button
                     type="submit"
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      backgroundColor: 'rgba(69, 214, 255, 0.2)',
-                      border: '1px solid #45D6FF',
-                      color: '#FFFFFF',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                    }}
+                    className="btn-luxury-primary"
+                    style={{ flex: 1, padding: '10px', fontSize: '13px' }}
                   >
                     Send Link
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowResetModal(false)}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      backgroundColor: '#151E29',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      color: '#A7B2C0',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                    }}
+                    className="btn-editorial-pill"
+                    style={{ flex: 1, padding: '10px', fontSize: '13px' }}
                   >
                     Cancel
                   </button>

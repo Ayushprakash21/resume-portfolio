@@ -1,41 +1,54 @@
 /**
- * AYUSH PRAKASH — BLACK LUXURY GLASSMORPHISM DESIGN SYSTEM
- * Pure obsidian, deep charcoal, frosted glass, metallic silver, soft white, and champagne highlights.
- * Zero dull/forest green. Award-winning spatial & editorial presentation.
+ * AP — OFFICIAL BRAND SYSTEM TOKENS
+ * Brand Name: AP
+ * Full Name: Ayush Prakash
+ * Positioning: Business. Systems. Intelligence & Innovation.
+ * Black is the foundation. Silver is the signature. Glass is the experience.
  */
 
 :root {
-  /* Black Luxury Surface Palette */
-  --bg-primary: #050505;                 /* Pure luxury obsidian */
-  --bg-secondary: #0A0A0C;               /* Deep charcoal */
-  --bg-section: #08080A;                 /* Subtle section obsidian */
-  --bg-card: rgba(255, 255, 255, 0.045); /* Frosted glass card */
-  --bg-card-hover: rgba(255, 255, 255, 0.075);
-  --bg-elevated: #121215;                /* High-contrast elevated dark surface */
-  --bg-glass-nav: rgba(10, 10, 13, 0.68);
-  --bg-glass-card: rgba(18, 18, 22, 0.55);
+  /* Official AP Brand Colors */
+  --brand-obsidian: #050505;                /* Obsidian Black */
+  --brand-deep-black: #09090B;              /* Deep Black */
+  --brand-graphite: #151518;                /* Graphite */
+  --brand-glass-surface: rgba(255, 255, 255, 0.055); /* Glass Surface */
+  --brand-glass-border: rgba(255, 255, 255, 0.12);   /* Glass Border */
+  --brand-silver: #C8C8CE;                  /* Metallic Silver */
+  --brand-bright-silver: #F2F2F4;           /* Bright Silver */
+  --brand-muted-silver: #929299;            /* Muted Silver */
+  --brand-white: #FFFFFF;                   /* Pure White */
+
+  /* Surface Mapping */
+  --bg-primary: var(--brand-obsidian);
+  --bg-secondary: var(--brand-deep-black);
+  --bg-section: #08080A;
+  --bg-card: var(--brand-glass-surface);
+  --bg-card-hover: rgba(255, 255, 255, 0.08);
+  --bg-elevated: var(--brand-graphite);
+  --bg-glass-nav: rgba(9, 9, 11, 0.72);
+  --bg-glass-card: rgba(18, 18, 22, 0.58);
   --bg-glass-input: rgba(255, 255, 255, 0.035);
 
   /* Typography Colors */
-  --text-primary: #F5F5F5;               /* Soft white */
-  --text-secondary: #A5A5A9;             /* Graphite silver */
-  --text-muted: #73737A;                 /* Subdued metadata */
-  --text-highlight: #E5E0D8;             /* Subtle champagne */
-  --text-accent-silver: #C8C8CE;         /* Metallic silver */
+  --text-primary: var(--brand-bright-silver);
+  --text-secondary: var(--brand-silver);
+  --text-muted: var(--brand-muted-silver);
+  --text-highlight: #E5E0D8;
+  --text-accent-silver: var(--brand-bright-silver);
 
   /* Glass Borders & Dividers */
   --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.22);
-  --border-editorial: rgba(255, 255, 255, 0.12);
-  --glass-border: rgba(255, 255, 255, 0.12);
+  --border-hover: rgba(255, 255, 255, 0.24);
+  --border-editorial: var(--brand-glass-border);
+  --glass-border: var(--brand-glass-border);
   --glass-border-subtle: rgba(255, 255, 255, 0.06);
 
-  /* Luxury Accents */
-  --accent-primary: #C8C8CE;             /* Silver */
-  --accent-silver: #C8C8CE;              /* Metallic silver */
-  --accent-champagne: #E5E0D8;           /* Subtle champagne highlight */
-  --accent-gold: #D4AF37;                /* Restrained luxury gold */
-  --accent-emerald: #10B981;             /* Restrained status pulse */
+  /* Signature Silver & Luxury Accents */
+  --accent-primary: var(--brand-silver);
+  --accent-silver: var(--brand-silver);
+  --accent-bright-silver: var(--brand-bright-silver);
+  --accent-champagne: #E5E0D8;
+  --accent-emerald: #10B981;
 
   /* Typography Font Families */
   --font-display: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -65,7 +78,7 @@
   /* Glassmorphism Blur & Shadows */
   --glass-blur: blur(24px) saturate(140%);
   --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  --glass-glow: 0 0 35px -5px rgba(255, 255, 255, 0.06);
+  --glass-glow: 0 0 35px -5px rgba(242, 242, 244, 0.08);
   --shadow-editorial: 0 16px 48px -8px rgba(0, 0, 0, 0.7);
   --shadow-subtle: 0 6px 24px -3px rgba(0, 0, 0, 0.5);
 

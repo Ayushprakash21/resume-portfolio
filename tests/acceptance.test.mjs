@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — BLACK LUXURY GLASSMORPHISM PORTFOLIO & OPEN TO WORK CMS', async (t) => {
+test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BLACK LUXURY PORTFOLIO', async (t) => {
   // Test 1: Full-screen Cinematic 3D Scene in Black Luxury Obsidian
   await t.test('1. Cinematic 3D Scene has luxury obsidian landscape, crisp silver rim lighting, and no green tints', () => {
     const file = fs.readFileSync('src/components/cinematic/CinematicHeroScene.tsx', 'utf-8');
@@ -28,6 +28,7 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — BLACK LUXURY GLASSMORPHISM PORT
   await t.test('2. Homepage Layout contains branding, intro, headline, and scroll explorer', () => {
     const layout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
     assert.ok(layout.includes('AYUSH PRAKASH'), 'Top Left default has AYUSH PRAKASH');
+    assert.ok(layout.includes('ApMonogram'), 'Header and Hero must integrate ApMonogram component');
     assert.ok(layout.includes('experience') && layout.includes('about') && layout.includes('contact'), 'Nav links present');
     assert.ok(layout.includes('opentowork'), 'Open to Work navigation link present');
     assert.ok(
@@ -61,14 +62,15 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — BLACK LUXURY GLASSMORPHISM PORT
   // Test 4: Black Luxury Palette & Typography
   await t.test('4. Design tokens match Black Luxury Glassmorphism specifications', () => {
     const tokens = fs.readFileSync('src/styles/tokens.css', 'utf-8');
-    assert.ok(tokens.includes('#050505'), 'Must have #050505 primary background');
-    assert.ok(tokens.includes('#0A0A0C'), 'Must have #0A0A0C secondary background');
-    assert.ok(tokens.includes('rgba(255, 255, 255, 0.045)'), 'Must have rgba(255,255,255,0.045) card background');
-    assert.ok(tokens.includes('#F5F5F5'), 'Must have #F5F5F5 primary soft white text');
-    assert.ok(tokens.includes('#A5A5A9'), 'Must have #A5A5A9 secondary graphite silver text');
-    assert.ok(tokens.includes('#73737A'), 'Must have #73737A muted text');
-    assert.ok(tokens.includes('#C8C8CE'), 'Must have #C8C8CE metallic silver accent');
-    assert.ok(tokens.includes('#E5E0D8'), 'Must have #E5E0D8 champagne highlight');
+    assert.ok(tokens.includes('--brand-obsidian: #050505'), 'Must have #050505 obsidian');
+    assert.ok(tokens.includes('--brand-deep-black: #09090B'), 'Must have #09090B deep black');
+    assert.ok(tokens.includes('--brand-graphite: #151518'), 'Must have #151518 graphite');
+    assert.ok(tokens.includes('--brand-glass-surface: rgba(255, 255, 255, 0.055)'), 'Must have glass surface');
+    assert.ok(tokens.includes('--brand-glass-border: rgba(255, 255, 255, 0.12)'), 'Must have glass border');
+    assert.ok(tokens.includes('--brand-silver: #C8C8CE'), 'Must have metallic silver');
+    assert.ok(tokens.includes('--brand-bright-silver: #F2F2F4'), 'Must have bright silver');
+    assert.ok(tokens.includes('--brand-muted-silver: #929299'), 'Must have muted silver');
+    assert.ok(tokens.includes('--brand-white: #FFFFFF'), 'Must have pure white');
     assert.ok(tokens.includes('Manrope'), 'Must use Manrope for body text & display');
     assert.ok(tokens.includes('Cormorant Garamond'), 'Must use Cormorant Garamond for italic editorial emphasis');
 
@@ -207,5 +209,60 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — BLACK LUXURY GLASSMORPHISM PORT
     assert.ok(css.includes('cubic-bezier(0.34, 1.56, 0.64, 1)'), 'Must have spring physics bezier curve');
     assert.ok(css.includes('scale(1.035)'), 'Must have spring bouncy hover scale');
     assert.ok(css.includes('scale(0.965)'), 'Must have active press scale');
+  });
+
+  // Test 15: Official AP Monogram Brand Asset Variants
+  await t.test('15. All 6 AP brand monogram logo variants are generated in public/brand/', () => {
+    assert.ok(fs.existsSync('public/brand/ap-primary.png'), 'ap-primary.png must exist');
+    assert.ok(fs.existsSync('public/brand/ap-compact.png'), 'ap-compact.png must exist');
+    assert.ok(fs.existsSync('public/brand/ap-transparent.png'), 'ap-transparent.png must exist');
+    assert.ok(fs.existsSync('public/brand/ap-monochrome.png'), 'ap-monochrome.png must exist');
+    assert.ok(fs.existsSync('public/brand/ap-favicon.png'), 'ap-favicon.png must exist');
+    assert.ok(fs.existsSync('public/brand/ap-og-image.png'), 'ap-og-image.png must exist');
+    assert.ok(fs.existsSync('public/favicon.png'), 'public/favicon.png must exist');
+    assert.ok(fs.existsSync('src/components/brand/ApMonogram.tsx'), 'ApMonogram component must exist');
+  });
+
+  // Test 16: Browser Branding & HTML Metadata
+  await t.test('16. Browser title, favicon link, theme color, and Open Graph meta tags match brand specifications', () => {
+    const html = fs.readFileSync('index.html', 'utf-8');
+    assert.ok(html.includes('Ayush Prakash | Business, Systems &amp; AI') || html.includes('Ayush Prakash | Business, Systems & AI'), 'Title matches brand name & positioning');
+    assert.ok(html.includes('ap-favicon.png'), 'Favicon links to ap-favicon.png');
+    assert.ok(html.includes('ap-og-image.png'), 'OG image links to ap-og-image.png');
+    assert.ok(html.includes('#050505'), 'Theme color set to #050505');
+  });
+
+  // Test 17: Header & Hero AP Brand Treatment
+  await t.test('17. Header has [AP MONOGRAM] AYUSH PRAKASH and Hero has AP monogram emblem', () => {
+    const layout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
+    assert.ok(layout.includes('<ApMonogram'), 'Must render ApMonogram in header');
+    assert.ok(layout.includes('{name}'), 'Must render full name beside monogram');
+    assert.ok(layout.includes('BUSINESS. SYSTEMS.'), 'Must preserve core positioning');
+    assert.ok(layout.includes('Intelligence & Innovation.') || layout.includes('Intelligence &amp; Innovation.'), 'Must preserve italic positioning');
+  });
+
+  // Test 18: Footer AP Monogram & Positioning
+  await t.test('18. Footer renders AP monogram, full name, positioning, and social links', () => {
+    const footer = fs.readFileSync('src/components/Footer.tsx', 'utf-8');
+    assert.ok(footer.includes('ApMonogram'), 'Footer must render ApMonogram');
+    assert.ok(footer.includes('AYUSH PRAKASH'), 'Footer must render full name');
+    assert.ok(footer.includes('Business. Systems. Intelligence &amp; Innovation.') || footer.includes('Business. Systems. Intelligence & Innovation.'), 'Footer must render positioning statement');
+    assert.ok(footer.includes('LinkedIn'), 'Footer has LinkedIn');
+    assert.ok(footer.includes('GitHub'), 'Footer has GitHub');
+    assert.ok(footer.includes('Email'), 'Footer has Email');
+    assert.ok(footer.includes('Back to Top'), 'Footer has Back to Top button');
+  });
+
+  // Test 19: Admin Login & Dashboard AP Monogram Branding
+  await t.test('19. Admin login screen and dashboard header display AP Monogram and Portfolio Administration', () => {
+    const adminLogin = fs.readFileSync('src/components/admin/AdminLogin.tsx', 'utf-8');
+    assert.ok(adminLogin.includes('ApMonogram'), 'AdminLogin has ApMonogram');
+    assert.ok(adminLogin.includes('AYUSH PRAKASH'), 'AdminLogin has AYUSH PRAKASH');
+    assert.ok(adminLogin.includes('Portfolio Administration'), 'AdminLogin has Portfolio Administration title');
+
+    const adminConsole = fs.readFileSync('src/components/admin/AdminConsole.tsx', 'utf-8');
+    assert.ok(adminConsole.includes('ApMonogram'), 'AdminConsole has ApMonogram');
+    assert.ok(adminConsole.includes('AYUSH PRAKASH'), 'AdminConsole has AYUSH PRAKASH');
+    assert.ok(adminConsole.includes('Portfolio Administration'), 'AdminConsole has Portfolio Administration in sidebar');
   });
 });

@@ -58,6 +58,7 @@ import { ResumeManager } from './editors/ResumeManager';
 import { MediaLibraryManager } from './editors/MediaLibraryManager';
 import { WebsiteSectionsManager } from './editors/WebsiteSectionsManager';
 import { SettingsManager } from './editors/SettingsManager';
+import { ApMonogram } from '../brand/ApMonogram';
 
 interface AdminConsoleProps {
   onLogout: () => void;
@@ -241,47 +242,50 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
         }}
       >
         <div>
-          {/* Header */}
+          {/* Header with AP Monogram */}
           <div
             style={{
               padding: '24px 20px',
-              borderBottom: '1px solid rgba(244, 243, 238, 0.08)',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}
           >
-            <div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '16px',
-                  fontWeight: 700,
-                  color: '#FFFFFF',
-                  letterSpacing: '0.02em',
-                }}
-              >
-                AYUSH PRAKASH
-              </div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '11px',
-                  color: '#8294A6',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Profile CMS Console
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <ApMonogram size={26} withGlow />
+              <div>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '15px',
+                    fontWeight: 700,
+                    color: '#FFFFFF',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  AYUSH PRAKASH
+                </div>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '10px',
+                    color: 'var(--accent-silver)',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Portfolio Administration
+                </div>
               </div>
             </div>
             <button
               onClick={onReturnToSite}
-              title="View Live Cinematic Portfolio"
+              title="View Live Portfolio"
               style={{
-                background: 'rgba(244, 243, 238, 0.06)',
-                border: '1px solid rgba(244, 243, 238, 0.12)',
-                color: '#C1C4BE',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                color: '#C8C8CE',
                 borderRadius: '6px',
                 padding: '6px',
                 cursor: 'pointer',

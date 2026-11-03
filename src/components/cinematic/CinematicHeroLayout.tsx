@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowUpRight, ArrowDown } from 'lucide-react';
 import { ProfileData, HomepageSettings } from '../../types/cms';
+import { ApMonogram } from '../brand/ApMonogram';
 
 interface CinematicHeroLayoutProps {
   profile?: ProfileData;
@@ -68,7 +69,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
       }}
     >
       {/* ========================================================
-          TOP NAVIGATION BAR (BLACK LUXURY FLOATING FROSTED GLASS)
+          TOP NAVIGATION BAR (AP MONOGRAM + AYUSH PRAKASH)
           ======================================================== */}
       <header
         style={{
@@ -77,42 +78,59 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           left: '50%',
           transform: 'translateX(-50%)',
           width: isScrolled ? 'min(92%, 1160px)' : 'calc(100% - 96px)',
-          padding: isScrolled ? '12px 28px' : '12px 0',
+          padding: isScrolled ? '10px 24px' : '12px 0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           zIndex: 40,
           pointerEvents: 'auto',
-          backgroundColor: isScrolled ? 'rgba(12, 12, 16, 0.72)' : 'transparent',
+          backgroundColor: isScrolled ? 'rgba(9, 9, 11, 0.72)' : 'transparent',
           backdropFilter: isScrolled ? 'blur(24px) saturate(140%)' : 'none',
           WebkitBackdropFilter: isScrolled ? 'blur(24px) saturate(140%)' : 'none',
           borderRadius: isScrolled ? '9999px' : '0',
           border: isScrolled ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid transparent',
           boxShadow: isScrolled
-            ? '0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 24px -4px rgba(255, 255, 255, 0.06)'
+            ? '0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 24px -4px rgba(242, 242, 244, 0.08)'
             : 'none',
           transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
-        {/* BRAND IDENTITY */}
+        {/* BRAND IDENTITY: [AP MONOGRAM] AYUSH PRAKASH */}
         <div
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           style={{
             cursor: 'pointer',
             userSelect: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: isScrolled ? '12px' : '16px',
+            transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          }}
+          className="brand-logo-trigger"
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.02)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
           }}
         >
+          {/* AP Monogram Logo */}
+          <ApMonogram
+            size={isScrolled ? 26 : 38}
+            withGlow={isScrolled}
+          />
+
           <span
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: isScrolled ? '15px' : 'clamp(2.0rem, 4.5vw, 3.8rem)',
+              fontSize: isScrolled ? '15px' : 'clamp(1.6rem, 3.2vw, 2.6rem)',
               fontWeight: 700,
               letterSpacing: '-0.02em',
               lineHeight: 0.95,
               textTransform: 'uppercase',
               color: 'var(--text-primary)',
               transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-              display: 'block',
+              display: 'inline-block',
             }}
           >
             {name}
@@ -195,10 +213,12 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
       </div>
 
       {/* ========================================================
-          BOTTOM ROW (EXACT LE:MMA MATCH):
-          - BOTTOM LEFT: Headline (BUSINESS. SYSTEMS. / Intelligence & Innovation.)
-          - BOTTOM CENTRE: SCROLL TO EXPLORE
-          - BOTTOM RIGHT: Let's Connect ↗ (With spring physics)
+          BOTTOM ROW (AP BRANDED HERO PRESENTATION):
+          - AP MONOGRAM & AYUSH PRAKASH EMBLEM
+          - BUSINESS. SYSTEMS.
+          - Intelligence & Innovation.
+          - SCROLL TO EXPLORE
+          - Let's Connect ↗ (With spring physics)
           ======================================================== */}
       <div
         style={{
@@ -210,8 +230,37 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           width: '100%',
         }}
       >
-        {/* BOTTOM LEFT: HEADLINE */}
+        {/* BOTTOM LEFT: AP MONOGRAM + HEADLINE */}
         <div>
+          {/* AP Monogram Hero Mark */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '14px',
+              marginBottom: '16px',
+              padding: '6px 14px 6px 8px',
+              borderRadius: '9999px',
+              backgroundColor: 'rgba(255, 255, 255, 0.035)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              backdropFilter: 'blur(12px)',
+            }}
+          >
+            <ApMonogram size={24} />
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '12px',
+                fontWeight: 600,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: 'var(--accent-bright-silver)',
+              }}
+            >
+              {name}
+            </span>
+          </div>
+
           <div
             style={{
               fontFamily: 'var(--font-display)',
