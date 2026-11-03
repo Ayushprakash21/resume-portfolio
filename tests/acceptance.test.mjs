@@ -525,7 +525,8 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(modal.includes('Generate My Resume'), 'Modal displays official title Generate My Resume');
     assert.ok(modal.includes('Download ATS Resume (PDF)'), 'Modal has Option 1: Download ATS Resume (PDF)');
     assert.ok(modal.includes('Download Editable Resume (DOCX)'), 'Modal has Option 2: Download Editable Resume (DOCX)');
-    assert.ok(modal.includes('Live ATS Preview'), 'Modal has Option 3: Live ATS Preview');
+    assert.ok(modal.includes('Preview Resume'), 'Modal has Option 3: Preview Resume');
+    assert.ok(modal.includes('Live ATS Preview'), 'Modal has Live ATS Preview tab');
     assert.ok(modal.includes('Calibri, Arial, sans-serif'), 'Preview renders clean single-column ATS typography');
 
     const app = fs.readFileSync('src/App.tsx', 'utf-8');

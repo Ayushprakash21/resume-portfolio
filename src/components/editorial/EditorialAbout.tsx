@@ -31,7 +31,7 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
   const digitalText =
     aboutSettings?.digitalPlatformsText ||
     'Enterprise SaaS, applied language models, ATS parsing systems, and distributed cloud backends.';
-  const resumeBtn = profile.resumeButtonText || 'View Full Curriculum Vitae';
+  const resumeBtn = profile.resumeButtonText || 'Download Curriculum Vitae';
   return (
     <section
       id="about"

@@ -254,7 +254,7 @@ export const ResumeGeneratorModal: React.FC<ResumeGeneratorModalProps> = ({
                 lineHeight: 1.45,
               }}
             >
-              Generate a professional, ATS-friendly resume using the authoritative information published on this website.
+              Generate a professional, ATS-friendly resume using the information published on this website.
             </p>
           </div>
 
@@ -570,6 +570,103 @@ export const ResumeGeneratorModal: React.FC<ResumeGeneratorModalProps> = ({
                 >
                   <Download size={15} />
                   {isGeneratingDocx ? 'Generating...' : 'Download DOCX'}
+                </button>
+              </div>
+
+              {/* Option 3: Preview Resume */}
+              <div
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  gap: '16px',
+                  transition: 'border-color 0.2s ease, background 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(217, 221, 227, 0.3)';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+                }}
+              >
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '10px',
+                      backgroundColor: 'rgba(168, 85, 247, 0.15)',
+                      border: '1px solid rgba(168, 85, 247, 0.28)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#C084FC',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Eye size={22} />
+                  </div>
+                  <div>
+                    <h3
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '16px',
+                        fontWeight: 600,
+                        color: '#FFFFFF',
+                        margin: 0,
+                      }}
+                    >
+                      Preview Resume
+                    </h3>
+                    <p
+                      style={{
+                        fontFamily: 'var(--font-body)',
+                        fontSize: '12.5px',
+                        color: 'rgba(255, 255, 255, 0.65)',
+                        margin: '6px 0 0 0',
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      Inspect the exact single-column ATS document structure, typography, dates, and chronology rendered directly in your browser.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setActiveTab('preview')}
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    color: '#FFFFFF',
+                    border: '1px solid rgba(255, 255, 255, 0.16)',
+                    borderRadius: '8px',
+                    padding: '10px 18px',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    flexShrink: 0,
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.16)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <Eye size={15} />
+                  Preview Resume
                 </button>
               </div>
 
