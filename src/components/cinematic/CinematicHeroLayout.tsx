@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowUpRight, ArrowDown, Menu, X } from 'lucide-react';
 import { ProfileData, HomepageSettings } from '../../types/cms';
 import { ApMonogram } from '../brand/ApMonogram';
+import { HeroSignature } from '../brand/HeroSignature';
 import { OptionWheel, SpecularButton } from '../reactbits';
 
 interface CinematicHeroLayoutProps {
@@ -9,12 +10,14 @@ interface CinematicHeroLayoutProps {
   homepageSettings?: HomepageSettings;
   onNavigateSection?: (sectionId: string) => void;
   onOpenAdmin?: () => void;
+  reducedMotion?: boolean;
 }
 
 export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
   profile,
   homepageSettings,
   onNavigateSection,
+  reducedMotion = false,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -338,6 +341,11 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
 
       {/* Spacer to prevent overlap when hero is at top */}
       <div style={{ height: '60px' }} />
+
+      {/* ========================================================
+          ILLUMINATED AYUSH PRAKASH SIGNATURE (HERO NEGATIVE SPACE)
+          ======================================================== */}
+      <HeroSignature reducedMotion={reducedMotion} />
 
       {/* ========================================================
           LEFT INTRODUCTION (PROTECTED BY LOCAL GLASS BACKDROP)

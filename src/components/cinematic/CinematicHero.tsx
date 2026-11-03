@@ -47,6 +47,7 @@ export const CinematicHero: React.FC<CinematicHeroProps> = ({
 
       {/* LAYER 3, 4, 5: Exact Layout Elements Overlay with Local Glass Backdrop & High-Contrast Typography */}
       <CinematicHeroLayout
+        reducedMotion={reducedMotion}
         profile={profile}
         homepageSettings={homepageSettings}
         onNavigateSection={onNavigateSection}

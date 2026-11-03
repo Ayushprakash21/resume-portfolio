@@ -626,3 +626,84 @@ h1, h2, h3, h4, .font-display {
     transform: translateX(0);
   }
 }
+
+/* ========================================================
+   AYUSH PRAKASH ILLUMINATED HERO SIGNATURE
+   ======================================================== */
+.hero-signature-wrapper {
+  position: absolute;
+  top: 22%;
+  right: clamp(24px, 5vw, 90px);
+  width: clamp(280px, 22vw, 380px);
+  pointer-events: none;
+  z-index: 6;
+}
+
+@media (max-width: 1023px) and (min-width: 768px) {
+  .hero-signature-wrapper {
+    top: 20%;
+    right: clamp(16px, 3vw, 40px);
+    width: clamp(220px, 25vw, 300px);
+  }
+}
+
+@media (max-width: 767px) {
+  .hero-signature-wrapper {
+    top: 13%;
+    right: 16px;
+    width: clamp(170px, 46vw, 240px);
+    opacity: 0.9;
+  }
+}
+
+@keyframes signatureShimmer {
+  0%, 82% {
+    background-position: 200% 0;
+    opacity: 0;
+  }
+  86% {
+    opacity: 0.75;
+  }
+  92% {
+    background-position: -100% 0;
+    opacity: 0.75;
+  }
+  96%, 100% {
+    background-position: -100% 0;
+    opacity: 0;
+  }
+}
+
+.signature-star-sparkle.sparkle-burst {
+  animation: starBurst 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+@keyframes starBurst {
+  0% {
+    transform: translate(50%, -50%) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  40% {
+    transform: translate(50%, -50%) scale(1.6) rotate(90deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(50%, -50%) scale(1) rotate(180deg);
+    opacity: 0.65;
+  }
+}
+
+.signature-star-sparkle.sparkle-idle {
+  animation: starIdlePulse 6s ease-in-out infinite;
+}
+
+@keyframes starIdlePulse {
+  0%, 100% {
+    transform: translate(50%, -50%) scale(0.9);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translate(50%, -50%) scale(1.25);
+    opacity: 0.85;
+  }
+}
