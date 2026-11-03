@@ -156,7 +156,6 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             className="ap-header-name"
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: isScrolled ? '28px' : '40px',
               fontWeight: 700,
               letterSpacing: '-0.02em',
               lineHeight: 1,
