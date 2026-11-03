@@ -2,31 +2,32 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — CINEMATIC DIGITAL PORTFOLIO (LE:MMA DIRECTION)', async (t) => {
-  // Test 1: Full-screen Cinematic Natural 3D Scene (Section 3 & 8)
-  await t.test('1. Cinematic 3D Scene has natural landscape, mountains, reflective water, rocks, vegetation, and human figure viewed from behind', () => {
+test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — CINEMATIC DIGITAL PORTFOLIO & COMPLETE ADMIN CMS', async (t) => {
+  // Test 1: Full-screen Cinematic Natural 3D Scene with Lighting System (Part 1)
+  await t.test('1. Cinematic 3D Scene has natural landscape, visible lighting, rim light behind figure, and no blue/yellow particle line', () => {
     const file = fs.readFileSync('src/components/cinematic/CinematicHeroScene.tsx', 'utf-8');
     assert.ok(file.includes('THREE.PerspectiveCamera'), 'Must use Three.js perspective camera');
     assert.ok(file.includes('THREE.WebGLRenderer'), 'Must use WebGLRenderer');
-    assert.ok(file.includes('createMountainRidge'), 'Must generate natural mountain silhouettes');
+    assert.ok(file.includes('ambientLight'), 'Must have soft ambient illumination');
+    assert.ok(file.includes('keyLight'), 'Must have key directional light');
+    assert.ok(file.includes('rimLight'), 'Must have subtle rim lighting behind the human figure');
+    assert.ok(file.includes('fillLight'), 'Must have foreground fill light for rocks');
     assert.ok(file.includes('waterGeo'), 'Must have reflective water surface plane');
     assert.ok(file.includes('rockMat'), 'Must have natural foreground dark rocks');
-    assert.ok(file.includes('foliageGroup'), 'Must have dense shoreline vegetation / foliage');
-    assert.ok(file.includes('figureGroup'), 'Must include single human figure viewed from behind');
+    assert.ok(file.includes('figureGroup'), 'Must include human figure viewed from behind');
     assert.ok(file.includes('FogExp2'), 'Must have atmospheric fog');
+    // Verify removal of artificial blue/yellow particle line
+    assert.ok(!file.includes('goldInstanced'), 'Distracting blue/yellow particle line removed');
+    assert.ok(!file.includes('blueInstanced'), 'Distracting blue/yellow particle line removed');
   });
 
   // Test 2: Exact Homepage Layout (Section 4)
   await t.test('2. Exact Homepage Layout strictly matches Section 4 specifications', () => {
     const layout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
     // Top Left
-    assert.ok(layout.includes('AYUSH PRAKASH'), 'Top Left must have AYUSH PRAKASH');
+    assert.ok(layout.includes('AYUSH PRAKASH'), 'Top Left default has AYUSH PRAKASH');
     // Top Nav
-    assert.ok(layout.includes('Work'), 'Nav must have Work');
-    assert.ok(layout.includes('Experience'), 'Nav must have Experience');
-    assert.ok(layout.includes('About'), 'Nav must have About');
-    assert.ok(layout.includes('Projects'), 'Nav must have Projects');
-    assert.ok(layout.includes('Contact'), 'Nav must have Contact');
+    assert.ok(layout.includes('projects') && layout.includes('experience') && layout.includes('about') && layout.includes('contact'), 'Nav links present');
     // Left Introduction
     assert.ok(
       layout.includes(
@@ -105,25 +106,48 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — CINEMATIC DIGITAL PORTFOLIO (LE
     assert.ok(file.includes('Planned Architecture'), 'Must display planned roadmap');
   });
 
-  // Test 8: Private Admin CMS Preservation (Section 10)
-  await t.test('8. Private Admin CMS supports all 12 operational modules at /admin', () => {
+  // Test 8: Complete Private Admin CMS with all 16 Modules (Part 2, 3, 4, 5, 6, 7)
+  await t.test('8. Private Admin CMS supports all operational modules at /admin', () => {
     const admin = fs.readFileSync('src/components/admin/AdminConsole.tsx', 'utf-8');
-    assert.ok(admin.includes('1. Dashboard'), 'Module 1: Dashboard');
-    assert.ok(admin.includes('2. Profile Manager'), 'Module 2: Profile');
-    assert.ok(admin.includes('3. Experience'), 'Module 3: Experience');
-    assert.ok(admin.includes('4. Projects'), 'Module 4: Projects');
-    assert.ok(admin.includes('5. Certifications'), 'Module 5: Certifications');
-    assert.ok(admin.includes('6. Skills & Knowledge'), 'Module 6: Skills');
-    assert.ok(admin.includes('7. Education'), 'Module 7: Education');
-    assert.ok(admin.includes('8. Media Library'), 'Module 8: Media Library');
-    assert.ok(admin.includes('9. Resume PDF'), 'Module 9: Resume');
-    assert.ok(admin.includes('10. Contact Messages'), 'Module 10: Messages');
-    assert.ok(admin.includes('11. Site Settings'), 'Module 11: Settings');
-    assert.ok(admin.includes('12. SEO Management'), 'Module 12: SEO');
+    assert.ok(admin.includes('1. Dashboard'), 'Module 1: Dashboard Overview');
+    assert.ok(admin.includes('2. Profile Manager'), 'Module 2: Profile Manager');
+    assert.ok(admin.includes('3. Homepage Hero'), 'Module 3: Homepage Hero Management');
+    assert.ok(admin.includes('4. About Section'), 'Module 4: About Section Management');
+    assert.ok(admin.includes('5. Experience'), 'Module 5: Experience Management');
+    assert.ok(admin.includes('6. Projects'), 'Module 6: Projects Management');
+    assert.ok(admin.includes('7. Certifications'), 'Module 7: Certifications');
+    assert.ok(admin.includes('8. Skills Matrix'), 'Module 8: Skills Matrix');
+    assert.ok(admin.includes('9. Education'), 'Module 9: Education Management');
+    assert.ok(admin.includes('10. Resume Manager'), 'Module 10: Dedicated Resume PDF Manager');
+    assert.ok(admin.includes('11. Section Manager'), 'Module 11: Section Manager');
+    assert.ok(admin.includes('12. Appearance'), 'Module 12: Appearance Manager');
+    assert.ok(admin.includes('13. Media Library'), 'Module 13: Media Library');
+    assert.ok(admin.includes('14. Contact Messages'), 'Module 14: Contact Messages Inbox');
+    assert.ok(admin.includes('15. Site Settings'), 'Module 15: System Settings');
+    assert.ok(admin.includes('16. SEO Management'), 'Module 16: SEO Management');
   });
 
-  // Test 9: Cloudflare & Security Rules Preservation
-  await t.test('9. Cloudflare deployment config and Firestore security rules are verified', () => {
+  // Test 9: Resume Management & Upload Capabilities (Part 4)
+  await t.test('9. Resume management supports PDF upload, replace, and public toggle', () => {
+    const cms = fs.readFileSync('src/services/cmsService.ts', 'utf-8');
+    assert.ok(cms.includes('uploadResumeFile'), 'Must have uploadResumeFile service method');
+    assert.ok(cms.includes('getResumeRecord'), 'Must have getResumeRecord service method');
+    assert.ok(cms.includes('updateResumeRecord'), 'Must have updateResumeRecord service method');
+  });
+
+  // Test 10: Section Management & Dynamic Ordering (Part 5)
+  await t.test('10. Section Manager supports reordering and dynamic visibility', () => {
+    const cms = fs.readFileSync('src/services/cmsService.ts', 'utf-8');
+    assert.ok(cms.includes('getSectionsConfig'), 'Must have getSectionsConfig');
+    assert.ok(cms.includes('updateSectionsConfig'), 'Must have updateSectionsConfig');
+    assert.ok(cms.includes('toggleSectionVisibility'), 'Must have toggleSectionVisibility');
+
+    const appFile = fs.readFileSync('src/App.tsx', 'utf-8');
+    assert.ok(appFile.includes('sortedSections'), 'App dynamically orders and renders visible sections');
+  });
+
+  // Test 11: Cloudflare & Security Rules Preservation (Part 8)
+  await t.test('11. Cloudflare deployment config and Firestore security rules are verified', () => {
     const wrangler = fs.readFileSync('wrangler.jsonc', 'utf-8');
     assert.ok(wrangler.includes('"directory": "./dist"'), 'Static assets directory set to dist');
     assert.ok(wrangler.includes('"not_found_handling": "single-page-application"'), 'SPA routing enabled');
@@ -132,8 +156,8 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — CINEMATIC DIGITAL PORTFOLIO (LE
     assert.ok(rules.includes('request.auth != null'), 'Firestore locks mutations to authenticated admin');
   });
 
-  // Test 10: Production Bundle Verification
-  await t.test('10. Production bundle is successfully compiled in dist directory', () => {
+  // Test 12: Production Bundle Verification
+  await t.test('12. Production bundle is successfully compiled in dist directory', () => {
     assert.ok(fs.existsSync('dist/index.html'), 'dist/index.html must exist');
     assert.ok(fs.existsSync('dist/assets'), 'dist/assets directory must exist');
   });

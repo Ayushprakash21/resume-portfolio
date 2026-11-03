@@ -1,12 +1,31 @@
 import React from 'react';
 import { MapPin, ArrowUpRight } from 'lucide-react';
-import { ProfileData } from '../../types/cms';
+import { ProfileData, AboutSectionSettings } from '../../types/cms';
 
 interface EditorialAboutProps {
   profile: ProfileData;
+  aboutSettings?: AboutSectionSettings;
 }
 
-export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile }) => {
+export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile, aboutSettings }) => {
+  const headline =
+    aboutSettings?.heading ||
+    'Operating at the intersection of enterprise logistics, physical workflows, and autonomous digital systems.';
+  const quote =
+    aboutSettings?.quote ||
+    'Modern supply chains fail not from a lack of data, but from fragmented operational visibility between physical warehouses and enterprise software.';
+  const detailedText =
+    aboutSettings?.detailedText ||
+    'My operational background centers on orchestrating freight schedules, streamlining procurement pipelines, and translating on-the-ground warehouse hurdles into reliable software architectures. Through building independent platforms like Orion-9 and ApplyVise AI, I connect the rigor of supply chain execution with human-centric software.';
+  const physicalHeading = aboutSettings?.physicalOpsHeading || 'Physical Operations';
+  const physicalText =
+    aboutSettings?.physicalOpsText ||
+    'Freight logistics, inventory replenishment, vendor coordination, and warehouse workflows.';
+  const digitalHeading = aboutSettings?.digitalPlatformsHeading || 'Digital Platforms';
+  const digitalText =
+    aboutSettings?.digitalPlatformsText ||
+    'Enterprise SaaS, applied language models, ATS parsing systems, and distributed cloud backends.';
+  const resumeBtn = profile.resumeButtonText || 'View Full Curriculum Vitae';
   return (
     <section
       id="about"
@@ -46,7 +65,7 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile }) => {
             marginBottom: '56px',
           }}
         >
-          Operating at the intersection of enterprise logistics, physical workflows, and autonomous digital systems.
+          {headline}
         </h2>
 
         {/* 2-Column Split: Genuine Photo + Longform Narrative */}
@@ -125,7 +144,7 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile }) => {
                 fontWeight: 400,
               }}
             >
-              &ldquo;Modern supply chains fail not from a lack of data, but from fragmented operational visibility between physical warehouses and enterprise software.&rdquo;
+              &ldquo;{quote}&rdquo;
             </p>
 
             <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
@@ -133,7 +152,7 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile }) => {
             </p>
 
             <p style={{ fontFamily: 'var(--font-body)', fontSize: '15px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
-              My operational background centers on orchestrating freight schedules, streamlining procurement pipelines, and translating on-the-ground warehouse hurdles into reliable software architectures. Through building independent platforms like Orion-9 and ApplyVise AI, I connect the rigor of supply chain execution with human-centric software.
+              {detailedText}
             </p>
 
             {/* Core Competencies Overview */}
@@ -148,35 +167,37 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile }) => {
             >
               <div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                  Physical Operations
+                  {physicalHeading}
                 </div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
-                  Freight logistics, inventory replenishment, vendor coordination, and warehouse workflows.
+                  {physicalText}
                 </div>
               </div>
 
               <div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                  Digital Platforms
+                  {digitalHeading}
                 </div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
-                  Enterprise SaaS, applied language models, ATS parsing systems, and distributed cloud backends.
+                  {digitalText}
                 </div>
               </div>
             </div>
 
             {/* Resume / Connect Link */}
-            <div style={{ marginTop: '8px' }}>
-              <a
-                href={profile.resumeUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="btn-editorial-pill"
-              >
-                <span>View Full Curriculum Vitae</span>
-                <ArrowUpRight size={13} />
-              </a>
-            </div>
+            {profile.isResumeDownloadEnabled !== false && (
+              <div style={{ marginTop: '8px' }}>
+                <a
+                  href={profile.resumeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-editorial-pill"
+                >
+                  <span>{resumeBtn}</span>
+                  <ArrowUpRight size={13} />
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>

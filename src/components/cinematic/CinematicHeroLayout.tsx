@@ -1,16 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowUpRight, ArrowDown } from 'lucide-react';
+import { ProfileData, HomepageSettings } from '../../types/cms';
 
 interface CinematicHeroLayoutProps {
+  profile?: ProfileData;
+  homepageSettings?: HomepageSettings;
   onNavigateSection?: (sectionId: string) => void;
   onOpenAdmin?: () => void;
 }
 
 export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
+  profile,
+  homepageSettings,
   onNavigateSection,
   onOpenAdmin,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
+
+  const name = profile?.name || 'AYUSH PRAKASH';
+  const intro =
+    homepageSettings?.introParagraph ||
+    'Business operations professional exploring the intersection of supply chain management, enterprise systems, artificial intelligence and digital product innovation.';
+  const heading = homepageSettings?.mainHeading || 'BUSINESS. SYSTEMS.';
+  const subHeading = homepageSettings?.secondaryHeading || 'Intelligence & Innovation.';
+  const cta = homepageSettings?.ctaText || "Let's Connect";
+  const ctaTarget = homepageSettings?.ctaDestination || 'contact';
+  const scrollText = homepageSettings?.scrollIndicatorText || 'SCROLL TO EXPLORE';
+  const nav = homepageSettings?.navLabels || {
+    work: 'Work',
+    experience: 'Experience',
+    about: 'About',
+    projects: 'Projects',
+    contact: 'Contact',
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -88,7 +110,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
               display: 'block',
             }}
           >
-            AYUSH PRAKASH
+            {name}
           </span>
         </div>
 
@@ -101,11 +123,11 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           }}
         >
           {[
-            { label: 'Work', id: 'projects' },
-            { label: 'Experience', id: 'experience' },
-            { label: 'About', id: 'about' },
-            { label: 'Projects', id: 'projects' },
-            { label: 'Contact', id: 'contact' },
+            { label: nav.work, id: 'projects' },
+            { label: nav.experience, id: 'experience' },
+            { label: nav.about, id: 'about' },
+            { label: nav.projects, id: 'projects' },
+            { label: nav.contact, id: 'contact' },
           ].map((item, idx) => (
             <button
               key={`${item.label}-${idx}`}
@@ -184,7 +206,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             letterSpacing: '0.01em',
           }}
         >
-          Business operations professional exploring the intersection of supply chain management, enterprise systems, artificial intelligence and digital product innovation.
+          {intro}
         </p>
       </div>
 
@@ -222,7 +244,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
               textTransform: 'uppercase',
             }}
           >
-            BUSINESS. SYSTEMS.
+            {heading}
           </div>
           <div
             style={{
@@ -236,7 +258,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
               marginTop: '2px',
             }}
           >
-            Intelligence &amp; Innovation.
+            {subHeading}
           </div>
         </div>
 
@@ -265,7 +287,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
               transition: 'color 0.2s ease',
             }}
           >
-            SCROLL TO EXPLORE
+            {scrollText}
           </span>
           <ArrowDown size={13} color="var(--text-muted)" style={{ opacity: 0.7 }} />
         </div>
@@ -273,7 +295,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
         {/* BOTTOM RIGHT: Let's Connect ↗ */}
         <div style={{ pointerEvents: 'auto' }}>
           <button
-            onClick={() => scrollTo('contact')}
+            onClick={() => scrollTo(ctaTarget)}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -302,7 +324,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            <span>Let&apos;s Connect</span>
+            <span>{cta}</span>
             <ArrowUpRight size={14} />
           </button>
         </div>

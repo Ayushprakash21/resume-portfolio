@@ -1,27 +1,70 @@
 export interface ProfileData {
   name: string;
   headline: string;
+  shortIntro?: string;
   bio: string;
   profilePhoto: string;
   email: string;
   phone: string;
   linkedinUrl: string;
   githubUrl: string;
+  otherSocialLinks?: { label: string; url: string }[];
   resumeUrl: string;
+  resumeButtonText?: string;
+  isResumeDownloadEnabled?: boolean;
   availabilityStatus: string;
   location: string;
+}
+
+export interface HomepageSettings {
+  mainHeading: string;
+  secondaryHeading: string;
+  introParagraph: string;
+  ctaText: string;
+  ctaDestination: string;
+  scrollIndicatorText: string;
+  heroVisibility: boolean;
+  navLabels: {
+    work: string;
+    experience: string;
+    about: string;
+    projects: string;
+    contact: string;
+  };
+}
+
+export interface AboutSectionSettings {
+  heading: string;
+  quote: string;
+  summary: string;
+  detailedText: string;
+  physicalOpsHeading: string;
+  physicalOpsText: string;
+  digitalPlatformsHeading: string;
+  digitalPlatformsText: string;
+  contentBlocks?: {
+    id: string;
+    title: string;
+    content: string;
+    displayOrder: number;
+    isVisible: boolean;
+  }[];
 }
 
 export interface ExperienceRecord {
   id: string;
   employer: string;
   jobTitle: string;
+  employmentType?: string;
   startDate: string;
   endDate: string;
+  isCurrent?: boolean;
   location?: string;
   description: string;
   responsibilities: string[];
+  achievements?: string[];
   skillsUsed: string[];
+  logoUrl?: string;
   displayOrder: number;
   status: 'published' | 'draft';
 }
@@ -31,7 +74,10 @@ export interface ProjectRecord {
   name: string;
   category: string;
   subtitle: string;
+  shortDescription?: string;
   description: string;
+  problemStatement?: string;
+  solution?: string;
   coverImage?: string;
   screenshots: string[];
   technologyStack: string[];
@@ -61,7 +107,7 @@ export interface CertificationRecord {
 export interface SkillRecord {
   id: string;
   name: string;
-  category: 'Business Operations & Strategy' | 'Supply Chain & Logistics Systems' | 'AI & Applied Product Innovation' | 'Full-Stack & Cloud Architecture';
+  category: string;
   description?: string;
   displayOrder: number;
 }
@@ -75,6 +121,38 @@ export interface EducationRecord {
   endYear: string;
   highlights: string[];
   displayOrder: number;
+}
+
+export interface ResumeRecord {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  fileSizeBytes: number;
+  uploadedAt: string;
+  isActive: boolean;
+  isPublicEnabled: boolean;
+  buttonText: string;
+}
+
+export interface SectionConfig {
+  id: string;
+  sectionKey: string;
+  title: string;
+  subtitle: string;
+  displayOrder: number;
+  isVisible: boolean;
+  status: 'published' | 'draft';
+}
+
+export interface AppearanceSettings {
+  primaryBg: string;
+  cardBg: string;
+  textPrimary: string;
+  textSecondary: string;
+  accentColor: string;
+  headingFont: string;
+  bodyFont: string;
+  sectionSpacing: 'compact' | 'normal' | 'spacious';
 }
 
 export interface ContactMessage {

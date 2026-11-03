@@ -21,6 +21,11 @@ import {
   ContactMessage,
   SiteSettings,
   MediaAsset,
+  HomepageSettings,
+  AboutSectionSettings,
+  ResumeRecord,
+  SectionConfig,
+  AppearanceSettings,
 } from '../types/cms';
 import {
   DEFAULT_PROFILE,
@@ -32,6 +37,11 @@ import {
   DEFAULT_CONTACT_MESSAGES,
   DEFAULT_SITE_SETTINGS,
   DEFAULT_MEDIA_ASSETS,
+  DEFAULT_HOMEPAGE_SETTINGS,
+  DEFAULT_ABOUT_SETTINGS,
+  DEFAULT_RESUME_RECORD,
+  DEFAULT_SECTIONS_CONFIG,
+  DEFAULT_APPEARANCE_SETTINGS,
 } from '../data/seedData';
 
 const STORAGE_KEYS = {
@@ -44,6 +54,11 @@ const STORAGE_KEYS = {
   messages: 'ayush_cms_messages_v1',
   settings: 'ayush_cms_settings_v1',
   media: 'ayush_cms_media_v1',
+  homepage: 'ayush_cms_homepage_v1',
+  about: 'ayush_cms_about_v1',
+  resume: 'ayush_cms_resume_v1',
+  sections: 'ayush_cms_sections_v1',
+  appearance: 'ayush_cms_appearance_v1',
 };
 
 // Global reactive subscribers
@@ -364,6 +379,25 @@ export const cmsService = {
     return DEFAULT_EDUCATION;
   },
 
+  async addEducation(edu: Omit<EducationRecord, 'id'>): Promise<EducationRecord> {
+    const education = this.getEducation();
+    const newRecord: EducationRecord = {
+      ...edu,
+      id: 'edu-' + Date.now(),
+    };
+    education.push(newRecord);
+    localStorage.setItem(STORAGE_KEYS.education, JSON.stringify(education));
+    if (db) {
+      try {
+        await setDoc(doc(db, 'education', newRecord.id), newRecord);
+      } catch (err) {
+        console.warn('[CMS Firestore] Education add notice:', err);
+      }
+    }
+    notifyListeners();
+    return newRecord;
+  },
+
   async updateEducation(id: string, updates: Partial<EducationRecord>): Promise<void> {
     const education = this.getEducation();
     const idx = education.findIndex((e) => e.id === id);
@@ -379,6 +413,20 @@ export const cmsService = {
       }
       notifyListeners();
     }
+  },
+
+  async deleteEducation(id: string): Promise<void> {
+    let education = this.getEducation();
+    education = education.filter((e) => e.id !== id);
+    localStorage.setItem(STORAGE_KEYS.education, JSON.stringify(education));
+    if (db) {
+      try {
+        await deleteDoc(doc(db, 'education', id));
+      } catch (err) {
+        console.warn('[CMS Firestore] Education delete notice:', err);
+      }
+    }
+    notifyListeners();
   },
 
   // ================= SITE SETTINGS =================
@@ -519,5 +567,214 @@ export const cmsService = {
       sizeBytes,
       category: 'resume',
     });
+  },
+
+  // ================= HOMEPAGE SETTINGS =================
+  getHomepageSettings(): HomepageSettings {
+    const raw = localStorage.getItem(STORAGE_KEYS.homepage);
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // fallback
+      }
+    }
+    return DEFAULT_HOMEPAGE_SETTINGS;
+  },
+
+  async updateHomepageSettings(settings: HomepageSettings): Promise<void> {
+    localStorage.setItem(STORAGE_KEYS.homepage, JSON.stringify(settings));
+    if (db) {
+      try {
+        await setDoc(doc(db, 'settings', 'homepage'), settings);
+      } catch (err) {
+        console.warn('[CMS Firestore] Homepage settings sync notice:', err);
+      }
+    }
+    notifyListeners();
+  },
+
+  // ================= ABOUT SETTINGS =================
+  getAboutSettings(): AboutSectionSettings {
+    const raw = localStorage.getItem(STORAGE_KEYS.about);
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // fallback
+      }
+    }
+    return DEFAULT_ABOUT_SETTINGS;
+  },
+
+  async updateAboutSettings(about: AboutSectionSettings): Promise<void> {
+    localStorage.setItem(STORAGE_KEYS.about, JSON.stringify(about));
+    if (db) {
+      try {
+        await setDoc(doc(db, 'settings', 'about'), about);
+      } catch (err) {
+        console.warn('[CMS Firestore] About settings sync notice:', err);
+      }
+    }
+    notifyListeners();
+  },
+
+  // ================= RESUME RECORD =================
+  getResumeRecord(): ResumeRecord {
+    const raw = localStorage.getItem(STORAGE_KEYS.resume);
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // fallback
+      }
+    }
+    return DEFAULT_RESUME_RECORD;
+  },
+
+  async updateResumeRecord(resume: ResumeRecord): Promise<void> {
+    localStorage.setItem(STORAGE_KEYS.resume, JSON.stringify(resume));
+    // Also sync profile resumeUrl
+    const profile = this.getProfile();
+    profile.resumeUrl = resume.fileUrl;
+    profile.resumeButtonText = resume.buttonText;
+    profile.isResumeDownloadEnabled = resume.isPublicEnabled;
+    await this.updateProfile(profile);
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'resume', 'primary'), resume);
+      } catch (err) {
+        console.warn('[CMS Firestore] Resume record sync notice:', err);
+      }
+    }
+    notifyListeners();
+  },
+
+  async uploadResumeFile(file: File, buttonText?: string): Promise<ResumeRecord> {
+    let fileUrl = '';
+    // Try Firebase Storage first
+    try {
+      const { storage } = await import('./firebase');
+      if (storage) {
+        const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+        const storageRef = ref(storage, `resumes/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        fileUrl = await getDownloadURL(snapshot.ref);
+      }
+    } catch (err) {
+      console.warn('[CMS Storage] Upload to Firebase Storage fallback:', err);
+    }
+
+    // Fallback to local Data URL if Storage unavailable or unauthorized
+    if (!fileUrl) {
+      fileUrl = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const current = this.getResumeRecord();
+    const updated: ResumeRecord = {
+      ...current,
+      id: 'resume-' + Date.now(),
+      fileName: file.name,
+      fileUrl,
+      fileSizeBytes: file.size,
+      uploadedAt: new Date().toISOString().split('T')[0],
+      isActive: true,
+      buttonText: buttonText || current.buttonText,
+    };
+
+    await this.updateResumeRecord(updated);
+
+    // Also add to media library
+    await this.addMediaAsset({
+      name: file.name,
+      url: fileUrl,
+      type: 'application/pdf',
+      sizeBytes: file.size,
+      category: 'resume',
+    });
+
+    return updated;
+  },
+
+  // ================= SECTIONS CONFIG (SECTION MANAGER) =================
+  getSectionsConfig(): SectionConfig[] {
+    const raw = localStorage.getItem(STORAGE_KEYS.sections);
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // fallback
+      }
+    }
+    return DEFAULT_SECTIONS_CONFIG;
+  },
+
+  async updateSectionsConfig(sections: SectionConfig[]): Promise<void> {
+    localStorage.setItem(STORAGE_KEYS.sections, JSON.stringify(sections));
+    if (db) {
+      try {
+        await setDoc(doc(db, 'settings', 'sections'), { list: sections });
+      } catch (err) {
+        console.warn('[CMS Firestore] Sections config sync notice:', err);
+      }
+    }
+    notifyListeners();
+  },
+
+  async toggleSectionVisibility(id: string): Promise<void> {
+    const sections = this.getSectionsConfig();
+    const idx = sections.findIndex((s) => s.id === id);
+    if (idx !== -1) {
+      sections[idx].isVisible = !sections[idx].isVisible;
+      await this.updateSectionsConfig(sections);
+    }
+  },
+
+  async deleteSection(id: string): Promise<void> {
+    const sections = this.getSectionsConfig().filter((s) => s.id !== id);
+    await this.updateSectionsConfig(sections);
+  },
+
+  // ================= APPEARANCE SETTINGS =================
+  getAppearanceSettings(): AppearanceSettings {
+    const raw = localStorage.getItem(STORAGE_KEYS.appearance);
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // fallback
+      }
+    }
+    return DEFAULT_APPEARANCE_SETTINGS;
+  },
+
+  async updateAppearanceSettings(appearance: AppearanceSettings): Promise<void> {
+    localStorage.setItem(STORAGE_KEYS.appearance, JSON.stringify(appearance));
+    if (db) {
+      try {
+        await setDoc(doc(db, 'settings', 'appearance'), appearance);
+      } catch (err) {
+        console.warn('[CMS Firestore] Appearance settings sync notice:', err);
+      }
+    }
+    notifyListeners();
+  },
+
+  // ================= DUPLICATE EXPERIENCE HELPER =================
+  async duplicateExperience(id: string): Promise<ExperienceRecord | null> {
+    const exp = this.getExperiences(false).find((e) => e.id === id);
+    if (!exp) return null;
+    const duplicated: Omit<ExperienceRecord, 'id'> = {
+      ...exp,
+      jobTitle: `${exp.jobTitle} (Copy)`,
+      status: 'draft',
+      displayOrder: exp.displayOrder + 1,
+    };
+    return await this.addExperience(duplicated);
   },
 };

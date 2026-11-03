@@ -19,11 +19,15 @@ import { cmsService } from './services/cmsService';
 import { authService } from './services/authService';
 import {
   ProfileData,
+  HomepageSettings,
+  AboutSectionSettings,
   ExperienceRecord,
   ProjectRecord,
   CertificationRecord,
   SkillRecord,
   EducationRecord,
+  SectionConfig,
+  AppearanceSettings,
 } from './types/cms';
 
 export const App: React.FC = () => {
@@ -43,11 +47,15 @@ export const App: React.FC = () => {
 
   // Reactive Public State loaded directly from CMS
   const [profile, setProfile] = useState<ProfileData>(() => cmsService.getProfile());
+  const [homepageSettings, setHomepageSettings] = useState<HomepageSettings>(() => cmsService.getHomepageSettings());
+  const [aboutSettings, setAboutSettings] = useState<AboutSectionSettings>(() => cmsService.getAboutSettings());
   const [experiences, setExperiences] = useState<ExperienceRecord[]>(() => cmsService.getExperiences(true));
   const [projects, setProjects] = useState<ProjectRecord[]>(() => cmsService.getProjects(true));
   const [certifications, setCertifications] = useState<CertificationRecord[]>(() => cmsService.getCertifications(true));
   const [skills, setSkills] = useState<SkillRecord[]>(() => cmsService.getSkills());
   const [education, setEducation] = useState<EducationRecord[]>(() => cmsService.getEducation());
+  const [sectionsConfig, setSectionsConfig] = useState<SectionConfig[]>(() => cmsService.getSectionsConfig());
+  const [appearance, setAppearance] = useState<AppearanceSettings>(() => cmsService.getAppearanceSettings());
 
   // Listen for Firebase Auth changes & URL hash / history
   useEffect(() => {
@@ -66,11 +74,15 @@ export const App: React.FC = () => {
     // Subscribe to reactive CMS updates
     const unsubscribeCms = cmsService.subscribe(() => {
       setProfile(cmsService.getProfile());
+      setHomepageSettings(cmsService.getHomepageSettings());
+      setAboutSettings(cmsService.getAboutSettings());
       setExperiences(cmsService.getExperiences(true));
       setProjects(cmsService.getProjects(true));
       setCertifications(cmsService.getCertifications(true));
       setSkills(cmsService.getSkills());
       setEducation(cmsService.getEducation());
+      setSectionsConfig(cmsService.getSectionsConfig());
+      setAppearance(cmsService.getAppearanceSettings());
     });
 
     return () => {
@@ -123,47 +135,71 @@ export const App: React.FC = () => {
   const orionProject = projects.find((p) => p.id === 'orion-9');
   const applywiseProject = projects.find((p) => p.id === 'applywise-ai');
 
+  // Sorted active sections based on Section Manager config
+  const sortedSections = [...sectionsConfig]
+    .filter((s) => s.isVisible && s.status === 'published')
+    .sort((a, b) => a.displayOrder - b.displayOrder);
+
+  // Render Section Component by key
+  const renderSectionByKey = (key: string) => {
+    switch (key) {
+      case 'about':
+        return <EditorialAbout key="about" profile={profile} aboutSettings={aboutSettings} />;
+      case 'experience':
+        return <EditorialExperience key="experience" experiences={experiences} />;
+      case 'capabilities':
+        return <EditorialCapabilities key="capabilities" skills={skills} />;
+      case 'orion9':
+        return <EditorialOrion9 key="orion9" project={orionProject} />;
+      case 'applyvise':
+        return <EditorialApplyVise key="applyvise" project={applywiseProject} />;
+      case 'certifications':
+        return <EditorialCertifications key="certifications" certifications={certifications} />;
+      case 'education':
+        return <EditorialEducation key="education" education={education} />;
+      case 'contact':
+        return <EditorialContact key="contact" profile={profile} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div
       style={{
         position: 'relative',
         minHeight: '100vh',
-        backgroundColor: 'var(--bg-primary)',
-        color: 'var(--text-primary)',
+        backgroundColor: appearance.primaryBg || 'var(--bg-primary)',
+        color: appearance.textPrimary || 'var(--text-primary)',
       }}
     >
       {/* SECTION 3 & 4: CINEMATIC NATURAL HOMEPAGE ENVIRONMENT & LAYOUT */}
-      <CinematicHero
-        reducedMotion={reducedMotion}
-        onNavigateSection={scrollToSection}
-        onOpenAdmin={navigateToAdmin}
-      />
+      {homepageSettings.heroVisibility !== false && (
+        <CinematicHero
+          reducedMotion={reducedMotion}
+          profile={profile}
+          homepageSettings={homepageSettings}
+          onNavigateSection={scrollToSection}
+          onOpenAdmin={navigateToAdmin}
+        />
+      )}
 
-      {/* SECTION 9: REFINED EDITORIAL INNER PAGES */}
+      {/* SECTION 9 & 5: DYNAMICALLY MANAGED EDITORIAL SECTIONS */}
       <main style={{ position: 'relative', zIndex: 10 }}>
-        {/* ABOUT */}
-        <EditorialAbout profile={profile} />
-
-        {/* EXPERIENCE */}
-        <EditorialExperience experiences={experiences} />
-
-        {/* CAPABILITIES */}
-        <EditorialCapabilities skills={skills} />
-
-        {/* ORION-9 CASE STUDY */}
-        <EditorialOrion9 project={orionProject} />
-
-        {/* APPLYVISE AI CASE STUDY */}
-        <EditorialApplyVise project={applywiseProject} />
-
-        {/* ACCREDITATIONS & CERTIFICATIONS */}
-        <EditorialCertifications certifications={certifications} />
-
-        {/* EDUCATION */}
-        <EditorialEducation education={education} />
-
-        {/* CONTACT */}
-        <EditorialContact profile={profile} />
+        {sortedSections.length > 0
+          ? sortedSections.map((sec) => renderSectionByKey(sec.sectionKey))
+          : (
+            <>
+              <EditorialAbout profile={profile} aboutSettings={aboutSettings} />
+              <EditorialExperience experiences={experiences} />
+              <EditorialCapabilities skills={skills} />
+              <EditorialOrion9 project={orionProject} />
+              <EditorialApplyVise project={applywiseProject} />
+              <EditorialCertifications certifications={certifications} />
+              <EditorialEducation education={education} />
+              <EditorialContact profile={profile} />
+            </>
+          )}
       </main>
 
       {/* MINIMAL EDITORIAL FOOTER */}

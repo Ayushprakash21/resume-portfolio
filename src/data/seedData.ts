@@ -8,6 +8,11 @@ import {
   ContactMessage,
   SiteSettings,
   MediaAsset,
+  HomepageSettings,
+  AboutSectionSettings,
+  ResumeRecord,
+  SectionConfig,
+  AppearanceSettings,
 } from '../types/cms';
 
 export const DEFAULT_PROFILE: ProfileData = {
@@ -256,3 +261,89 @@ export const DEFAULT_MEDIA_ASSETS: MediaAsset[] = [
     category: 'screenshot',
   },
 ];
+
+export const DEFAULT_HOMEPAGE_SETTINGS: HomepageSettings = {
+  mainHeading: 'BUSINESS. SYSTEMS.',
+  secondaryHeading: 'Intelligence & Innovation.',
+  introParagraph:
+    'Business operations professional exploring the intersection of supply chain management, enterprise systems, artificial intelligence and digital product innovation.',
+  ctaText: "Let's Connect",
+  ctaDestination: 'contact',
+  scrollIndicatorText: 'SCROLL TO EXPLORE',
+  heroVisibility: true,
+  navLabels: {
+    work: 'Work',
+    experience: 'Experience',
+    about: 'About',
+    projects: 'Projects',
+    contact: 'Contact',
+  },
+};
+
+export const DEFAULT_ABOUT_SETTINGS: AboutSectionSettings = {
+  heading:
+    'Operating at the intersection of enterprise logistics, physical workflows, and autonomous digital systems.',
+  quote:
+    'Modern supply chains fail not from a lack of data, but from fragmented operational visibility between physical warehouses and enterprise software.',
+  summary:
+    'An operations professional exploring the intersection of enterprise systems, supply chain management, artificial intelligence and digital product development. Dedicated to building robust operating architectures, transparent logistics workflows, and high-signal digital platforms.',
+  detailedText:
+    'My operational background centers on orchestrating freight schedules, streamlining procurement pipelines, and translating on-the-ground warehouse hurdles into reliable software architectures. Through building independent platforms like Orion-9 and ApplyVise AI, I connect the rigor of supply chain execution with human-centric software.',
+  physicalOpsHeading: 'Physical Operations',
+  physicalOpsText:
+    'Freight logistics, inventory replenishment, vendor coordination, and warehouse workflows.',
+  digitalPlatformsHeading: 'Digital Platforms',
+  digitalPlatformsText:
+    'Enterprise SaaS, applied language models, ATS parsing systems, and distributed cloud backends.',
+  contentBlocks: [
+    {
+      id: 'block-1',
+      title: 'Systems Philosophy',
+      content:
+        'Resilient operations require single-source data integrity, deterministic exception handling, and deep integration with physical warehouse staff.',
+      displayOrder: 1,
+      isVisible: true,
+    },
+    {
+      id: 'block-2',
+      title: 'Applied Intelligence',
+      content:
+        'AI must serve as an amplifier of human decision-making, providing high-signal telemetry and transparent forecasting rather than opaque recommendations.',
+      displayOrder: 2,
+      isVisible: true,
+    },
+  ],
+};
+
+export const DEFAULT_RESUME_RECORD: ResumeRecord = {
+  id: 'resume-primary',
+  fileName: 'Ayush_Prakash_Resume.pdf',
+  fileUrl: '/Ayush_Prakash_Resume.pdf',
+  fileSizeBytes: 142800,
+  uploadedAt: '2026-11-01',
+  isActive: true,
+  isPublicEnabled: true,
+  buttonText: 'Download Curriculum Vitae',
+};
+
+export const DEFAULT_SECTIONS_CONFIG: SectionConfig[] = [
+  { id: 'sec-about', sectionKey: 'about', title: 'About Profile', subtitle: 'Background & Philosophy', displayOrder: 1, isVisible: true, status: 'published' },
+  { id: 'sec-experience', sectionKey: 'experience', title: 'Experience', subtitle: 'Career Timeline', displayOrder: 2, isVisible: true, status: 'published' },
+  { id: 'sec-capabilities', sectionKey: 'capabilities', title: 'Capabilities', subtitle: 'Disciplines & Tools', displayOrder: 3, isVisible: true, status: 'published' },
+  { id: 'sec-orion9', sectionKey: 'orion9', title: 'Orion-9 Showcase', subtitle: 'Flagship Case Study', displayOrder: 4, isVisible: true, status: 'published' },
+  { id: 'sec-applyvise', sectionKey: 'applyvise', title: 'ApplyVise AI', subtitle: 'Product Innovation', displayOrder: 5, isVisible: true, status: 'published' },
+  { id: 'sec-certifications', sectionKey: 'certifications', title: 'Accreditations', subtitle: 'Verified Credentials', displayOrder: 6, isVisible: true, status: 'published' },
+  { id: 'sec-education', sectionKey: 'education', title: 'Education', subtitle: 'Academic Foundation', displayOrder: 7, isVisible: true, status: 'published' },
+  { id: 'sec-contact', sectionKey: 'contact', title: 'Contact', subtitle: 'Direct Transmission', displayOrder: 8, isVisible: true, status: 'published' },
+];
+
+export const DEFAULT_APPEARANCE_SETTINGS: AppearanceSettings = {
+  primaryBg: '#111514',
+  cardBg: '#18201D',
+  textPrimary: '#F4F3EE',
+  textSecondary: '#C1C4BE',
+  accentColor: '#8294A6',
+  headingFont: 'Manrope',
+  bodyFont: 'Manrope',
+  sectionSpacing: 'normal',
+};
