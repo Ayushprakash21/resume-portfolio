@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { ProjectRecord } from '../../types/cms';
 import { ApplyViseCareerFlow } from '../interactive/ApplyViseCareerFlow';
+import { SpecularButton } from '../reactbits';
 
 interface EditorialApplyViseProps {
   project?: ProjectRecord;
@@ -140,55 +141,30 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
             An intelligent career platform designed to replace opaque ATS rejections with transparent resume diagnostics, high-accuracy job requirement alignment, and structured application intelligence without fabricated suitability claims.
           </p>
 
-          {/* Action Links */}
+          {/* Action Links with Specular Buttons */}
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             {project?.repositoryUrl && (
-              <a
+              <SpecularButton
                 href={project.repositoryUrl}
                 target="_blank"
-                rel="noreferrer"
-                className="glass-btn-spring"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '9px 18px',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  color: '#FFFFFF',
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  border: '1px solid rgba(255, 255, 255, 0.14)',
-                  borderRadius: '9999px',
-                  textDecoration: 'none',
-                }}
+                icon={<Github size={13} />}
+                iconPosition="left"
+                variant="secondary"
+                size="sm"
               >
-                <Github size={13} />
-                <span>Source Repository</span>
-              </a>
+                Source Repository
+              </SpecularButton>
             )}
             {project?.projectUrl && (
-              <a
+              <SpecularButton
                 href={project.projectUrl}
                 target="_blank"
-                rel="noreferrer"
-                className="glass-btn-spring"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '9px 18px',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  color: '#FFFFFF',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.22)',
-                  borderRadius: '9999px',
-                  textDecoration: 'none',
-                }}
+                icon={<ArrowUpRight size={13} />}
+                variant="primary"
+                size="sm"
               >
-                <span>Live Platform</span>
-                <ArrowUpRight size={13} />
-              </a>
+                Live Platform
+              </SpecularButton>
             )}
           </div>
         </div>

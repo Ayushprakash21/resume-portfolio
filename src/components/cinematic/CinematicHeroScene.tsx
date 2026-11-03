@@ -5,6 +5,15 @@ interface CinematicHeroSceneProps {
   reducedMotion?: boolean;
 }
 
+/**
+ * CINEMATIC SHADOW KNIGHT 3D HERO EXPERIENCE (HIGH-END REFINEMENT)
+ * 
+ * Features an original dark-fantasy knight guardian inspired by the presence
+ * of high-tier shadow commanders (commanding stance, sculpted black & deep-crimson armor,
+ * polished metallic silver filigree, glowing crimson visor slit, grand greatsword,
+ * billowing velvet cape, grand gothic cathedral hall, reflective flagstone floor,
+ * volumetric backlighting, and an engraved AP monogram emblem).
+ */
 export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedMotion = false }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [webGLFailed, setWebGLFailed] = useState(false);
@@ -30,45 +39,55 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     let width = container.clientWidth || window.innerWidth;
     let height = container.clientHeight || window.innerHeight;
 
-    // 1. SCENE SETUP — CONTROLLED BLACK LUXURY ATMOSPHERE
+    // ========================================================
+    // 1. SCENE SETUP & ATMOSPHERIC FOG
+    // ========================================================
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#050507');
+    scene.background = new THREE.Color('#050508');
 
-    // Atmospheric fog: deep charcoal painterly depth
-    scene.fog = new THREE.FogExp2('#07080B', 0.008);
+    // Atmospheric fog: deep charcoal & moonlight mist
+    scene.fog = new THREE.FogExp2('#07080D', 0.012);
 
-    // 2. CAMERA SETUP
-    let baseCameraZ = 8.8;
-    let baseCameraY = 1.85;
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 400);
+    // ========================================================
+    // 2. CAMERA SETUP (DESKTOP & MOBILE ADAPTIVE)
+    // ========================================================
+    let baseCameraZ = 8.5;
+    let baseCameraY = 1.65;
+    let baseCameraX = 0;
+    const camera = new THREE.PerspectiveCamera(44, width / height, 0.1, 300);
 
     const adjustCameraForViewport = (w: number, h: number) => {
       const aspect = w / h;
       camera.aspect = aspect;
       if (aspect < 0.75) {
         // Mobile portrait (320px - 430px)
-        camera.fov = 54;
-        baseCameraZ = 10.6;
+        camera.fov = 52;
+        baseCameraX = 0.5;
         baseCameraY = 1.95;
+        baseCameraZ = 10.6;
       } else if (aspect < 1.1) {
         // Tablet (600px - 820px)
         camera.fov = 48;
-        baseCameraZ = 9.5;
-        baseCameraY = 1.90;
+        baseCameraX = 0.4;
+        baseCameraY = 1.70;
+        baseCameraZ = 9.2;
       } else {
         // Desktop (1024px+)
-        camera.fov = 45;
-        baseCameraZ = 8.8;
-        baseCameraY = 1.85;
+        camera.fov = 44;
+        baseCameraX = 0;
+        baseCameraY = 1.65;
+        baseCameraZ = 8.5;
       }
-      camera.position.set(0, baseCameraY, baseCameraZ);
-      camera.lookAt(0, 2.2, -45);
+      camera.position.set(baseCameraX, baseCameraY, baseCameraZ);
+      camera.lookAt(0.9, 1.8, -10);
       camera.updateProjectionMatrix();
     };
 
     adjustCameraForViewport(width, height);
 
-    // 3. RENDERER SETUP
+    // ========================================================
+    // 3. RENDERER SETUP (ACES FILMIC & SOFT SHADOWS)
+    // ========================================================
     const renderer = new THREE.WebGLRenderer({
       powerPreference: 'high-performance',
       antialias: true,
@@ -77,285 +96,602 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.55; // Crisp, readable exposure
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     container.appendChild(renderer.domElement);
 
-    // --- 4. LUXURY OBSIDIAN & GRAPHITE SKY DOME ---
-    // Smooth visible sky with distinct luminous gradient:
-    // Top: pure luxury obsidian (#040406), Mid: dark charcoal graphite (#0C0D12), Horizon: subtle silver mist (#161820)
-    const skyGeo = new THREE.SphereGeometry(250, 32, 24);
-    const skyMat = new THREE.ShaderMaterial({
-      side: THREE.BackSide,
-      uniforms: {
-        topColor: { value: new THREE.Color('#030305') },
-        midColor: { value: new THREE.Color('#0A0B10') },
-        horizonColor: { value: new THREE.Color('#14161F') },
-        offset: { value: 18 },
-        exponent: { value: 0.6 },
-      },
-      vertexShader: `
-        varying vec3 vWorldPosition;
-        void main() {
-          vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-          vWorldPosition = worldPosition.xyz;
-          gl_Position = projectionMatrix * viewMatrix * worldPosition;
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 topColor;
-        uniform vec3 midColor;
-        uniform vec3 horizonColor;
-        uniform float offset;
-        uniform float exponent;
-        varying vec3 vWorldPosition;
-        void main() {
-          float h = normalize(vWorldPosition + vec3(0.0, offset, 0.0)).y;
-          float factor = max(pow(max(h, 0.0), exponent), 0.0);
-          vec3 sky = mix(horizonColor, midColor, smoothstep(0.0, 0.45, factor));
-          sky = mix(sky, topColor, smoothstep(0.45, 1.0, factor));
-          gl_FragColor = vec4(sky, 1.0);
-        }
-      `,
-    });
-    const skyMesh = new THREE.Mesh(skyGeo, skyMat);
-    scene.add(skyMesh);
-
-    // --- 5. CONTROLLED ENVIRONMENTAL LIGHTING SYSTEM ---
-    // 5a. Soft ambient illumination (sky/ground hemisphere)
-    const ambientLight = new THREE.HemisphereLight('#7A8090', '#07070A', 1.6);
+    // ========================================================
+    // 4. LIGHTING ARCHITECTURE (CINEMATIC CONTRAST & VISIBILITY)
+    // ========================================================
+    // 4a. Ambient Fill Light: Prevents shadow crushing
+    const ambientLight = new THREE.AmbientLight('#202432', 1.8);
     scene.add(ambientLight);
 
-    // 5b. Key directional light (soft radiance from upper right, non-harsh speculars)
-    const keyLight = new THREE.DirectionalLight('#D8DCE8', 1.8);
-    keyLight.position.set(18, 28, -12);
+    // 4b. Primary Key Directional Light: Cool silver-white key illuminating armor plates
+    const keyLight = new THREE.DirectionalLight('#F0F4FA', 4.2);
+    keyLight.position.set(3.8, 4.5, 4.8);
+    keyLight.target.position.set(2.3, 1.8, 1.0);
     keyLight.castShadow = true;
-    keyLight.shadow.mapSize.width = 1024;
-    keyLight.shadow.mapSize.height = 1024;
+    keyLight.shadow.mapSize.width = 2048;
+    keyLight.shadow.mapSize.height = 2048;
+    keyLight.shadow.bias = -0.0005;
     scene.add(keyLight);
+    scene.add(keyLight.target);
 
-    // 5c. Foreground fill light (illuminates foreground rocks & water surface softly)
-    const fillLight = new THREE.DirectionalLight('#606575', 1.1);
-    fillLight.position.set(-14, 12, 14);
-    scene.add(fillLight);
-
-    // 5d. CRISP SILVER RIM LIGHTING BEHIND HUMAN FIGURE:
-    // Highlight silhouette edge without causing glare on background
-    const rimLight = new THREE.DirectionalLight('#FFFFFF', 4.0);
-    rimLight.position.set(0, 3.8, -10);
-    rimLight.target.position.set(0, 1.8, 2.6);
+    // 4c. Powerful Silver Rim Light: Razor-sharp silver contour behind the knight
+    const rimLight = new THREE.DirectionalLight('#FFFFFF', 6.5);
+    rimLight.position.set(2.3, 3.2, -1.8);
+    rimLight.target.position.set(2.3, 1.8, 1.0);
     scene.add(rimLight);
     scene.add(rimLight.target);
 
-    // 5e. Subtle low-intensity liquid water reflections
-    const waterReflectCenter = new THREE.PointLight('#C8C8CE', 1.2, 35);
-    waterReflectCenter.position.set(0, 1.2, -16);
-    scene.add(waterReflectCenter);
+    // 4d. Left Fill Light: Soft slate fill for the left hall
+    const fillLight = new THREE.DirectionalLight('#455168', 1.8);
+    fillLight.position.set(-6.0, 4.0, 4.0);
+    scene.add(fillLight);
 
-    // --- 6. NATURAL HILLSIDE BANK & DISTANT MOUNTAIN RIDGE ---
-    // Grounded hillside rising behind the lake, obsidian topography
-    const hillGeo = new THREE.PlaneGeometry(160, 42, 60, 30);
-    hillGeo.rotateX(-Math.PI / 2);
-    const hillPos = hillGeo.attributes.position;
-    for (let i = 0; i < hillPos.count; i++) {
-      const x = hillPos.getX(i);
-      const z = hillPos.getZ(i);
-      const ridge = Math.sin(x * 0.05) * 2.4 + Math.cos(x * 0.12) * 1.2;
-      const slope = ((z + 21) / 42) * 5.2;
-      hillPos.setY(i, Math.max(0.1, ridge + slope));
-    }
-    hillGeo.computeVertexNormals();
+    // 4e. Cathedral Arch Volumetric Spotlight: Beaming through the distant arch
+    const archSpot = new THREE.SpotLight('#CBD5E1', 4.8, 60, Math.PI / 4, 0.65, 1.2);
+    archSpot.position.set(1.5, 12, -32);
+    archSpot.target.position.set(1.8, 0, 0);
+    archSpot.castShadow = true;
+    scene.add(archSpot);
+    scene.add(archSpot.target);
 
-    const hillMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#0A0B0E'),
-      roughness: 0.94,
-      metalness: 0.04,
-      flatShading: true,
-    });
-    const hillMesh = new THREE.Mesh(hillGeo, hillMat);
-    hillMesh.position.set(0, 0, -25);
-    hillMesh.receiveShadow = true;
-    scene.add(hillMesh);
+    // 4f. Crimson Visor Point Light: Menacing eye slit illumination
+    const crimsonEyeLight = new THREE.PointLight('#FF1E38', 3.0, 3.5);
+    crimsonEyeLight.position.set(2.3, 2.72, 1.28);
+    scene.add(crimsonEyeLight);
 
-    // Silhouette conifer tops along the crest of the hill (clean architectural horizon)
-    const foliageGroup = new THREE.Group();
-    const treeMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#060608'),
-      roughness: 0.96,
-      flatShading: true,
-    });
-    const treeConeGeo = new THREE.ConeGeometry(0.65, 3.2, 5);
+    // 4g. Sword Runic Core Light
+    const swordGlowLight = new THREE.PointLight('#FF2A42', 2.4, 4.0);
+    swordGlowLight.position.set(2.3, 1.4, 1.45);
+    scene.add(swordGlowLight);
 
-    for (let i = 0; i < 35; i++) {
-      const tx = (Math.random() - 0.5) * 110;
-      const tz = -30 - Math.random() * 12;
-      const ridge = Math.sin(tx * 0.05) * 2.4 + Math.cos(tx * 0.12) * 1.2;
-      const ty = Math.max(1.8, ridge + 4.2) + 1.0;
-      const tree = new THREE.Mesh(treeConeGeo, treeMat);
-      tree.position.set(tx, ty, tz);
-      const ts = 0.75 + Math.random() * 0.7;
-      tree.scale.set(ts, ts, ts);
-      tree.rotation.y = Math.random() * Math.PI;
-      foliageGroup.add(tree);
-    }
-    scene.add(foliageGroup);
-
-    // Far background mountain ridge
-    const farRidgeGeo = new THREE.PlaneGeometry(240, 60, 60, 20);
-    farRidgeGeo.rotateX(-Math.PI / 2);
-    const farPos = farRidgeGeo.attributes.position;
-    for (let i = 0; i < farPos.count; i++) {
-      const x = farPos.getX(i);
-      const n = Math.sin(x * 0.03) * 6.5 + Math.cos(x * 0.07) * 3.5;
-      farPos.setY(i, Math.max(0, n + 7.5));
-    }
-    farRidgeGeo.computeVertexNormals();
-    const farRidgeMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#0E0F15'),
-      roughness: 0.96,
-      flatShading: true,
-    });
-    const farRidge = new THREE.Mesh(farRidgeGeo, farRidgeMat);
-    farRidge.position.set(0, 0, -65);
-    scene.add(farRidge);
-
-    // --- 7. CALM REFLECTIVE LIQUID OBSIDIAN WATER PLANE ---
-    // Smooth, deep liquid obsidian lake water reflecting the sky with gentle ripples
-    const waterGeo = new THREE.PlaneGeometry(180, 50, 70, 40);
-    waterGeo.rotateX(-Math.PI / 2);
-
-    const waterMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#050507'),
-      roughness: 0.12,
-      metalness: 0.92,
-      envMapIntensity: 2.0,
+    // ========================================================
+    // 5. MATERIALS PALETTE (SHADOW KNIGHT & CATHEDRAL)
+    // ========================================================
+    // Obsidian Black Iron Armor (high specular reflection, clear facets)
+    const armorPlateMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#141620'),
+      roughness: 0.20,
+      metalness: 0.95,
+      envMapIntensity: 2.5,
     });
 
-    const waterMesh = new THREE.Mesh(waterGeo, waterMat);
-    waterMesh.position.set(0, -0.05, -10);
-    waterMesh.receiveShadow = true;
-    scene.add(waterMesh);
-
-    // Save initial water positions for gentle ripple animation
-    const waterPos = waterGeo.attributes.position;
-    const initialWaterY = new Float32Array(waterPos.count);
-    for (let i = 0; i < waterPos.count; i++) {
-      initialWaterY[i] = waterPos.getY(i);
-    }
-
-    // --- 8. GROUNDED FOREGROUND ROCKS (CRAG TEXTURES, POSITIONED AWAY FROM TEXT) ---
-    const rockMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#15161C'),
-      roughness: 0.85,
-      metalness: 0.15,
-      flatShading: true,
-    });
-
-    const createCragRock = (radius: number, scaleX: number, scaleY: number, scaleZ: number) => {
-      const geo = new THREE.DodecahedronGeometry(radius, 2);
-      const pos = geo.attributes.position;
-      for (let i = 0; i < pos.count; i++) {
-        const vx = pos.getX(i);
-        const vy = pos.getY(i);
-        const vz = pos.getZ(i);
-        const n = Math.sin(vx * 2.2) * Math.cos(vy * 2.4) * Math.sin(vz * 2.0) * 0.16;
-        pos.setXYZ(i, vx + vx * n, vy + vy * n, vz + vz * n);
-      }
-      geo.computeVertexNormals();
-      geo.scale(scaleX, scaleY, scaleZ);
-      return new THREE.Mesh(geo, rockMat);
-    };
-
-    const rockGroup = new THREE.Group();
-
-    // Right Large Craggy Boulder (Grounded in right foreground)
-    const rightBigRock = createCragRock(3.6, 1.2, 0.95, 1.15);
-    rightBigRock.position.set(6.8, 0.15, 1.8);
-    rightBigRock.rotation.set(0.12, -0.35, 0.08);
-    rightBigRock.castShadow = true;
-    rightBigRock.receiveShadow = true;
-    rockGroup.add(rightBigRock);
-
-    const rightBaseRock = createCragRock(2.2, 1.3, 0.6, 1.2);
-    rightBaseRock.position.set(5.4, -0.5, 3.4);
-    rockGroup.add(rightBaseRock);
-
-    // Left Foreground Rock Shelf (Lowered significantly so it stays at the bottom and never obstructs the upper-left intro text)
-    const leftRock = createCragRock(2.4, 1.1, 0.65, 1.1);
-    leftRock.position.set(-7.2, -0.75, 1.8);
-    leftRock.rotation.set(0.08, 0.35, -0.05);
-    leftRock.castShadow = true;
-    leftRock.receiveShadow = true;
-    rockGroup.add(leftRock);
-
-    const leftBaseRock = createCragRock(1.9, 1.3, 0.5, 1.15);
-    leftBaseRock.position.set(-5.2, -0.7, 3.2);
-    rockGroup.add(leftBaseRock);
-
-    // Center Rocky Promontory (Platform where the figure stands looking at the water)
-    const centerLedge = createCragRock(2.6, 1.7, 0.65, 1.5);
-    centerLedge.position.set(0, -0.5, 2.5);
-    centerLedge.rotation.set(0.05, 0.06, -0.02);
-    centerLedge.castShadow = true;
-    centerLedge.receiveShadow = true;
-    rockGroup.add(centerLedge);
-
-    scene.add(rockGroup);
-
-    // --- 9. HUMAN FIGURE (PROMINENT, CRISPLY ILLUMINATED SILHOUETTE) ---
-    // Standing centered on the rocky ledge, gazing out at the vast water and horizon
-    const figureGroup = new THREE.Group();
-    figureGroup.position.set(0, 0.25, 2.5);
-
-    // Metallic cloak material: reflective obsidian chrome with crisp silver specular highlights
-    const cloakMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#0A0B0F'),
-      roughness: 0.22,
+    // Dark Crimson Secondary Steel Plates
+    const crimsonSteelMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#480A12'),
+      roughness: 0.25,
       metalness: 0.88,
     });
-    const headMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#101217'),
-      roughness: 0.20,
-      metalness: 0.90,
+
+    // Gleaming Silver Filigree Trim & Bevels
+    const silverTrimMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#E8EDF5'),
+      roughness: 0.12,
+      metalness: 0.98,
     });
 
-    // Cloak / Body drape
-    const coatGeo = new THREE.CylinderGeometry(0.32, 0.54, 1.35, 16);
-    coatGeo.scale(1.0, 1.0, 0.72);
-    const coat = new THREE.Mesh(coatGeo, cloakMat);
-    coat.position.set(0, 0.92, 0);
-    coat.castShadow = true;
-    coat.receiveShadow = true;
-    figureGroup.add(coat);
+    // Self-Illuminated Crimson Visor Slit
+    const crimsonGlowMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color('#FF1E38'),
+    });
 
-    // Shoulders & Upper Mantle
-    const shouldersGeo = new THREE.BoxGeometry(0.76, 0.24, 0.38);
-    const shoulders = new THREE.Mesh(shouldersGeo, cloakMat);
-    shoulders.position.set(0, 1.48, 0.01);
-    shoulders.castShadow = true;
-    shoulders.receiveShadow = true;
-    figureGroup.add(shoulders);
+    // Flowing Crimson Velvet Cape Material (Double-sided)
+    const capeMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#580A15'),
+      roughness: 0.72,
+      metalness: 0.28,
+      side: THREE.DoubleSide,
+    });
 
-    // Neck / Cowl
-    const neckGeo = new THREE.CylinderGeometry(0.13, 0.16, 0.18, 12);
-    const neck = new THREE.Mesh(neckGeo, cloakMat);
-    neck.position.set(0, 1.64, -0.01);
-    figureGroup.add(neck);
+    // Greatsword Steel Blade Material
+    const swordBladeMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#1E222D'),
+      roughness: 0.15,
+      metalness: 0.96,
+    });
 
-    // Hooded Head
-    const headGeo = new THREE.SphereGeometry(0.20, 16, 14);
-    headGeo.scale(0.88, 1.05, 0.94);
-    const head = new THREE.Mesh(headGeo, headMat);
-    head.position.set(0, 1.82, -0.03);
-    head.castShadow = true;
-    head.receiveShadow = true;
-    figureGroup.add(head);
+    // Cathedral Stone / Pillar Material
+    const rockMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#15161F'),
+      roughness: 0.80,
+      metalness: 0.22,
+      flatShading: true,
+    });
+
+    // Reflective Polished Obsidian Stone Floor
+    const stoneFloorMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#08090E'),
+      roughness: 0.14,
+      metalness: 0.90,
+      envMapIntensity: 2.2,
+    });
+
+    // ========================================================
+    // 6. GRAND MEDIEVAL CATHEDRAL ENVIRONMENT
+    // ========================================================
+    const environmentGroup = new THREE.Group();
+
+    // 6a. Reflective Flagstone Floor Plane
+    const waterGeo = new THREE.PlaneGeometry(160, 100, 64, 40);
+    waterGeo.rotateX(-Math.PI / 2);
+    const floorMesh = new THREE.Mesh(waterGeo, stoneFloorMat);
+    floorMesh.position.set(0, -0.01, -12);
+    floorMesh.receiveShadow = true;
+    environmentGroup.add(floorMesh);
+
+    // 6b. Flagstone Tile Grid Seams
+    const tileGrid = new THREE.GridHelper(120, 40, '#242A3A', '#12141E');
+    tileGrid.position.set(0, 0.005, -12);
+    environmentGroup.add(tileGrid);
+
+    // 6c. Monumental Fluted Gothic Pillars
+    const pillarGeo = new THREE.CylinderGeometry(0.85, 0.95, 18, 16);
+    const pillarBaseGeo = new THREE.BoxGeometry(2.4, 0.9, 2.4);
+    const pillarCapitalGeo = new THREE.BoxGeometry(2.6, 0.8, 2.6);
+
+    const pillarPositions = [
+      // Left Colonnade
+      { x: -5.5, z: 4 },
+      { x: -6.2, z: -4 },
+      { x: -6.8, z: -12 },
+      { x: -7.5, z: -20 },
+      { x: -8.2, z: -28 },
+      // Right Colonnade
+      { x: 7.2, z: 4 },
+      { x: 7.6, z: -4 },
+      { x: 8.0, z: -12 },
+      { x: 8.5, z: -20 },
+      { x: 9.0, z: -28 },
+    ];
+
+    pillarPositions.forEach((pos, idx) => {
+      const pGroup = new THREE.Group();
+      pGroup.position.set(pos.x, 9, pos.z);
+
+      const shaft = new THREE.Mesh(pillarGeo, rockMat);
+      shaft.castShadow = true;
+      shaft.receiveShadow = true;
+      pGroup.add(shaft);
+
+      const base = new THREE.Mesh(pillarBaseGeo, rockMat);
+      base.position.set(0, -8.5, 0);
+      base.receiveShadow = true;
+      pGroup.add(base);
+
+      const cap = new THREE.Mesh(pillarCapitalGeo, rockMat);
+      cap.position.set(0, 8.6, 0);
+      pGroup.add(cap);
+
+      if (idx % 2 === 0) {
+        const sconce = new THREE.PointLight('#E59844', 1.3, 10);
+        sconce.position.set(pos.x > 0 ? -1.0 : 1.0, 3.2, 0);
+        pGroup.add(sconce);
+
+        const flameGeo = new THREE.SphereGeometry(0.12, 8, 8);
+        const flameMat = new THREE.MeshBasicMaterial({ color: '#FFAA33' });
+        const flame = new THREE.Mesh(flameGeo, flameMat);
+        flame.position.copy(sconce.position);
+        pGroup.add(flame);
+      }
+
+      environmentGroup.add(pGroup);
+    });
+
+    // 6d. Grounded Left Architectural Pediment (Safely below text zone)
+    const leftRock = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.8, 3.2), rockMat);
+    leftRock.position.set(-7.2, -0.75, 1.8);
+    leftRock.receiveShadow = true;
+    environmentGroup.add(leftRock);
+
+    // 6e. Distant Grand Cathedral Archway
+    const archGroup = new THREE.Group();
+    archGroup.position.set(0, 0, -36);
+
+    const archPillarGeo = new THREE.CylinderGeometry(1.6, 1.8, 24, 20);
+    const leftArchPillar = new THREE.Mesh(archPillarGeo, rockMat);
+    leftArchPillar.position.set(-6.5, 12, 0);
+    archGroup.add(leftArchPillar);
+
+    const rightArchPillar = new THREE.Mesh(archPillarGeo, rockMat);
+    rightArchPillar.position.set(6.5, 12, 0);
+    archGroup.add(rightArchPillar);
+
+    const archTorusGeo = new THREE.TorusGeometry(6.5, 1.6, 16, 32, Math.PI);
+    const archTorus = new THREE.Mesh(archTorusGeo, rockMat);
+    archTorus.position.set(0, 22, 0);
+    archGroup.add(archTorus);
+
+    const portalGeo = new THREE.PlaneGeometry(12, 24);
+    const portalMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color('#3A455C'),
+      transparent: true,
+      opacity: 0.75,
+    });
+    const portal = new THREE.Mesh(portalGeo, portalMat);
+    portal.position.set(0, 12, -0.5);
+    archGroup.add(portal);
+
+    // 6f. Central Altar Dais with Engraved AP Metallic Emblem
+    const daisGeo = new THREE.CylinderGeometry(4.2, 4.6, 0.6, 32);
+    const dais = new THREE.Mesh(daisGeo, rockMat);
+    dais.position.set(0, 0.3, -26);
+    dais.receiveShadow = true;
+    archGroup.add(dais);
+
+    // Engraved AP Monogram in the Dais Wall
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load('/brand/ap-transparent.png', (apTexture) => {
+      apTexture.generateMipmaps = true;
+      const apEmblemGeo = new THREE.PlaneGeometry(5.2, 3.32);
+      const apEmblemMat = new THREE.MeshStandardMaterial({
+        map: apTexture,
+        transparent: true,
+        roughness: 0.15,
+        metalness: 0.95,
+        emissive: new THREE.Color('#94A3B8'),
+        emissiveIntensity: 0.35,
+      });
+      const apEmblem = new THREE.Mesh(apEmblemGeo, apEmblemMat);
+      apEmblem.position.set(0, 4.5, -34.8);
+      scene.add(apEmblem);
+    });
+
+    environmentGroup.add(archGroup);
+    scene.add(environmentGroup);
+
+    // ========================================================
+    // 7. THE SHADOW KNIGHT GUARDIAN MODEL (CURVED ARTICULATED GOTHIC ARMOR)
+    // ========================================================
+    const figureGroup = new THREE.Group();
+    figureGroup.position.set(2.3, 0, 1.0); // Center-right position leaves left zone 100% readable
+
+    // 7a. Base Knight Dias / Ground Contact
+    const knightPedestalGeo = new THREE.CylinderGeometry(1.6, 1.8, 0.16, 32);
+    const knightPedestal = new THREE.Mesh(knightPedestalGeo, rockMat);
+    knightPedestal.position.set(0, 0.08, 0);
+    knightPedestal.receiveShadow = true;
+    figureGroup.add(knightPedestal);
+
+    // Pedestal Silver Ring
+    const pedRingGeo = new THREE.TorusGeometry(1.6, 0.03, 8, 32);
+    pedRingGeo.rotateX(Math.PI / 2);
+    const pedRing = new THREE.Mesh(pedRingGeo, silverTrimMat);
+    pedRing.position.set(0, 0.16, 0);
+    figureGroup.add(pedRing);
+
+    // 7b. Articulated Gothic Sabatons (Boots)
+    const sabatonGeo = new THREE.BoxGeometry(0.28, 0.18, 0.58);
+    sabatonGeo.translate(0, 0.09, 0.1);
+
+    const leftSabaton = new THREE.Mesh(sabatonGeo, armorPlateMat);
+    leftSabaton.position.set(-0.35, 0.16, 0);
+    leftSabaton.rotation.y = 0.14;
+    leftSabaton.castShadow = true;
+    figureGroup.add(leftSabaton);
+
+    const rightSabaton = new THREE.Mesh(sabatonGeo, armorPlateMat);
+    rightSabaton.position.set(0.35, 0.16, 0);
+    rightSabaton.rotation.y = -0.14;
+    rightSabaton.castShadow = true;
+    figureGroup.add(rightSabaton);
+
+    // 7c. Greaves & Shin Armor with Silver Bevels
+    const greaveGeo = new THREE.CylinderGeometry(0.18, 0.13, 0.88, 16);
+    const leftGreave = new THREE.Mesh(greaveGeo, armorPlateMat);
+    leftGreave.position.set(-0.35, 0.65, 0);
+    leftGreave.castShadow = true;
+    figureGroup.add(leftGreave);
+
+    const rightGreave = new THREE.Mesh(greaveGeo, armorPlateMat);
+    rightGreave.position.set(0.35, 0.65, 0);
+    rightGreave.castShadow = true;
+    figureGroup.add(rightGreave);
+
+    // Silver Greave Trim
+    const trimGreaveGeo = new THREE.TorusGeometry(0.18, 0.02, 8, 16);
+    const leftGreaveTrim = new THREE.Mesh(trimGreaveGeo, silverTrimMat);
+    leftGreaveTrim.rotation.x = Math.PI / 2;
+    leftGreaveTrim.position.set(-0.35, 0.95, 0);
+    figureGroup.add(leftGreaveTrim);
+
+    const rightGreaveTrim = new THREE.Mesh(trimGreaveGeo, silverTrimMat);
+    rightGreaveTrim.rotation.x = Math.PI / 2;
+    rightGreaveTrim.position.set(0.35, 0.95, 0);
+    figureGroup.add(rightGreaveTrim);
+
+    // 7d. Poleyns (Spiked Knee Cops)
+    const poleynGeo = new THREE.SphereGeometry(0.16, 16, 12);
+    poleynGeo.scale(1.0, 1.2, 1.4);
+
+    const leftPoleyn = new THREE.Mesh(poleynGeo, crimsonSteelMat);
+    leftPoleyn.position.set(-0.35, 1.15, 0.12);
+    figureGroup.add(leftPoleyn);
+
+    const rightPoleyn = new THREE.Mesh(poleynGeo, crimsonSteelMat);
+    rightPoleyn.position.set(0.35, 1.15, 0.12);
+    figureGroup.add(rightPoleyn);
+
+    // 7e. Cuisses (Thigh Armor)
+    const cuisseGeo = new THREE.CylinderGeometry(0.24, 0.19, 0.85, 16);
+    const leftCuisse = new THREE.Mesh(cuisseGeo, armorPlateMat);
+    leftCuisse.position.set(-0.32, 1.6, 0);
+    leftCuisse.castShadow = true;
+    figureGroup.add(leftCuisse);
+
+    const rightCuisse = new THREE.Mesh(cuisseGeo, armorPlateMat);
+    rightCuisse.position.set(0.32, 1.6, 0);
+    rightCuisse.castShadow = true;
+    figureGroup.add(rightCuisse);
+
+    // 7f. Faulds & Tassets (Layered Hip & Thigh Guards)
+    const tassetGeo = new THREE.BoxGeometry(0.32, 0.45, 0.06);
+    const leftTasset = new THREE.Mesh(tassetGeo, crimsonSteelMat);
+    leftTasset.position.set(-0.44, 1.95, 0.14);
+    leftTasset.rotation.set(0.12, -0.18, 0.12);
+    figureGroup.add(leftTasset);
+
+    const rightTasset = new THREE.Mesh(tassetGeo, crimsonSteelMat);
+    rightTasset.position.set(0.44, 1.95, 0.14);
+    rightTasset.rotation.set(0.12, 0.18, -0.12);
+    figureGroup.add(rightTasset);
+
+    // Belt Buckle / Center Inset
+    const beltBuckleGeo = new THREE.OctahedronGeometry(0.15, 0);
+    const beltBuckle = new THREE.Mesh(beltBuckleGeo, silverTrimMat);
+    beltBuckle.position.set(0, 2.05, 0.25);
+    figureGroup.add(beltBuckle);
+
+    // 7g. Articulated Breastplate & Torso Group (Breathing Animation Anchor)
+    const torsoGroup = new THREE.Group();
+    torsoGroup.position.set(0, 2.0, 0);
+
+    // Segmented Abdomen Cuirass
+    const abdomenGeo = new THREE.CylinderGeometry(0.42, 0.38, 0.52, 20);
+    abdomenGeo.scale(1.15, 1.0, 0.84);
+    const abdomen = new THREE.Mesh(abdomenGeo, armorPlateMat);
+    abdomen.position.set(0, 0.3, 0);
+    abdomen.castShadow = true;
+    torsoGroup.add(abdomen);
+
+    // Upper Muscled Gothic Cuirass (Chestplate with anatomical curves)
+    const chestGeo = new THREE.SphereGeometry(0.55, 24, 18);
+    chestGeo.scale(1.0, 0.85, 0.75);
+    const chest = new THREE.Mesh(chestGeo, armorPlateMat);
+    chest.position.set(0, 0.80, 0.06);
+    chest.castShadow = true;
+    torsoGroup.add(chest);
+
+    // Center Ridge / Fluting (Silver spine line)
+    const ridgeGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.72, 8);
+    const ridge = new THREE.Mesh(ridgeGeo, silverTrimMat);
+    ridge.position.set(0, 0.80, 0.44);
+    torsoGroup.add(ridge);
+
+    // Crimson Inset Pectoral Plates
+    const pecGeo = new THREE.BoxGeometry(0.28, 0.28, 0.05);
+    const leftPec = new THREE.Mesh(pecGeo, crimsonSteelMat);
+    leftPec.position.set(-0.22, 0.85, 0.40);
+    leftPec.rotation.set(0, -0.22, 0.05);
+    torsoGroup.add(leftPec);
+
+    const rightPec = new THREE.Mesh(pecGeo, crimsonSteelMat);
+    rightPec.position.set(0.22, 0.85, 0.40);
+    rightPec.rotation.set(0, 0.22, -0.05);
+    torsoGroup.add(rightPec);
+
+    // Gorget (Armored Neck Collar)
+    const gorgetGeo = new THREE.CylinderGeometry(0.26, 0.35, 0.26, 16);
+    const gorget = new THREE.Mesh(gorgetGeo, silverTrimMat);
+    gorget.position.set(0, 1.22, 0.04);
+    torsoGroup.add(gorget);
+
+    // 7h. Grand Flared Gothic Pauldrons (Shoulder Armor with Silver Bevels)
+    const pauldronGeo = new THREE.SphereGeometry(0.38, 16, 12, 0, Math.PI);
+    pauldronGeo.scale(1.2, 0.9, 0.9);
+
+    const leftPauldron = new THREE.Mesh(pauldronGeo, armorPlateMat);
+    leftPauldron.position.set(-0.66, 1.15, 0);
+    leftPauldron.rotation.set(0.2, 0, -Math.PI / 2.3);
+    leftPauldron.castShadow = true;
+    torsoGroup.add(leftPauldron);
+
+    const leftPauldronRim = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.025, 8, 16, Math.PI), silverTrimMat);
+    leftPauldronRim.position.copy(leftPauldron.position);
+    leftPauldronRim.rotation.copy(leftPauldron.rotation);
+    torsoGroup.add(leftPauldronRim);
+
+    const rightPauldron = new THREE.Mesh(pauldronGeo, armorPlateMat);
+    rightPauldron.position.set(0.66, 1.15, 0);
+    rightPauldron.rotation.set(0.2, 0, Math.PI / 2.3);
+    rightPauldron.castShadow = true;
+    torsoGroup.add(rightPauldron);
+
+    const rightPauldronRim = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.025, 8, 16, Math.PI), silverTrimMat);
+    rightPauldronRim.position.copy(rightPauldron.position);
+    rightPauldronRim.rotation.copy(rightPauldron.rotation);
+    torsoGroup.add(rightPauldronRim);
+
+    // 7i. Articulated Arms, Vambraces & Gauntlets Gripping the Greatsword
+    const armGeo = new THREE.CylinderGeometry(0.14, 0.12, 0.65, 12);
+
+    // Left Arm holding sword hilt
+    const leftArm = new THREE.Mesh(armGeo, armorPlateMat);
+    leftArm.position.set(-0.54, 0.75, 0.22);
+    leftArm.rotation.set(0.55, 0.22, -0.32);
+    torsoGroup.add(leftArm);
+
+    const leftForearm = new THREE.Mesh(armGeo, crimsonSteelMat);
+    leftForearm.position.set(-0.38, 0.32, 0.48);
+    leftForearm.rotation.set(0.95, -0.28, 0.18);
+    torsoGroup.add(leftForearm);
+
+    // Right Arm holding sword hilt
+    const rightArm = new THREE.Mesh(armGeo, armorPlateMat);
+    rightArm.position.set(0.54, 0.75, 0.22);
+    rightArm.rotation.set(0.55, -0.22, 0.32);
+    torsoGroup.add(rightArm);
+
+    const rightForearm = new THREE.Mesh(armGeo, crimsonSteelMat);
+    rightForearm.position.set(0.38, 0.32, 0.48);
+    rightForearm.rotation.set(0.95, 0.28, -0.18);
+    torsoGroup.add(rightForearm);
+
+    // Gauntlets (Armored Hands meeting at the sword grip)
+    const gauntletGeo = new THREE.BoxGeometry(0.16, 0.16, 0.22);
+    const leftGauntlet = new THREE.Mesh(gauntletGeo, silverTrimMat);
+    leftGauntlet.position.set(-0.10, 0.26, 0.64);
+    leftGauntlet.rotation.set(0.35, 0.2, -0.15);
+    torsoGroup.add(leftGauntlet);
+
+    const rightGauntlet = new THREE.Mesh(gauntletGeo, silverTrimMat);
+    rightGauntlet.position.set(0.10, 0.38, 0.64);
+    rightGauntlet.rotation.set(0.35, -0.2, 0.15);
+    torsoGroup.add(rightGauntlet);
+
+    // 7j. Imposing Gothic Knight Helm (Sleek curved helmet with glowing visor)
+    const helmetGroup = new THREE.Group();
+    helmetGroup.position.set(0, 1.45, 0.05);
+
+    // Curved Helm Dome
+    const helmDomeGeo = new THREE.SphereGeometry(0.27, 24, 20);
+    helmDomeGeo.scale(0.85, 1.15, 1.0);
+    const helmDome = new THREE.Mesh(helmDomeGeo, armorPlateMat);
+    helmDome.castShadow = true;
+    helmetGroup.add(helmDome);
+
+    // Silver Crown Fin / Crest
+    const finGeo = new THREE.BoxGeometry(0.04, 0.55, 0.45);
+    const helmFin = new THREE.Mesh(finGeo, silverTrimMat);
+    helmFin.position.set(0, 0.30, -0.05);
+    helmFin.rotation.x = -0.35;
+    helmetGroup.add(helmFin);
+
+    // Swept-Back Horn Accents (Winged Crest)
+    const hornGeo = new THREE.ConeGeometry(0.07, 0.75, 8);
+    const leftHorn = new THREE.Mesh(hornGeo, crimsonSteelMat);
+    leftHorn.position.set(-0.28, 0.35, -0.12);
+    leftHorn.rotation.set(-0.45, 0.15, -0.55);
+    helmetGroup.add(leftHorn);
+
+    const rightHorn = new THREE.Mesh(hornGeo, crimsonSteelMat);
+    rightHorn.position.set(0.28, 0.35, -0.12);
+    rightHorn.rotation.set(-0.45, -0.15, 0.55);
+    helmetGroup.add(rightHorn);
+
+    // Curved Gothic Visor Mask
+    const visorMaskGeo = new THREE.CylinderGeometry(0.24, 0.22, 0.32, 16, 1, false, 0, Math.PI);
+    const visorMask = new THREE.Mesh(visorMaskGeo, armorPlateMat);
+    visorMask.position.set(0, -0.04, 0.10);
+    visorMask.rotation.y = Math.PI / 2;
+    helmetGroup.add(visorMask);
+
+    // Luminous Crimson Eye Visor Slit
+    const visorSlitGeo = new THREE.BoxGeometry(0.30, 0.035, 0.06);
+    const visorSlit = new THREE.Mesh(visorSlitGeo, crimsonGlowMat);
+    visorSlit.position.set(0, 0.02, 0.28);
+    helmetGroup.add(visorSlit);
+
+    torsoGroup.add(helmetGroup);
+    figureGroup.add(torsoGroup);
+
+    // 7k. Monumental Medieval Greatsword (Planted Firmly Point-Down in Front)
+    const swordGroup = new THREE.Group();
+    swordGroup.position.set(0, 0.16, 0.65);
+
+    // Double-Edged Blade (1.75m long)
+    const bladeGeo = new THREE.BoxGeometry(0.16, 1.65, 0.035);
+    const blade = new THREE.Mesh(bladeGeo, swordBladeMat);
+    blade.position.set(0, 0.82, 0);
+    blade.castShadow = true;
+    swordGroup.add(blade);
+
+    // Tapered Point (Tip resting on pedestal)
+    const tipGeo = new THREE.ConeGeometry(0.08, 0.22, 4);
+    tipGeo.rotateY(Math.PI / 4);
+    const tip = new THREE.Mesh(tipGeo, swordBladeMat);
+    tip.position.set(0, 0.05, 0);
+    swordGroup.add(tip);
+
+    // Glowing Crimson Runic Core Line
+    const fullerGeo = new THREE.BoxGeometry(0.035, 1.45, 0.045);
+    const fuller = new THREE.Mesh(fullerGeo, crimsonGlowMat);
+    fuller.position.set(0, 0.90, 0);
+    swordGroup.add(fuller);
+
+    // Intricate Silver Crossguard
+    const crossguardGeo = new THREE.BoxGeometry(0.74, 0.07, 0.11);
+    const crossguard = new THREE.Mesh(crossguardGeo, silverTrimMat);
+    crossguard.position.set(0, 1.68, 0);
+    swordGroup.add(crossguard);
+
+    // Hilt / Wire-Wrapped Grip
+    const hiltGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.45, 12);
+    const hilt = new THREE.Mesh(hiltGeo, crimsonSteelMat);
+    hilt.position.set(0, 1.94, 0);
+    swordGroup.add(hilt);
+
+    // Faceted Silver Pommel
+    const pommelGeo = new THREE.OctahedronGeometry(0.075, 0);
+    const pommel = new THREE.Mesh(pommelGeo, silverTrimMat);
+    pommel.position.set(0, 2.20, 0);
+    swordGroup.add(pommel);
+
+    figureGroup.add(swordGroup);
+
+    // 7l. Flowing Crimson Velvet Cape (Dynamic Vertex Simulation)
+    const capeGeo = new THREE.PlaneGeometry(1.55, 2.40, 24, 24);
+    const capePos = capeGeo.attributes.position;
+    const initialCapeZ = new Float32Array(capePos.count);
+    const initialCapeX = new Float32Array(capePos.count);
+
+    for (let i = 0; i < capePos.count; i++) {
+      initialCapeZ[i] = capePos.getZ(i);
+      initialCapeX[i] = capePos.getX(i);
+    }
+
+    const cape = new THREE.Mesh(capeGeo, capeMat);
+    cape.position.set(0, 1.42, -0.22);
+    cape.castShadow = true;
+    figureGroup.add(cape);
 
     scene.add(figureGroup);
 
-    // --- 10. MOUSE PARALLAX & SUBTLE NATURAL ANIMATION ---
+    // ========================================================
+    // 8. VOLUMETRIC ATMOSPHERIC PARTICLES & RISING EMBERS
+    // ========================================================
+    const emberCount = 40;
+    const emberGeo = new THREE.BufferGeometry();
+    const emberPositions = new Float32Array(emberCount * 3);
+    const emberSpeeds = new Float32Array(emberCount);
+
+    for (let i = 0; i < emberCount; i++) {
+      emberPositions[i * 3] = (Math.random() - 0.5) * 16;
+      emberPositions[i * 3 + 1] = Math.random() * 8;
+      emberPositions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+      emberSpeeds[i] = 0.2 + Math.random() * 0.4;
+    }
+
+    emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPositions, 3));
+
+    const emberMat = new THREE.PointsMaterial({
+      color: new THREE.Color('#FF4D4D'),
+      size: 0.075,
+      transparent: true,
+      opacity: 0.65,
+      blending: THREE.AdditiveBlending,
+    });
+
+    const embers = new THREE.Points(emberGeo, emberMat);
+    scene.add(embers);
+
+    // ========================================================
+    // 9. MOUSE PARALLAX & CINEMATIC TRACKING
+    // ========================================================
     let targetParallaxX = 0;
     let targetParallaxY = 0;
     let currentParallaxX = 0;
@@ -365,8 +701,8 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
       if (reducedMotion) return;
       const normX = (e.clientX / window.innerWidth) * 2 - 1;
       const normY = -(e.clientY / window.innerHeight) * 2 + 1;
-      targetParallaxX = normX * 0.35;
-      targetParallaxY = normY * 0.18;
+      targetParallaxX = normX * 0.40;
+      targetParallaxY = normY * 0.22;
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
@@ -382,36 +718,57 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
 
     window.addEventListener('resize', handleResize);
 
-    // Render loop
+    // ========================================================
+    // 10. ANIMATION LOOP (NATURAL IDLE BREATHING, CAPE & EMBERS)
+    // ========================================================
     const clock = new THREE.Clock();
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      // Gentle, natural water ripple
       if (!reducedMotion) {
-        const pos = waterGeo.attributes.position;
-        for (let i = 0; i < pos.count; i++) {
-          const x = pos.getX(i);
-          const z = pos.getZ(i);
-          const wave1 = Math.sin(x * 0.15 + elapsedTime * 0.45) * 0.02;
-          const wave2 = Math.cos(z * 0.2 + elapsedTime * 0.35) * 0.015;
-          pos.setY(i, initialWaterY[i] + wave1 + wave2);
+        // Natural Knight Idle Breathing
+        const breath = Math.sin(elapsedTime * 1.5) * 0.012;
+        torsoGroup.position.y = 2.0 + breath;
+        helmetGroup.rotation.y = Math.sin(elapsedTime * 0.7) * 0.035;
+
+        // Visor & Sword Core Luminous Pulse
+        const glowPulse = 2.6 + Math.sin(elapsedTime * 3.0) * 0.5;
+        crimsonEyeLight.intensity = glowPulse;
+        swordGlowLight.intensity = 2.0 + Math.sin(elapsedTime * 2.6) * 0.4;
+
+        // Flowing Velvet Cape Wave Simulation
+        const cPos = capeGeo.attributes.position;
+        for (let i = 0; i < cPos.count; i++) {
+          const y = cPos.getY(i);
+          const factor = Math.max(0, -y);
+          const waveZ = Math.sin(y * 1.8 + elapsedTime * 2.2) * 0.07 * factor;
+          const waveX = Math.cos(y * 1.5 + elapsedTime * 1.8) * 0.035 * factor;
+          cPos.setZ(i, initialCapeZ[i] + waveZ);
+          cPos.setX(i, initialCapeX[i] + waveX);
         }
-        waterGeo.computeVertexNormals();
-        pos.needsUpdate = true;
-      }
+        capeGeo.computeVertexNormals();
+        cPos.needsUpdate = true;
 
-      // Smooth camera parallax
-      if (!reducedMotion) {
-        currentParallaxX += (targetParallaxX - currentParallaxX) * 0.04;
-        currentParallaxY += (targetParallaxY - currentParallaxY) * 0.04;
+        // Rising Atmospheric Embers
+        const ePos = emberGeo.attributes.position;
+        for (let i = 0; i < emberCount; i++) {
+          let ey = ePos.getY(i);
+          ey += emberSpeeds[i] * 0.018;
+          if (ey > 8.0) ey = 0.1;
+          ePos.setY(i, ey);
+        }
+        ePos.needsUpdate = true;
 
-        camera.position.x = currentParallaxX;
+        // Smooth Cinematic Parallax
+        currentParallaxX += (targetParallaxX - currentParallaxX) * 0.05;
+        currentParallaxY += (targetParallaxY - currentParallaxY) * 0.05;
+
+        camera.position.x = baseCameraX + currentParallaxX;
         camera.position.y = baseCameraY + currentParallaxY;
         camera.position.z = baseCameraZ;
-        camera.lookAt(currentParallaxX * 0.3, 2.2 + currentParallaxY * 0.12, -45);
+        camera.lookAt(0.9 + currentParallaxX * 0.2, 1.8 + currentParallaxY * 0.1, -10);
       }
 
       renderer.render(scene, camera);
@@ -427,17 +784,54 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
         container.removeChild(renderer.domElement);
       }
       renderer.dispose();
-      skyGeo.dispose();
-      skyMat.dispose();
-      hillGeo.dispose();
-      hillMat.dispose();
-      treeConeGeo.dispose();
-      treeMat.dispose();
       waterGeo.dispose();
-      waterMat.dispose();
+      pillarGeo.dispose();
+      pillarBaseGeo.dispose();
+      pillarCapitalGeo.dispose();
+      archPillarGeo.dispose();
+      archTorusGeo.dispose();
+      daisGeo.dispose();
+      pedRingGeo.dispose();
+      sabatonGeo.translate(0, 0, 0);
+      sabatonGeo.dispose();
+      greaveGeo.dispose();
+      trimGreaveGeo.dispose();
+      poleynGeo.dispose();
+      cuisseGeo.dispose();
+      tassetGeo.dispose();
+      beltBuckleGeo.dispose();
+      abdomenGeo.dispose();
+      chestGeo.dispose();
+      ridgeGeo.dispose();
+      pecGeo.dispose();
+      gorgetGeo.dispose();
+      pauldronGeo.dispose();
+      armGeo.dispose();
+      gauntletGeo.dispose();
+      helmDomeGeo.dispose();
+      finGeo.dispose();
+      hornGeo.dispose();
+      visorMaskGeo.dispose();
+      visorSlitGeo.dispose();
+      bladeGeo.dispose();
+      tipGeo.dispose();
+      fullerGeo.dispose();
+      crossguardGeo.dispose();
+      hiltGeo.dispose();
+      pommelGeo.dispose();
+      capeGeo.dispose();
+      emberGeo.dispose();
+
+      armorPlateMat.dispose();
+      crimsonSteelMat.dispose();
+      silverTrimMat.dispose();
+      crimsonGlowMat.dispose();
+      capeMat.dispose();
+      swordBladeMat.dispose();
       rockMat.dispose();
-      cloakMat.dispose();
-      headMat.dispose();
+      stoneFloorMat.dispose();
+      portalMat.dispose();
+      emberMat.dispose();
     };
   }, [reducedMotion]);
 
@@ -450,7 +844,7 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
           position: 'absolute',
           top: 0,
           left: 0,
-          background: 'linear-gradient(180deg, #050507 0%, #0F1015 50%, #050507 100%)',
+          background: 'linear-gradient(180deg, #040406 0%, #12131C 50%, #040406 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -460,10 +854,10 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
           style={{
             position: 'absolute',
             bottom: '22%',
-            width: '28px',
-            height: '75px',
-            backgroundColor: '#121216',
-            borderRadius: '14px 14px 0 0',
+            width: '32px',
+            height: '85px',
+            backgroundColor: '#161822',
+            borderRadius: '16px 16px 0 0',
             opacity: 0.9,
           }}
         />

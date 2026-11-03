@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowUpRight, Download, Globe, Briefcase, MapPin, Sparkles, CheckCircle2 } from 'lucide-react';
 import { OpenToWorkSettings, ProfileData } from '../../types/cms';
+import { BorderGlow, SpecularButton } from '../reactbits';
 
 interface EditorialOpenToWorkProps {
   settings: OpenToWorkSettings;
@@ -157,8 +158,9 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({ settin
         {/* Main 2-Column Luxury Glass Layout */}
         <div className="open-to-work-grid" style={{ marginBottom: '40px' }}>
           {/* Card 1: Target Disciplines & Job Categories */}
-          <div className="glass-card" style={{ padding: 'clamp(20px, 4vw, 36px)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+          <BorderGlow borderRadius="20px" glowRadius={350} glowIntensity={0.32}>
+            <div className="glass-card" style={{ padding: 'clamp(20px, 4vw, 36px)', height: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
               <div
                 style={{
                   width: '36px',
@@ -324,13 +326,15 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({ settin
               </div>
             </div>
           </div>
+          </BorderGlow>
         </div>
 
-        {/* Global Locations Card */}
-        <div className="glass-panel" style={{ padding: 'clamp(20px, 4vw, 36px)', marginBottom: '44px' }}>
-          <div
-            style={{
-              display: 'flex',
+        {/* Global Locations Card with Border Glow */}
+        <BorderGlow borderRadius="20px" glowRadius={450} glowIntensity={0.28} style={{ marginBottom: '44px' }}>
+          <div className="glass-panel" style={{ padding: 'clamp(20px, 4vw, 36px)', height: '100%' }}>
+            <div
+              style={{
+                display: 'flex',
               flexWrap: 'wrap',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -495,8 +499,9 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({ settin
             ))}
           </div>
         </div>
+        </BorderGlow>
 
-        {/* Dual Bouncy Spring CTAs */}
+        {/* Dual Bouncy Spring CTAs with Specular Buttons */}
         <div
           style={{
             display: 'flex',
@@ -508,27 +513,25 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({ settin
           }}
         >
           {/* Primary CTA */}
-          <button
+          <SpecularButton
             onClick={scrollToContact}
-            className="btn-luxury-primary"
-            style={{ padding: '14px 34px', fontSize: '14px' }}
+            icon={<ArrowUpRight size={15} />}
+            size="lg"
           >
-            <span>{primaryCta}</span>
-            <ArrowUpRight size={15} />
-          </button>
+            {primaryCta}
+          </SpecularButton>
 
           {/* Secondary CTA */}
-          <a
+          <SpecularButton
             href={resumeUrl}
             target="_blank"
-            rel="noopener noreferrer"
             download
-            className="btn-editorial-pill"
-            style={{ padding: '14px 32px', fontSize: '14px' }}
+            icon={<Download size={14} />}
+            variant="secondary"
+            size="lg"
           >
-            <Download size={14} />
-            <span>{secondaryCta}</span>
-          </a>
+            {secondaryCta}
+          </SpecularButton>
         </div>
       </div>
     </section>

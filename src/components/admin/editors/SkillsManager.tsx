@@ -231,7 +231,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
               gap: '6px',
               padding: '8px 16px',
               borderRadius: '6px',
-              backgroundColor: '#4A5749',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
               border: 'none',
               color: '#F4F3EE',
               fontSize: '13px',
@@ -265,7 +265,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
               width: '100%',
               padding: '10px 12px 10px 34px',
               borderRadius: '6px',
-              backgroundColor: '#141C19',
+              backgroundColor: 'rgba(18, 18, 22, 0.72)',
               border: '1px solid rgba(244, 243, 238, 0.1)',
               color: '#F4F3EE',
               fontSize: '13px',
@@ -285,7 +285,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
           style={{
             padding: '10px 14px',
             borderRadius: '6px',
-            backgroundColor: '#141C19',
+            backgroundColor: 'rgba(18, 18, 22, 0.72)',
             border: '1px solid rgba(244, 243, 238, 0.1)',
             color: '#F4F3EE',
             fontSize: '13px',
@@ -315,7 +315,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
             <div
               key={skill.id}
               style={{
-                backgroundColor: '#141C19',
+                backgroundColor: 'rgba(18, 18, 22, 0.72)',
                 border: '1px solid rgba(244, 243, 238, 0.08)',
                 borderRadius: '8px',
                 padding: '16px',
@@ -435,7 +435,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
           style={{
             padding: '40px',
             textAlign: 'center',
-            backgroundColor: '#141C19',
+            backgroundColor: 'rgba(18, 18, 22, 0.72)',
             borderRadius: '8px',
             border: '1px dashed rgba(244, 243, 238, 0.1)',
             color: '#8E948D',
@@ -462,7 +462,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
         >
           <div
             style={{
-              backgroundColor: '#141C19',
+              backgroundColor: 'rgba(18, 18, 22, 0.72)',
               border: '1px solid rgba(244, 243, 238, 0.15)',
               borderRadius: '12px',
               maxWidth: '520px',
@@ -614,7 +614,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                   style={{
                     padding: '8px 20px',
                     borderRadius: '6px',
-                    backgroundColor: '#4A5749',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
                     border: 'none',
                     color: '#F4F3EE',
                     fontSize: '13px',

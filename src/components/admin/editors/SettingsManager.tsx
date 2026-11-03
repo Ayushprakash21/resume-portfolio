@@ -108,7 +108,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
               gap: '6px',
               padding: '8px 18px',
               borderRadius: '6px',
-              backgroundColor: '#4A5749',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
               border: 'none',
               color: '#F4F3EE',
               fontSize: '13px',
@@ -127,7 +127,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
           display: 'flex',
           gap: '8px',
           marginBottom: '20px',
-          backgroundColor: '#141C19',
+          backgroundColor: 'rgba(18, 18, 22, 0.72)',
           padding: '6px',
           borderRadius: '8px',
           border: '1px solid rgba(244, 243, 238, 0.08)',
@@ -166,7 +166,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div
             style={{
-              backgroundColor: '#141C19',
+              backgroundColor: 'rgba(18, 18, 22, 0.72)',
               border: '1px solid rgba(244, 243, 238, 0.08)',
               borderRadius: '8px',
               padding: '24px',
@@ -257,7 +257,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div
             style={{
-              backgroundColor: '#141C19',
+              backgroundColor: 'rgba(18, 18, 22, 0.72)',
               border: '1px solid rgba(244, 243, 238, 0.08)',
               borderRadius: '8px',
               padding: '24px',
@@ -340,7 +340,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
               <div
                 key={msg.id}
                 style={{
-                  backgroundColor: '#141C19',
+                  backgroundColor: 'rgba(18, 18, 22, 0.72)',
                   border: msg.read
                     ? '1px solid rgba(244, 243, 238, 0.06)'
                     : '1px solid rgba(130, 148, 166, 0.35)',
@@ -448,7 +448,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
               style={{
                 padding: '40px',
                 textAlign: 'center',
-                backgroundColor: '#141C19',
+                backgroundColor: 'rgba(18, 18, 22, 0.72)',
                 borderRadius: '8px',
                 border: '1px dashed rgba(244, 243, 238, 0.1)',
                 color: '#8E948D',
@@ -466,7 +466,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div
             style={{
-              backgroundColor: '#141C19',
+              backgroundColor: 'rgba(18, 18, 22, 0.72)',
               border: '1px solid rgba(244, 243, 238, 0.08)',
               borderRadius: '8px',
               padding: '24px',

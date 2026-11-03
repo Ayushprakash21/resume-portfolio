@@ -395,7 +395,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                         flex: 1,
                         padding: '8px 10px',
                         borderRadius: '6px',
-                        backgroundColor: '#141C19',
+                        backgroundColor: 'rgba(18, 18, 22, 0.72)',
                         border: '1px solid rgba(244, 243, 238, 0.12)',
                         color: '#F4F3EE',
                         fontSize: '13px',
@@ -416,7 +416,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                         width: '80px',
                         padding: '8px 10px',
                         borderRadius: '6px',
-                        backgroundColor: '#141C19',
+                        backgroundColor: 'rgba(18, 18, 22, 0.72)',
                         border: '1px solid rgba(244, 243, 238, 0.12)',
                         color: '#F4F3EE',
                         fontSize: '13px',
@@ -647,7 +647,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     style={{
                       padding: '8px 14px',
                       borderRadius: '6px',
-                      backgroundColor: '#4A5749',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
                       border: 'none',
                       color: '#F4F3EE',
                       fontSize: '12px',
@@ -735,7 +735,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     alignItems: 'center',
                     gap: '6px',
                     padding: '6px 12px',
-                    backgroundColor: '#4A5749',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
                     borderRadius: '4px',
                     color: '#F4F3EE',
                     fontSize: '12px',
@@ -761,7 +761,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '8px 12px',
-                    backgroundColor: '#141C19',
+                    backgroundColor: 'rgba(18, 18, 22, 0.72)',
                     borderRadius: '6px',
                     border: '1px solid rgba(244, 243, 238, 0.1)',
                   }}
@@ -824,7 +824,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                   onClose();
                 }
               }}
-              style={{
+              className="btn-glass-destructive" style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
@@ -848,7 +848,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
             <button
               type="button"
               onClick={onClose}
-              style={{
+              className="btn-glass-secondary" style={{
                 padding: '10px 18px',
                 borderRadius: '6px',
                 background: 'transparent',
@@ -864,7 +864,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
             <button
               type="button"
               onClick={() => handleSubmit('draft')}
-              style={{
+              className="btn-glass-primary" style={{
                 padding: '10px 18px',
                 borderRadius: '6px',
                 backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -880,7 +880,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
             <button
               type="button"
               onClick={() => handleSubmit('published')}
-              style={{
+              className="btn-luxury-primary" style={{
                 padding: '10px 22px',
                 borderRadius: '6px',
                 backgroundColor: '#FFFFFF',

@@ -122,7 +122,7 @@ export const WebsiteSectionsManager: React.FC<WebsiteSectionsManagerProps> = ({
           <div
             key={sec.id}
             style={{
-              backgroundColor: '#141C19',
+              backgroundColor: 'rgba(18, 18, 22, 0.72)',
               border: sec.isVisible
                 ? '1px solid rgba(244, 243, 238, 0.08)'
                 : '1px solid rgba(244, 243, 238, 0.04)',

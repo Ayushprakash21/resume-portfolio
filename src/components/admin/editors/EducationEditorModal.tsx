@@ -448,7 +448,7 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
                     onClose();
                   }
                 }}
-                style={{
+                className="btn-glass-destructive" style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
@@ -471,7 +471,7 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                style={{
+                className="btn-glass-secondary" style={{
                   padding: '10px 18px',
                   borderRadius: '6px',
                   background: 'transparent',

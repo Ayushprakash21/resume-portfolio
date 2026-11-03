@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowUpRight, ArrowDown, Menu, X } from 'lucide-react';
 import { ProfileData, HomepageSettings } from '../../types/cms';
 import { ApMonogram } from '../brand/ApMonogram';
+import { OptionWheel, SpecularButton } from '../reactbits';
 
 interface CinematicHeroLayoutProps {
   profile?: ProfileData;
@@ -104,11 +105,11 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
       <header
         style={{
           position: 'fixed',
-          top: isScrolled ? '14px' : '20px',
+          top: isScrolled ? '12px' : '18px',
           left: '50%',
           transform: 'translateX(-50%)',
           width: isScrolled ? 'min(94%, 1160px)' : 'min(94%, 1180px)',
-          padding: isScrolled ? '10px 20px' : '12px 0',
+          padding: isScrolled ? '8px 20px' : '10px 0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -133,7 +134,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             userSelect: 'none',
             display: 'flex',
             alignItems: 'center',
-            gap: isScrolled ? '14px' : '20px',
+            gap: isScrolled ? '16px' : '20px',
             transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}
           className="brand-logo-trigger"
@@ -144,9 +145,9 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             e.currentTarget.style.transform = 'scale(1)';
           }}
         >
-          {/* AP Monogram Logo (Prominent 64–76px desktop width) */}
+          {/* AP Monogram Logo (Dominant 85–100px desktop width) */}
           <ApMonogram
-            width={isScrolled ? 64 : 72}
+            width={isScrolled ? 78 : 94}
             className="ap-header-monogram"
             withGlow={true}
           />
@@ -155,7 +156,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             className="ap-header-name"
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: isScrolled ? '22px' : '34px',
+              fontSize: isScrolled ? '28px' : '40px',
               fontWeight: 700,
               letterSpacing: '-0.02em',
               lineHeight: 1,
@@ -169,11 +170,12 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           </span>
         </div>
 
-        {/* DESKTOP TOP NAVIGATION LINKS */}
+        {/* DESKTOP TOP NAVIGATION LINKS & OPTION WHEEL */}
         <nav
           className="desktop-nav-links"
           style={{
-            gap: isScrolled ? '20px' : '32px',
+            alignItems: 'center',
+            gap: isScrolled ? '16px' : '24px',
           }}
         >
           {navItems.map((item, idx) => (
@@ -206,6 +208,9 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
               {item.label}
             </button>
           ))}
+
+          {/* REACT BITS: OPTION WHEEL (Flagship Orion-9 Selector Instrument) */}
+          <OptionWheel onSelect={(item) => scrollTo(item.targetId)} />
         </nav>
 
         {/* MOBILE MENU TOGGLE BUTTON (Touch target >= 44x44px) */}
@@ -306,14 +311,16 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
                 gap: '12px',
               }}
             >
-              <button
+              <div style={{ marginBottom: '8px' }}>
+                <OptionWheel onSelect={(item) => { scrollTo(item.targetId); setIsMobileMenuOpen(false); }} />
+              </div>
+              <SpecularButton
                 onClick={() => scrollTo(ctaTarget)}
-                className="btn-luxury-primary"
-                style={{ width: '100%', minHeight: '46px', padding: '12px 20px', fontSize: '14px' }}
+                icon={<ArrowUpRight size={15} />}
+                style={{ width: '100%', minHeight: '46px' }}
               >
-                <span>{cta}</span>
-                <ArrowUpRight size={15} />
-              </button>
+                {cta}
+              </SpecularButton>
               <div
                 style={{
                   fontFamily: 'var(--font-body)',
@@ -497,16 +504,14 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             <ArrowDown size={13} color="var(--text-muted)" style={{ opacity: 0.7 }} />
           </div>
 
-          {/* Let's Connect ↗ */}
+          {/* Let's Connect ↗ (Specular Button) */}
           <div>
-            <button
+            <SpecularButton
               onClick={() => scrollTo(ctaTarget)}
-              className="btn-editorial-pill"
-              style={{ minHeight: '44px' }}
+              icon={<ArrowUpRight size={14} />}
             >
-              <span>{cta}</span>
-              <ArrowUpRight size={14} />
-            </button>
+              {cta}
+            </SpecularButton>
           </div>
         </div>
       </div>

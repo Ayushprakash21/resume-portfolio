@@ -142,7 +142,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
         {/* Active Resume Card */}
         <div
           style={{
-            backgroundColor: '#141C19',
+            backgroundColor: 'rgba(18, 18, 22, 0.72)',
             border: '1px solid rgba(244, 243, 238, 0.12)',
             borderRadius: '8px',
             padding: '24px',
@@ -270,7 +270,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
                   gap: '6px',
                   padding: '8px 16px',
                   borderRadius: '6px',
-                  backgroundColor: '#4A5749',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
                   border: 'none',
                   color: '#F4F3EE',
                   fontSize: '13px',
@@ -296,7 +296,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
         <form
           onSubmit={handleSaveSettings}
           style={{
-            backgroundColor: '#141C19',
+            backgroundColor: 'rgba(18, 18, 22, 0.72)',
             border: '1px solid rgba(244, 243, 238, 0.08)',
             borderRadius: '8px',
             padding: '24px',
@@ -396,7 +396,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
                 gap: '6px',
                 padding: '8px 18px',
                 borderRadius: '6px',
-                backgroundColor: '#4A5749',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
                 border: 'none',
                 color: '#F4F3EE',
                 fontSize: '13px',
@@ -413,7 +413,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
         {/* Version History Table */}
         <div
           style={{
-            backgroundColor: '#141C19',
+            backgroundColor: 'rgba(18, 18, 22, 0.72)',
             border: '1px solid rgba(244, 243, 238, 0.08)',
             borderRadius: '8px',
             padding: '24px',
@@ -544,7 +544,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
         >
           <div
             style={{
-              backgroundColor: '#141C19',
+              backgroundColor: 'rgba(18, 18, 22, 0.72)',
               border: '1px solid rgba(244, 243, 238, 0.15)',
               borderRadius: '12px',
               maxWidth: '840px',

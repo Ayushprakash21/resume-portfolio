@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { ProjectRecord } from '../../types/cms';
 import { OrionSupplyChainFlow } from '../interactive/OrionSupplyChainFlow';
+import { SpecularButton } from '../reactbits';
 
 interface EditorialOrion9Props {
   project?: ProjectRecord;
@@ -145,55 +146,30 @@ export const EditorialOrion9: React.FC<EditorialOrion9Props> = ({ project }) => 
             Orion-9 bridges real-time warehouse execution, freight route intelligence, and dynamic supplier procurement. Engineered with zero-trust cryptographic event verification to eradicate operational blind spots between ground dispatch and enterprise ERP tiers.
           </p>
 
-          {/* Action Links */}
+          {/* Action Links with Specular Buttons */}
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             {project?.repositoryUrl && (
-              <a
+              <SpecularButton
                 href={project.repositoryUrl}
                 target="_blank"
-                rel="noreferrer"
-                className="glass-btn-spring"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '9px 18px',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  color: '#FFFFFF',
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  border: '1px solid rgba(255, 255, 255, 0.14)',
-                  borderRadius: '9999px',
-                  textDecoration: 'none',
-                }}
+                icon={<Github size={13} />}
+                iconPosition="left"
+                variant="secondary"
+                size="sm"
               >
-                <Github size={13} />
-                <span>Source Repository</span>
-              </a>
+                Source Repository
+              </SpecularButton>
             )}
             {project?.projectUrl && (
-              <a
+              <SpecularButton
                 href={project.projectUrl}
                 target="_blank"
-                rel="noreferrer"
-                className="glass-btn-spring"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '9px 18px',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                  color: '#FFFFFF',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.22)',
-                  borderRadius: '9999px',
-                  textDecoration: 'none',
-                }}
+                icon={<ArrowUpRight size={13} />}
+                variant="primary"
+                size="sm"
               >
-                <span>Live System Demo</span>
-                <ArrowUpRight size={13} />
-              </a>
+                Live System Demo
+              </SpecularButton>
             )}
           </div>
         </div>

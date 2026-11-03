@@ -364,18 +364,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                   </div>
                 </div>
               </div>
-              <button
-                onClick={onReturnToSite}
-                title="View Live Portfolio"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  color: '#C8C8CE',
-                  borderRadius: '6px',
-                  padding: '6px',
-                  cursor: 'pointer',
-                }}
-              >
+              <button onClick={onReturnToSite} title="View Live Portfolio" className="btn-glass-icon" style={{ width: '36px', height: '36px', minWidth: '36px', minHeight: '36px' }}>
                 <ExternalLink size={14} />
               </button>
             </div>
@@ -473,17 +462,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
               </div>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            title="Sign out of Admin CMS"
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#A7B0A9',
-              cursor: 'pointer',
-              padding: '4px',
-            }}
-          >
+          <button onClick={handleLogout} title="Sign out of Admin CMS" className="btn-glass-icon" style={{ width: '36px', height: '36px', minWidth: '36px', minHeight: '36px' }}>
             <LogOut size={16} />
           </button>
         </div>
@@ -530,7 +509,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
             {/* Profile Overview Card (LinkedIn Style) */}
             <div
               style={{
-                backgroundColor: '#141C19',
+                backgroundColor: 'rgba(18, 18, 22, 0.72)',
                 border: '1px solid rgba(244, 243, 238, 0.12)',
                 borderRadius: '10px',
                 overflow: 'hidden',
@@ -563,8 +542,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                     height: '90px',
                     borderRadius: '50%',
                     objectFit: 'cover',
-                    border: '3px solid #141C19',
-                    backgroundColor: '#141C19',
+                    border: '3px solid rgba(18, 18, 22, 0.72)',
+                    backgroundColor: 'rgba(18, 18, 22, 0.72)',
                     marginTop: '-45px',
                     marginBottom: '14px',
                   }}
@@ -687,7 +666,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                   key={idx}
                   onClick={() => setActiveSection(m.sec as any)}
                   style={{
-                    backgroundColor: '#141C19',
+                    backgroundColor: 'rgba(18, 18, 22, 0.72)',
                     border: '1px solid rgba(244, 243, 238, 0.08)',
                     borderRadius: '8px',
                     padding: '18px 20px',
@@ -710,7 +689,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
             {/* Quick Actions Shortcuts */}
             <div
               style={{
-                backgroundColor: '#141C19',
+                backgroundColor: 'rgba(18, 18, 22, 0.72)',
                 border: '1px solid rgba(244, 243, 238, 0.08)',
                 borderRadius: '8px',
                 padding: '24px',
@@ -728,69 +707,15 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                 Quick Profile Actions
               </h3>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingExp(null);
-                    setShowExpModal(true);
-                  }}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 14px',
-                    borderRadius: '6px',
-                    backgroundColor: 'rgba(244, 243, 238, 0.05)',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                  }}
-                >
+                <button type="button" onClick={() => { setEditingExp(null); setShowExpModal(true); }} className="btn-glass-primary" style={{ padding: '8px 18px', fontSize: '13px' }}>
                   <Plus size={13} /> Add Experience
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingProj(null);
-                    setShowProjModal(true);
-                  }}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 14px',
-                    borderRadius: '6px',
-                    backgroundColor: 'rgba(244, 243, 238, 0.05)',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                  }}
-                >
+                <button type="button" onClick={() => { setEditingProj(null); setShowProjModal(true); }} className="btn-glass-primary" style={{ padding: '8px 18px', fontSize: '13px' }}>
                   <Plus size={13} /> Add Project
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingCert(null);
-                    setShowCertModal(true);
-                  }}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 14px',
-                    borderRadius: '6px',
-                    backgroundColor: 'rgba(244, 243, 238, 0.05)',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                  }}
-                >
+                <button type="button" onClick={() => { setEditingCert(null); setShowCertModal(true); }} className="btn-glass-primary" style={{ padding: '8px 18px', fontSize: '13px' }}>
                   <Plus size={13} /> Add Certification
                 </button>
 
@@ -822,7 +747,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                     gap: '6px',
                     padding: '8px 14px',
                     borderRadius: '6px',
-                    backgroundColor: '#4A5749',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
                     border: 'none',
                     color: '#F4F3EE',
                     fontSize: '13px',
@@ -891,26 +816,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingExp(null);
-                  setShowExpModal(true);
-                }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  backgroundColor: '#4A5749',
-                  border: 'none',
-                  color: '#F4F3EE',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
+              <button type="button" onClick={() => { setEditingExp(null); setShowExpModal(true); }} className="btn-glass-primary" style={{ padding: '8px 18px', fontSize: '13px' }}>
                 <Plus size={14} /> Add Experience
               </button>
             </div>
@@ -921,7 +827,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                 <div
                   key={exp.id}
                   style={{
-                    backgroundColor: '#141C19',
+                    backgroundColor: 'rgba(18, 18, 22, 0.72)',
                     border: '1px solid rgba(244, 243, 238, 0.08)',
                     borderRadius: '8px',
                     padding: '20px',
@@ -973,7 +879,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                         disabled={idx === 0}
                         onClick={() => handleMoveExp(idx, 'up')}
                         title="Move Up"
-                        style={{ padding: '6px', borderRadius: '4px', background: 'rgba(244, 243, 238, 0.05)', border: 'none', color: '#C1C4BE', cursor: idx === 0 ? 'not-allowed' : 'pointer' }}
+                        className="btn-glass-icon" style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px', cursor: idx === 0 ? 'not-allowed' : 'pointer'  }}
                       >
                         <ChevronUp size={14} />
                       </button>
@@ -982,7 +888,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                         disabled={idx === experiences.length - 1}
                         onClick={() => handleMoveExp(idx, 'down')}
                         title="Move Down"
-                        style={{ padding: '6px', borderRadius: '4px', background: 'rgba(244, 243, 238, 0.05)', border: 'none', color: '#C1C4BE', cursor: idx === experiences.length - 1 ? 'not-allowed' : 'pointer' }}
+                        className="btn-glass-icon" style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px', cursor: idx === experiences.length - 1 ? 'not-allowed' : 'pointer'  }}
                       >
                         <ChevronDown size={14} />
                       </button>
@@ -990,7 +896,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                         type="button"
                         onClick={() => handleDuplicateExp(exp.id)}
                         title="Duplicate Role"
-                        style={{ padding: '6px', borderRadius: '4px', background: 'rgba(244, 243, 238, 0.05)', border: 'none', color: '#C1C4BE', cursor: 'pointer' }}
+                        className="btn-glass-icon" style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px', cursor: 'pointer'  }}
                       >
                         <Copy size={14} />
                       </button>
@@ -1001,7 +907,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                           setShowExpModal(true);
                         }}
                         title="Edit Role"
-                        style={{ padding: '6px', borderRadius: '4px', background: 'rgba(130, 148, 166, 0.15)', border: 'none', color: '#8294A6', cursor: 'pointer' }}
+                        className="btn-glass-icon" style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px', cursor: 'pointer' }}
                       >
                         <Edit size={14} />
                       </button>
@@ -1059,26 +965,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingProj(null);
-                  setShowProjModal(true);
-                }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  backgroundColor: '#4A5749',
-                  border: 'none',
-                  color: '#F4F3EE',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
+              <button type="button" onClick={() => { setEditingProj(null); setShowProjModal(true); }} className="btn-glass-primary" style={{ padding: '8px 18px', fontSize: '13px' }}>
                 <Plus size={14} /> Add Project
               </button>
             </div>
@@ -1088,7 +975,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                 <div
                   key={proj.id}
                   style={{
-                    backgroundColor: '#141C19',
+                    backgroundColor: 'rgba(18, 18, 22, 0.72)',
                     border: '1px solid rgba(244, 243, 238, 0.08)',
                     borderRadius: '8px',
                     padding: '20px',
@@ -1146,7 +1033,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                         disabled={idx === 0}
                         onClick={() => handleMoveProj(idx, 'up')}
                         title="Move Up"
-                        style={{ padding: '6px', borderRadius: '4px', background: 'rgba(244, 243, 238, 0.05)', border: 'none', color: '#C1C4BE', cursor: idx === 0 ? 'not-allowed' : 'pointer' }}
+                        className="btn-glass-icon" style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px', cursor: idx === 0 ? 'not-allowed' : 'pointer'  }}
                       >
                         <ChevronUp size={14} />
                       </button>
@@ -1155,7 +1042,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                         disabled={idx === projects.length - 1}
                         onClick={() => handleMoveProj(idx, 'down')}
                         title="Move Down"
-                        style={{ padding: '6px', borderRadius: '4px', background: 'rgba(244, 243, 238, 0.05)', border: 'none', color: '#C1C4BE', cursor: idx === projects.length - 1 ? 'not-allowed' : 'pointer' }}
+                        className="btn-glass-icon" style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px', cursor: idx === projects.length - 1 ? 'not-allowed' : 'pointer'  }}
                       >
                         <ChevronDown size={14} />
                       </button>
@@ -1163,7 +1050,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                         type="button"
                         onClick={() => handleDuplicateProj(proj.id)}
                         title="Duplicate Project"
-                        style={{ padding: '6px', borderRadius: '4px', background: 'rgba(244, 243, 238, 0.05)', border: 'none', color: '#C1C4BE', cursor: 'pointer' }}
+                        className="btn-glass-icon" style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px', cursor: 'pointer'  }}
                       >
                         <Copy size={14} />
                       </button>
@@ -1174,7 +1061,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                           setShowProjModal(true);
                         }}
                         title="Edit Project"
-                        style={{ padding: '6px', borderRadius: '4px', background: 'rgba(130, 148, 166, 0.15)', border: 'none', color: '#8294A6', cursor: 'pointer' }}
+                        className="btn-glass-icon" style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px', cursor: 'pointer' }}
                       >
                         <Edit size={14} />
                       </button>
@@ -1217,26 +1104,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingEdu(null);
-                  setShowEduModal(true);
-                }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  backgroundColor: '#4A5749',
-                  border: 'none',
-                  color: '#F4F3EE',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
+              <button type="button" onClick={() => { setEditingEdu(null); setShowEduModal(true); }} className="btn-glass-primary" style={{ padding: '8px 18px', fontSize: '13px' }}>
                 <Plus size={14} /> Add Education
               </button>
             </div>
@@ -1246,7 +1114,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                 <div
                   key={edu.id}
                   style={{
-                    backgroundColor: '#141C19',
+                    backgroundColor: 'rgba(18, 18, 22, 0.72)',
                     border: '1px solid rgba(244, 243, 238, 0.08)',
                     borderRadius: '8px',
                     padding: '20px',
@@ -1320,26 +1188,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingCert(null);
-                  setShowCertModal(true);
-                }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  backgroundColor: '#4A5749',
-                  border: 'none',
-                  color: '#F4F3EE',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
+              <button type="button" onClick={() => { setEditingCert(null); setShowCertModal(true); }} className="btn-glass-primary" style={{ padding: '8px 18px', fontSize: '13px' }}>
                 <Plus size={14} /> Add Certification
               </button>
             </div>
@@ -1349,7 +1198,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                 <div
                   key={cert.id}
                   style={{
-                    backgroundColor: '#141C19',
+                    backgroundColor: 'rgba(18, 18, 22, 0.72)',
                     border: '1px solid rgba(244, 243, 238, 0.08)',
                     borderRadius: '8px',
                     padding: '20px',
@@ -1403,7 +1252,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                       type="button"
                       onClick={() => handleDuplicateCert(cert.id)}
                       title="Duplicate Credential"
-                      style={{ padding: '6px', borderRadius: '4px', background: 'rgba(244, 243, 238, 0.05)', border: 'none', color: '#C1C4BE', cursor: 'pointer' }}
+                      className="btn-glass-icon" style={{ width: '32px', height: '32px', minWidth: '32px', minHeight: '32px', cursor: 'pointer'  }}
                     >
                       <Copy size={13} />
                     </button>

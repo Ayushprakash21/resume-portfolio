@@ -157,7 +157,7 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
             gap: '6px',
             padding: '8px 16px',
             borderRadius: '6px',
-            backgroundColor: '#4A5749',
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
             border: 'none',
             color: '#F4F3EE',
             fontSize: '13px',
@@ -200,7 +200,7 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                 width: '100%',
                 padding: '9px 12px 9px 34px',
                 borderRadius: '6px',
-                backgroundColor: '#141C19',
+                backgroundColor: 'rgba(18, 18, 22, 0.72)',
                 border: '1px solid rgba(244, 243, 238, 0.1)',
                 color: '#F4F3EE',
                 fontSize: '13px',
@@ -220,7 +220,7 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
             style={{
               padding: '9px 12px',
               borderRadius: '6px',
-              backgroundColor: '#141C19',
+              backgroundColor: 'rgba(18, 18, 22, 0.72)',
               border: '1px solid rgba(244, 243, 238, 0.1)',
               color: '#F4F3EE',
               fontSize: '13px',
@@ -242,7 +242,7 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
           style={{
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#141C19',
+            backgroundColor: 'rgba(18, 18, 22, 0.72)',
             borderRadius: '6px',
             border: '1px solid rgba(244, 243, 238, 0.1)',
             padding: '2px',
@@ -295,7 +295,7 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
               <div
                 key={item.id}
                 style={{
-                  backgroundColor: '#141C19',
+                  backgroundColor: 'rgba(18, 18, 22, 0.72)',
                   border: '1px solid rgba(244, 243, 238, 0.08)',
                   borderRadius: '6px',
                   overflow: 'hidden',
@@ -428,7 +428,7 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
         /* List View */
         <div
           style={{
-            backgroundColor: '#141C19',
+            backgroundColor: 'rgba(18, 18, 22, 0.72)',
             border: '1px solid rgba(244, 243, 238, 0.08)',
             borderRadius: '8px',
             overflow: 'hidden',
@@ -545,7 +545,7 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
         >
           <div
             style={{
-              backgroundColor: '#141C19',
+              backgroundColor: 'rgba(18, 18, 22, 0.72)',
               border: '1px solid rgba(244, 243, 238, 0.15)',
               borderRadius: '12px',
               maxWidth: '680px',
@@ -699,7 +699,7 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
               <button
                 type="button"
                 onClick={() => handleDelete(selectedAsset)}
-                style={{
+                className="btn-glass-destructive" style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
@@ -738,7 +738,7 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                   style={{
                     padding: '8px 20px',
                     borderRadius: '6px',
-                    backgroundColor: '#4A5749',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
                     border: 'none',
                     color: '#F4F3EE',
                     fontSize: '13px',

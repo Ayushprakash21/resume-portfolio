@@ -1689,7 +1689,7 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
                     alignItems: 'center',
                     gap: '6px',
                     padding: '8px 14px',
-                    backgroundColor: '#4A5749',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
                     borderRadius: '6px',
                     color: '#F4F3EE',
                     fontSize: '12px',
@@ -1830,7 +1830,7 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
                             width: '100%',
                             padding: '4px 6px',
                             borderRadius: '4px',
-                            backgroundColor: '#141C19',
+                            backgroundColor: 'rgba(18, 18, 22, 0.72)',
                             border: '1px solid rgba(244, 243, 238, 0.08)',
                             color: '#A7B0A9',
                             fontSize: '11px',
@@ -1970,7 +1970,7 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
                     style={{
                       padding: '8px 14px',
                       borderRadius: '6px',
-                      backgroundColor: '#4A5749',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
                       border: 'none',
                       color: '#F4F3EE',
                       fontSize: '12px',
@@ -2066,7 +2066,7 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              style={{
+              className="btn-glass-secondary" style={{
                 padding: '10px 18px',
                 borderRadius: '6px',
                 background: 'transparent',
@@ -2082,7 +2082,7 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
             <button
               type="button"
               onClick={() => handleSubmit('draft')}
-              style={{
+              className="btn-glass-primary" style={{
                 padding: '10px 18px',
                 borderRadius: '6px',
                 backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -2098,7 +2098,7 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
             <button
               type="button"
               onClick={() => handleSubmit('published')}
-              style={{
+              className="btn-luxury-primary" style={{
                 padding: '10px 22px',
                 borderRadius: '6px',
                 backgroundColor: '#FFFFFF',

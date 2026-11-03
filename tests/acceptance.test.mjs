@@ -422,22 +422,23 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
   });
 
   // Test 28: Prominent AP Brand Identity & Sizing Specifications
-  await t.test('28. AP monogram is prominent across header (64-76px), hero brand signature, and footer (76-96px)', () => {
+  // Test 28: Prominent AP Brand Identity & Header Branding Size Correction
+  await t.test('28. AP monogram is prominent across header (85-100px desktop), hero brand signature, and footer (76-96px)', () => {
     const header = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
     assert.ok(header.includes('ap-header-monogram'), 'Header uses .ap-header-monogram');
     assert.ok(header.includes('ap-header-name'), 'Header uses .ap-header-name');
     assert.ok(header.includes('hero-brand-signature'), 'Hero has dedicated .hero-brand-signature');
-    assert.ok(header.includes('width={isScrolled ? 64 : 72}'), 'Header passes 64-72px monogram width');
+    assert.ok(header.includes('width={isScrolled ? 78 : 94}'), 'Header passes 85-100px desktop monogram width');
 
     const footer = fs.readFileSync('src/components/Footer.tsx', 'utf-8');
     assert.ok(footer.includes('ap-footer-monogram'), 'Footer uses .ap-footer-monogram');
     assert.ok(footer.includes('width={88}'), 'Footer passes 88px monogram width (76-96px range)');
 
     const css = fs.readFileSync('src/styles/index.css', 'utf-8');
-    assert.ok(css.includes('width: 72px'), 'CSS sets 72px desktop logo width (64-76px)');
-    assert.ok(css.includes('width: 58px'), 'CSS sets 58px tablet logo width (52-64px)');
-    assert.ok(css.includes('width: 48px'), 'CSS sets 48px mobile logo width (42-52px)');
-    assert.ok(css.includes('font-size: 34px'), 'CSS sets 34px name typography (34-38px)');
+    assert.ok(css.includes('width: 94px'), 'CSS sets 94px desktop logo width (85-100px)');
+    assert.ok(css.includes('width: 72px'), 'CSS sets 72px tablet logo width (65-78px)');
+    assert.ok(css.includes('width: 52px'), 'CSS sets 52px mobile logo width (48-60px)');
+    assert.ok(css.includes('font-size: 40px'), 'CSS sets 40px name typography (38-44px)');
     assert.ok(css.includes('width: 88px'), 'CSS sets 88px footer logo width (76-96px)');
   });
 

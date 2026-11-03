@@ -1,6 +1,7 @@
 import React from 'react';
 import { MapPin, ArrowUpRight } from 'lucide-react';
 import { ProfileData, AboutSectionSettings } from '../../types/cms';
+import { HoloCard, BorderGlow, SpecularButton } from '../reactbits';
 
 interface EditorialAboutProps {
   profile: ProfileData;
@@ -71,64 +72,50 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile, aboutSe
 
         {/* 2-Column Split: Genuine Photo + Longform Narrative */}
         <div className="editorial-2col-responsive">
-          {/* Column 1: Genuine Professional Portrait */}
+          {/* Column 1: Genuine Professional Portrait with HoloCard and BorderGlow */}
           <div>
-            <div
-              className="glass-card"
-              style={{
-                position: 'relative',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                boxShadow: 'var(--shadow-editorial)',
-              }}
-            >
-              <img
-                src={profile.profilePhoto}
-                alt={profile.name}
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  maxHeight: '520px',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src =
-                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80';
-                }}
-              />
-              <div
-                style={{
-                  padding: '20px 24px',
-                  backgroundColor: 'rgba(12, 12, 16, 0.85)',
-                  backdropFilter: 'blur(16px)',
-                  borderTop: '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
+            <BorderGlow borderRadius="16px" glowRadius={340} glowIntensity={0.32}>
+              <HoloCard
+                imageSrc={profile.profilePhoto}
+                imageAlt={profile.name}
+                maxTilt={6}
+                hoverScale={1.015}
+                foilIntensity={0.28}
+                glareIntensity={0.24}
               >
-                <div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    {profile.name}
-                  </div>
-                  {profile.isLocationVisible !== false && (
-                    <div
-                      data-testid="profile-location"
-                      style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}
-                    >
-                      {profile.location || (profile.city ? `${profile.city}, ${profile.stateProvince ? profile.stateProvince + ', ' : ''}${profile.countryRegion || 'India'}` : '')}
+                <div
+                  style={{
+                    padding: '20px 24px',
+                    backgroundColor: 'rgba(12, 12, 16, 0.85)',
+                    backdropFilter: 'blur(16px)',
+                    borderTop: '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {profile.name}
                     </div>
-                  )}
+                    {profile.isLocationVisible !== false && (
+                      <div
+                        data-testid="profile-location"
+                        style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}
+                      >
+                        {profile.location || (profile.city ? `${profile.city}, ${profile.stateProvince ? profile.stateProvince + ', ' : ''}${profile.countryRegion || 'India'}` : '')}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <MapPin size={13} color="var(--accent-silver)" />
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                      Active
+                    </span>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <MapPin size={13} color="var(--accent-silver)" />
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-secondary)' }}>
-                    Active
-                  </span>
-                </div>
-              </div>
-            </div>
+              </HoloCard>
+            </BorderGlow>
           </div>
 
           {/* Column 2: Editorial Text */}
@@ -183,18 +170,16 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile, aboutSe
               </div>
             </div>
 
-            {/* Resume / Connect Link */}
+            {/* Resume / Connect Link with Specular Button */}
             {profile.isResumeDownloadEnabled !== false && (
               <div style={{ marginTop: '8px' }}>
-                <a
+                <SpecularButton
                   href={profile.resumeUrl}
                   target="_blank"
-                  rel="noreferrer"
-                  className="btn-editorial-pill"
+                  icon={<ArrowUpRight size={13} />}
                 >
-                  <span>{resumeBtn}</span>
-                  <ArrowUpRight size={13} />
-                </a>
+                  {resumeBtn}
+                </SpecularButton>
               </div>
             )}
           </div>
