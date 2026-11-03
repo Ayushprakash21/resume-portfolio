@@ -6,9 +6,14 @@ import { BorderGlow, SpecularButton } from '../reactbits';
 interface EditorialOpenToWorkProps {
   settings: OpenToWorkSettings;
   profile?: ProfileData;
+  onOpenResumeGenerator?: () => void;
 }
 
-export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({ settings, profile }) => {
+export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
+  settings,
+  profile,
+  onOpenResumeGenerator,
+}) => {
   if (!settings || settings.enabled === false) {
     return null;
   }
@@ -523,9 +528,10 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({ settin
 
           {/* Secondary CTA */}
           <SpecularButton
-            href={resumeUrl}
-            target="_blank"
-            download
+            onClick={onOpenResumeGenerator ? onOpenResumeGenerator : undefined}
+            href={onOpenResumeGenerator ? undefined : resumeUrl}
+            target={onOpenResumeGenerator ? undefined : "_blank"}
+            download={onOpenResumeGenerator ? undefined : true}
             icon={<Download size={14} />}
             variant="secondary"
             size="lg"

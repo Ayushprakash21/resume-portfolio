@@ -15,6 +15,7 @@ import {
   AppearanceSettings,
   OpenToWorkSettings,
   PreferredLocation,
+  ResumeGeneratorSettings,
 } from '../types/cms';
 
 export const DEFAULT_PROFILE: ProfileData = {
@@ -27,8 +28,9 @@ export const DEFAULT_PROFILE: ProfileData = {
     'AI & Automation Professional | Supply Chain & Operations | Generative AI | Claude AI | AI Agents | Building AI-Powered Products & Intelligent Business Solutions',
   bio: 'An operations professional exploring the intersection of enterprise systems, supply chain management, artificial intelligence and digital product development. Dedicated to building robust operating architectures, transparent logistics workflows, and high-signal digital platforms.',
   countryRegion: 'India',
-  city: 'Bengaluru',
-  location: 'Bengaluru, Karnataka, India',
+  stateProvince: 'Madhya Pradesh',
+  city: 'Indore',
+  location: 'Indore, Madhya Pradesh, India',
   profilePhoto: '/images/creator/creator_1793142386775_044ada53_wall.png',
   coverImage: '/images/creator/creator_1793142386775_044ada53_wall.png',
   email: 'ayushprakash0021@gmail.com',
@@ -498,6 +500,28 @@ export const DEFAULT_RESUME_RECORD: ResumeRecord = {
   isActive: true,
   isPublicEnabled: true,
   buttonText: 'Download Curriculum Vitae',
+};
+
+export const DEFAULT_RESUME_GENERATOR_SETTINGS: ResumeGeneratorSettings = {
+  enabled: true,
+  title: 'Generate My Resume',
+  description: 'Generate a professional, ATS-friendly resume using the information published on this website.',
+  includeSummary: true,
+  customSummary: '',
+  includeExperience: true,
+  includeProjects: true,
+  includeSkills: true,
+  includeEducation: true,
+  includeCertifications: true,
+  includeContactInfo: {
+    email: true,
+    phone: false,
+    location: true,
+    linkedin: true,
+    github: true,
+    portfolio: true,
+  },
+  sectionOrder: ['summary', 'skills', 'experience', 'projects', 'education', 'certifications'],
 };
 
 export const DEFAULT_OPEN_TO_WORK_SETTINGS: OpenToWorkSettings = {

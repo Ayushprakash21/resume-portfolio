@@ -511,4 +511,32 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(rules.includes('match /resume/{docId}'), 'firestore.rules covers /resume/{docId}');
     assert.ok(rules.includes('resource.data.status == \'published\''), 'Public visitors can only read published items');
   });
+
+  // Test 31: Dynamic ATS-Friendly Resume Generator Engine
+  await t.test('31. Dynamic ATS-Friendly Resume Generator: PDF/DOCX generation, live preview, and CMS governance', () => {
+    const resumeService = fs.readFileSync('src/services/resumeGeneratorService.ts', 'utf-8');
+    assert.ok(resumeService.includes('extractResumeData'), 'resumeGeneratorService provides extractResumeData');
+    assert.ok(resumeService.includes('generatePdf'), 'resumeGeneratorService provides generatePdf via jsPDF');
+    assert.ok(resumeService.includes('generateDocxBlob'), 'resumeGeneratorService provides generateDocxBlob via docx');
+    assert.ok(resumeService.includes('downloadPdf'), 'resumeGeneratorService provides downloadPdf');
+    assert.ok(resumeService.includes('downloadDocx'), 'resumeGeneratorService provides downloadDocx');
+
+    const modal = fs.readFileSync('src/components/resume/ResumeGeneratorModal.tsx', 'utf-8');
+    assert.ok(modal.includes('Generate My Resume'), 'Modal displays official title Generate My Resume');
+    assert.ok(modal.includes('Download ATS Resume (PDF)'), 'Modal has Option 1: Download ATS Resume (PDF)');
+    assert.ok(modal.includes('Download Editable Resume (DOCX)'), 'Modal has Option 2: Download Editable Resume (DOCX)');
+    assert.ok(modal.includes('Live ATS Preview'), 'Modal has Option 3: Live ATS Preview');
+    assert.ok(modal.includes('Calibri, Arial, sans-serif'), 'Preview renders clean single-column ATS typography');
+
+    const app = fs.readFileSync('src/App.tsx', 'utf-8');
+    assert.ok(app.includes('ResumeGeneratorModal'), 'App mounts ResumeGeneratorModal');
+    assert.ok(app.includes('isResumeModalOpen'), 'App manages resume generator modal open state');
+    assert.ok(app.includes('onOpenResumeGenerator'), 'App forwards onOpenResumeGenerator to editorial sections');
+
+    const admin = fs.readFileSync('src/components/admin/editors/ResumeManager.tsx', 'utf-8');
+    assert.ok(admin.includes('Dynamic ATS Resume Generator Engine'), 'Admin ResumeManager features ATS Generator Engine');
+    assert.ok(admin.includes('handleSaveAtsSettings'), 'Admin ResumeManager saves ATS generator settings globally');
+    assert.ok(admin.includes('handleAdminAtsDownloadPdf'), 'Admin can download ATS PDF instantly');
+    assert.ok(admin.includes('handleAdminAtsDownloadDocx'), 'Admin can download ATS DOCX instantly');
+  });
 });

@@ -12,6 +12,7 @@ import { EditorialEducation } from './components/editorial/EditorialEducation';
 import { EditorialContact } from './components/editorial/EditorialContact';
 import { Footer } from './components/Footer';
 import { SwarmCursor } from './components/reactbits/SwarmCursor';
+import { ResumeGeneratorModal } from './components/resume/ResumeGeneratorModal';
 
 // Admin Console Components
 import { AdminLogin } from './components/admin/AdminLogin';
@@ -32,6 +33,7 @@ import {
   SectionConfig,
   AppearanceSettings,
   OpenToWorkSettings,
+  ResumeGeneratorSettings,
 } from './types/cms';
 
 export const App: React.FC = () => {
@@ -63,6 +65,10 @@ export const App: React.FC = () => {
   const [education, setEducation] = useState<EducationRecord[]>(() => cmsService.getEducation());
   const [sectionsConfig, setSectionsConfig] = useState<SectionConfig[]>(() => cmsService.getSectionsConfig());
   const [appearance, setAppearance] = useState<AppearanceSettings>(() => cmsService.getAppearanceSettings());
+  const [resumeSettings, setResumeSettings] = useState<ResumeGeneratorSettings>(() =>
+    cmsService.getResumeGeneratorSettings()
+  );
+  const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
 
   // Listen for Firebase Auth changes & URL hash / history
   useEffect(() => {
@@ -91,6 +97,7 @@ export const App: React.FC = () => {
       setEducation(cmsService.getEducation());
       setSectionsConfig(cmsService.getSectionsConfig());
       setAppearance(cmsService.getAppearanceSettings());
+      setResumeSettings(cmsService.getResumeGeneratorSettings());
     });
 
     return () => {
@@ -152,7 +159,14 @@ export const App: React.FC = () => {
   const renderSectionByKey = (key: string) => {
     switch (key) {
       case 'about':
-        return <EditorialAbout key="about" profile={profile} aboutSettings={aboutSettings} />;
+        return (
+          <EditorialAbout
+            key="about"
+            profile={profile}
+            aboutSettings={aboutSettings}
+            onOpenResumeGenerator={() => setIsResumeModalOpen(true)}
+          />
+        );
       case 'openToWork':
       case 'opentowork':
         return (
@@ -160,6 +174,7 @@ export const App: React.FC = () => {
             key="opentowork"
             settings={openToWorkSettings}
             profile={profile}
+            onOpenResumeGenerator={() => setIsResumeModalOpen(true)}
           />
         );
       case 'experience':
@@ -212,8 +227,16 @@ export const App: React.FC = () => {
           ? sortedSections.map((sec) => renderSectionByKey(sec.sectionKey))
           : (
             <>
-              <EditorialAbout profile={profile} aboutSettings={aboutSettings} />
-              <EditorialOpenToWork settings={openToWorkSettings} profile={profile} />
+              <EditorialAbout
+                profile={profile}
+                aboutSettings={aboutSettings}
+                onOpenResumeGenerator={() => setIsResumeModalOpen(true)}
+              />
+              <EditorialOpenToWork
+                settings={openToWorkSettings}
+                profile={profile}
+                onOpenResumeGenerator={() => setIsResumeModalOpen(true)}
+              />
               <EditorialExperience experiences={experiences} />
               <EditorialCapabilities skills={skills} />
               <EditorialOrion9 project={orionProject} />
@@ -227,6 +250,20 @@ export const App: React.FC = () => {
 
       {/* MINIMAL EDITORIAL FOOTER */}
       <Footer profile={profile} onOpenAdmin={navigateToAdmin} />
+
+      {/* DYNAMIC ATS RESUME GENERATOR MODAL */}
+      <ResumeGeneratorModal
+        isOpen={isResumeModalOpen}
+        onClose={() => setIsResumeModalOpen(false)}
+        profile={profile}
+        about={aboutSettings}
+        experiences={experiences}
+        projects={projects}
+        skills={skills}
+        education={education}
+        certifications={certifications}
+        settings={resumeSettings}
+      />
     </div>
   );
 };

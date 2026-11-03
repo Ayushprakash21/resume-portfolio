@@ -6,9 +6,14 @@ import { HoloCard, BorderGlow, SpecularButton } from '../reactbits';
 interface EditorialAboutProps {
   profile: ProfileData;
   aboutSettings?: AboutSectionSettings;
+  onOpenResumeGenerator?: () => void;
 }
 
-export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile, aboutSettings }) => {
+export const EditorialAbout: React.FC<EditorialAboutProps> = ({
+  profile,
+  aboutSettings,
+  onOpenResumeGenerator,
+}) => {
   const headline =
     aboutSettings?.heading ||
     'Operating at the intersection of enterprise logistics, physical workflows, and autonomous digital systems.';
@@ -174,8 +179,9 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile, aboutSe
             {profile.isResumeDownloadEnabled !== false && (
               <div style={{ marginTop: '8px' }}>
                 <SpecularButton
-                  href={profile.resumeUrl}
-                  target="_blank"
+                  onClick={onOpenResumeGenerator ? onOpenResumeGenerator : undefined}
+                  href={onOpenResumeGenerator ? undefined : profile.resumeUrl}
+                  target={onOpenResumeGenerator ? undefined : "_blank"}
                   icon={<ArrowUpRight size={13} />}
                 >
                   {resumeBtn}

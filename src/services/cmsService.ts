@@ -25,6 +25,7 @@ import {
   SectionConfig,
   AppearanceSettings,
   OpenToWorkSettings,
+  ResumeGeneratorSettings,
 } from '../types/cms';
 import {
   DEFAULT_PROFILE,
@@ -39,6 +40,7 @@ import {
   DEFAULT_HOMEPAGE_SETTINGS,
   DEFAULT_ABOUT_SETTINGS,
   DEFAULT_RESUME_RECORD,
+  DEFAULT_RESUME_GENERATOR_SETTINGS,
   DEFAULT_SECTIONS_CONFIG,
   DEFAULT_APPEARANCE_SETTINGS,
   DEFAULT_OPEN_TO_WORK_SETTINGS,
@@ -60,6 +62,7 @@ const STORAGE_KEYS = {
   sections: 'ayush_cms_sections_v1',
   appearance: 'ayush_cms_appearance_v1',
   openToWork: 'ayush_cms_opentowork_v1',
+  resumeGenerator: 'ayush_cms_resume_generator_v1',
 };
 
 function safeStorageGet<T>(key: string, fallback: T): T {
@@ -94,6 +97,7 @@ interface CmsStore {
   openToWorkDraft: OpenToWorkSettings | null;
   resume: ResumeRecord;
   resumeDraft: ResumeRecord | null;
+  resumeGenerator: ResumeGeneratorSettings;
   sections: SectionConfig[];
   appearance: AppearanceSettings;
   experiences: ExperienceRecord[];
@@ -117,6 +121,7 @@ const store: CmsStore = {
   openToWorkDraft: null,
   resume: safeStorageGet(STORAGE_KEYS.resume, DEFAULT_RESUME_RECORD),
   resumeDraft: null,
+  resumeGenerator: safeStorageGet(STORAGE_KEYS.resumeGenerator, DEFAULT_RESUME_GENERATOR_SETTINGS),
   sections: safeStorageGet(STORAGE_KEYS.sections, DEFAULT_SECTIONS_CONFIG),
   appearance: safeStorageGet(STORAGE_KEYS.appearance, DEFAULT_APPEARANCE_SETTINGS),
   experiences: safeStorageGet(STORAGE_KEYS.experiences, DEFAULT_EXPERIENCES),
@@ -272,6 +277,21 @@ function initFirestoreSync() {
       (err) => console.warn('[CMS Firestore] Resume sync notice:', err)
     );
     activeUnsubscribers.push(unsubResume);
+
+    // 7b. Resume Generator Settings
+    const unsubResumeGenerator = onSnapshot(
+      doc(db, 'settings', 'resumeGenerator'),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data() as ResumeGeneratorSettings;
+          store.resumeGenerator = { ...DEFAULT_RESUME_GENERATOR_SETTINGS, ...data };
+          safeStorageSet(STORAGE_KEYS.resumeGenerator, store.resumeGenerator);
+          notifyListeners();
+        }
+      },
+      (err) => console.warn('[CMS Firestore] ResumeGenerator sync notice:', err)
+    );
+    activeUnsubscribers.push(unsubResumeGenerator);
 
     // 8. Experiences Collection
     const unsubExperiences = onSnapshot(
@@ -1083,6 +1103,30 @@ export const cmsService = {
 
   async updateResumeRecord(resume: ResumeRecord): Promise<void> {
     await this.publishResumeRecord(resume);
+  },
+
+  // ================= RESUME GENERATOR SETTINGS =================
+  getResumeGeneratorSettings(): ResumeGeneratorSettings {
+    return store.resumeGenerator || DEFAULT_RESUME_GENERATOR_SETTINGS;
+  },
+
+  async updateResumeGeneratorSettings(settings: ResumeGeneratorSettings): Promise<void> {
+    const updated: ResumeGeneratorSettings = {
+      ...settings,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'settings', 'resumeGenerator'), updated);
+      } catch (err) {
+        console.warn('[CMS Firestore] ResumeGenerator settings write warning:', err);
+      }
+    }
+
+    store.resumeGenerator = updated;
+    safeStorageSet(STORAGE_KEYS.resumeGenerator, updated);
+    notifyListeners();
   },
 
   async uploadResumeFile(file: File, buttonText?: string): Promise<ResumeRecord> {

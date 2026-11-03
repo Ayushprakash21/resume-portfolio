@@ -333,3 +333,26 @@ export interface OpenToWorkSettings {
   status: 'published' | 'draft';
   updatedAt?: string;
 }
+
+export interface ResumeGeneratorSettings {
+  enabled: boolean;
+  title: string;
+  description: string;
+  includeSummary: boolean;
+  customSummary?: string;
+  includeExperience: boolean;
+  includeProjects: boolean;
+  includeSkills: boolean;
+  includeEducation: boolean;
+  includeCertifications: boolean;
+  includeContactInfo: {
+    email: boolean;
+    phone: boolean;
+    location: boolean;
+    linkedin: boolean;
+    github: boolean;
+    portfolio: boolean;
+  };
+  sectionOrder?: ('summary' | 'skills' | 'experience' | 'projects' | 'education' | 'certifications')[];
+  updatedAt?: string;
+}
