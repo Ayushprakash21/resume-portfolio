@@ -13,33 +13,40 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
     <section
       id="certifications"
       style={{
-        padding: '120px 0',
-        backgroundColor: '#07090D',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        padding: '130px 0',
+        backgroundColor: 'var(--bg-section)',
+        borderBottom: '1px solid var(--border-subtle)',
       }}
     >
       <div className="container" style={{ maxWidth: '1160px' }}>
-        {/* Eyebrow */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#E5B94E', letterSpacing: '0.1em' }}>
-            06 // ACCREDITATIONS
+        {/* Editorial Eyebrow */}
+        <div style={{ marginBottom: '28px' }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '11px',
+              color: 'var(--text-muted)',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Accreditations &bull; Verified Credentials
           </span>
-          <span style={{ height: '1px', width: '40px', backgroundColor: '#E5B94E', opacity: 0.4 }} />
         </div>
 
         <h2
           style={{
-            fontFamily: 'Space Grotesk, sans-serif',
-            fontSize: 'clamp(2.4rem, 5vw, 4.2rem)',
-            fontWeight: 700,
-            lineHeight: 1.1,
-            letterSpacing: '-0.03em',
-            color: '#F5F7FA',
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(2.2rem, 4.2vw, 3.8rem)',
+            fontWeight: 500,
+            lineHeight: 1.15,
+            letterSpacing: '-0.02em',
+            color: 'var(--text-primary)',
             maxWidth: '920px',
             marginBottom: '64px',
           }}
         >
-          Verified technical accreditations in cloud architecture, generative AI, and operations logistics.
+          Verified accreditations in cloud infrastructure, machine learning systems, and enterprise logistics.
         </h2>
 
         {/* Editorial Certificates Grid */}
@@ -54,10 +61,10 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
             <div
               key={cert.id}
               style={{
-                backgroundColor: '#111923',
-                borderRadius: '12px',
-                border: '1px solid rgba(229, 185, 78, 0.25)',
-                padding: '36px',
+                backgroundColor: 'var(--bg-card)',
+                borderRadius: '8px',
+                border: '1px solid var(--border-subtle)',
+                padding: '32px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
@@ -65,46 +72,53 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
               }}
             >
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '20px',
+                  }}
+                >
                   <div
                     style={{
-                      width: '44px',
-                      height: '44px',
-                      borderRadius: '8px',
-                      backgroundColor: 'rgba(229, 185, 78, 0.1)',
-                      border: '1px solid rgba(229, 185, 78, 0.3)',
+                      width: '38px',
+                      height: '38px',
+                      borderRadius: '6px',
+                      backgroundColor: 'rgba(214, 168, 84, 0.1)',
+                      border: '1px solid rgba(214, 168, 84, 0.25)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#E5B94E',
+                      color: 'var(--accent-gold)',
                     }}
                   >
-                    <Award size={22} />
+                    <Award size={18} />
                   </div>
 
-                  <span
+                  <div
                     style={{
-                      fontFamily: 'JetBrains Mono, monospace',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      fontFamily: 'var(--font-body)',
                       fontSize: '11px',
-                      color: '#E5B94E',
-                      background: 'rgba(229, 185, 78, 0.08)',
-                      padding: '4px 10px',
-                      borderRadius: '4px',
-                      border: '1px solid rgba(229, 185, 78, 0.25)',
+                      color: 'var(--accent-emerald)',
                     }}
                   >
-                    {cert.highlightTag || 'ACCREDITATION'}
-                  </span>
+                    <CheckCircle2 size={12} />
+                    <span>Verified</span>
+                  </div>
                 </div>
 
                 <h3
                   style={{
-                    fontFamily: 'Space Grotesk, sans-serif',
-                    fontSize: '20px',
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '18px',
                     fontWeight: 600,
-                    color: '#FFFFFF',
-                    lineHeight: 1.35,
-                    marginBottom: '10px',
+                    lineHeight: 1.3,
+                    color: 'var(--text-primary)',
+                    marginBottom: '8px',
                   }}
                 >
                   {cert.title}
@@ -112,54 +126,57 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
 
                 <div
                   style={{
-                    fontFamily: 'JetBrains Mono, monospace',
+                    fontFamily: 'var(--font-body)',
                     fontSize: '13px',
-                    color: '#A7B2C0',
+                    color: 'var(--text-secondary)',
                     marginBottom: '16px',
                   }}
                 >
-                  {cert.issuer} • {cert.completionDate}
+                  {cert.issuer} &bull; {cert.completionDate}
                 </div>
 
-                <div
-                  style={{
-                    fontSize: '13px',
-                    color: '#738195',
-                    fontFamily: 'JetBrains Mono, monospace',
-                  }}
-                >
-                  DOMAIN: <span style={{ color: '#F5F7FA' }}>{cert.category}</span>
-                </div>
+                {cert.credentialId && (
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '11px',
+                      color: 'var(--text-muted)',
+                      letterSpacing: '0.04em',
+                      marginBottom: '20px',
+                    }}
+                  >
+                    ID: {cert.credentialId}
+                  </div>
+                )}
               </div>
 
-              {/* Action Buttons */}
+              {/* Action buttons */}
               <div
                 style={{
-                  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-                  paddingTop: '20px',
-                  marginTop: '28px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
+                  gap: '12px',
+                  paddingTop: '20px',
+                  borderTop: '1px solid var(--border-subtle)',
                 }}
               >
                 <button
                   onClick={() => setActiveCert(cert)}
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#E5B94E',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: 0,
-                    fontFamily: 'Inter, sans-serif',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
                     fontWeight: 500,
+                    cursor: 'pointer',
+                    padding: 0,
                   }}
                 >
-                  <Eye size={14} />
+                  <Eye size={13} />
                   <span>Inspect Credential</span>
                 </button>
 
@@ -169,15 +186,15 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                     target="_blank"
                     rel="noreferrer"
                     style={{
-                      display: 'flex',
+                      display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '4px',
+                      gap: '5px',
+                      color: 'var(--text-accent-blue)',
+                      fontFamily: 'var(--font-body)',
                       fontSize: '12px',
-                      color: '#A7B2C0',
                       textDecoration: 'none',
+                      marginLeft: 'auto',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = '#A7B2C0')}
                   >
                     <span>Verify Link</span>
                     <ExternalLink size={12} />
@@ -187,109 +204,127 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
             </div>
           ))}
         </div>
+      </div>
 
-        {/* Certificate Inspection Modal */}
-        {activeCert && (
+      {/* Credential Inspection Modal */}
+      {activeCert && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(10, 13, 12, 0.85)',
+            backdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '24px',
+          }}
+          onClick={() => setActiveCert(null)}
+        >
           <div
             style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.85)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '24px',
-              zIndex: 100,
-              backdropFilter: 'blur(10px)',
+              backgroundColor: 'var(--bg-card)',
+              border: '1px solid var(--border-editorial)',
+              borderRadius: '8px',
+              padding: '40px',
+              maxWidth: '540px',
+              width: '100%',
+              position: 'relative',
+              boxShadow: 'var(--shadow-editorial)',
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
+            <button
+              onClick={() => setActiveCert(null)}
               style={{
-                width: '100%',
-                maxWidth: '560px',
-                backgroundColor: '#0C1118',
-                borderRadius: '12px',
-                border: '1px solid #E5B94E',
-                padding: '36px',
-                boxShadow: '0 24px 60px rgba(0, 0, 0, 0.8)',
-                position: 'relative',
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-muted)',
+                cursor: 'pointer',
               }}
             >
-              <button
-                onClick={() => setActiveCert(null)}
-                style={{
-                  position: 'absolute',
-                  top: '20px',
-                  right: '20px',
-                  background: '#151E29',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  color: '#A7B2C0',
-                  borderRadius: '50%',
-                  width: '32px',
-                  height: '32px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                }}
-              >
-                <X size={16} />
-              </button>
+              <X size={20} />
+            </button>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <CheckCircle2 size={16} color="#E5B94E" />
-                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#E5B94E' }}>
-                  ACCREDITATION RECORD VERIFIED
-                </span>
-              </div>
-
-              <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '24px', fontWeight: 700, color: '#FFFFFF', marginBottom: '8px' }}>
-                {activeCert.title}
-              </h3>
-
-              <div style={{ fontSize: '14px', color: '#8AB4FF', marginBottom: '16px' }}>
-                Issued by {activeCert.issuer}
-              </div>
-
+            <div style={{ marginBottom: '20px' }}>
               <div
                 style={{
-                  backgroundColor: '#111923',
-                  padding: '20px',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  marginBottom: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  fontSize: '12px',
-                  color: '#A7B2C0',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '11px',
+                  textTransform: 'uppercase',
+                  color: 'var(--accent-gold)',
+                  letterSpacing: '0.1em',
+                  marginBottom: '8px',
                 }}
               >
-                <div>STATUS: <span style={{ color: '#42D6A4' }}>ACTIVE & STANDING</span></div>
-                <div>DOMAIN: <span style={{ color: '#FFFFFF' }}>{activeCert.category}</span></div>
-                <div>DATE: <span style={{ color: '#FFFFFF' }}>{activeCert.completionDate}</span></div>
+                Verified Certification Record
+              </div>
+              <h3
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '22px',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  lineHeight: 1.25,
+                }}
+              >
+                {activeCert.title}
+              </h3>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px' }}>
+              <div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                  Issuing Organization
+                </div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                  {activeCert.issuer}
+                </div>
               </div>
 
-              {activeCert.verificationUrl && (
-                <a
-                  href={activeCert.verificationUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn-primary"
-                  style={{ width: '100%', borderColor: 'rgba(229, 185, 78, 0.4)', color: '#E5B94E' }}
-                >
-                  <span>Open Official Issuer Verification Portal</span>
-                  <ExternalLink size={14} />
-                </a>
+              <div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                  Issue Date
+                </div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                  {activeCert.completionDate}
+                </div>
+              </div>
+
+              {activeCert.credentialId && (
+                <div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    Credential License ID
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-primary)' }}>
+                    {activeCert.credentialId}
+                  </div>
+                </div>
               )}
             </div>
+
+            {activeCert.verificationUrl && (
+              <a
+                href={activeCert.verificationUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-editorial-pill"
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                <span>Open Official Verification Authority</span>
+                <ExternalLink size={14} />
+              </a>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </section>
   );
 };

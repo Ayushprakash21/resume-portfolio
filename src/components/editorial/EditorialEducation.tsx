@@ -1,5 +1,5 @@
 import React from 'react';
-import { GraduationCap, Calendar, Award } from 'lucide-react';
+import { Calendar, GraduationCap } from 'lucide-react';
 import { EducationRecord } from '../../types/cms';
 
 interface EditorialEducationProps {
@@ -11,33 +11,40 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
     <section
       id="education"
       style={{
-        padding: '100px 0',
-        backgroundColor: '#0C1118',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        padding: '110px 0',
+        backgroundColor: 'var(--bg-primary)',
+        borderBottom: '1px solid var(--border-subtle)',
       }}
     >
       <div className="container" style={{ maxWidth: '1160px' }}>
-        {/* Eyebrow */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#45D6FF', letterSpacing: '0.1em' }}>
-            07 // ACADEMIC FOUNDATION
+        {/* Editorial Eyebrow */}
+        <div style={{ marginBottom: '28px' }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '11px',
+              color: 'var(--text-muted)',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Academic &bull; Qualifications
           </span>
-          <span style={{ height: '1px', width: '40px', backgroundColor: '#45D6FF', opacity: 0.4 }} />
         </div>
 
         <h2
           style={{
-            fontFamily: 'Space Grotesk, sans-serif',
-            fontSize: 'clamp(2.4rem, 5vw, 4.2rem)',
-            fontWeight: 700,
-            lineHeight: 1.1,
-            letterSpacing: '-0.03em',
-            color: '#F5F7FA',
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(2.2rem, 4.2vw, 3.8rem)',
+            fontWeight: 500,
+            lineHeight: 1.15,
+            letterSpacing: '-0.02em',
+            color: 'var(--text-primary)',
             maxWidth: '920px',
             marginBottom: '48px',
           }}
         >
-          Education & Academic Qualifications
+          Engineering foundation &amp; quantitative systems training.
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -45,57 +52,89 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
             <div
               key={edu.id}
               style={{
-                backgroundColor: '#111923',
-                borderRadius: '12px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                backgroundColor: 'var(--bg-card)',
+                borderRadius: '8px',
+                border: '1px solid var(--border-subtle)',
                 padding: '36px',
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '28px',
-                alignItems: 'center',
+                gridTemplateColumns: 'minmax(280px, 380px) 1fr',
+                gap: '32px',
+                alignItems: 'start',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <div>
                 <div
                   style={{
-                    width: '52px',
-                    height: '52px',
-                    borderRadius: '10px',
-                    backgroundColor: 'rgba(69, 214, 255, 0.1)',
-                    border: '1px solid rgba(69, 214, 255, 0.25)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#45D6FF',
-                    flexShrink: 0,
+                    gap: '8px',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
+                    color: 'var(--text-accent-blue)',
+                    marginBottom: '10px',
                   }}
                 >
-                  <GraduationCap size={26} />
+                  <Calendar size={13} />
+                  <span>
+                    {edu.startYear} &mdash; {edu.endYear}
+                  </span>
                 </div>
-                <div>
-                  <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '22px', fontWeight: 600, color: '#FFFFFF' }}>
-                    {edu.degree}
-                  </h3>
-                  <div style={{ fontSize: '16px', color: '#8AB4FF', marginTop: '2px', fontWeight: 500 }}>
-                    {edu.fieldOfStudy}
-                  </div>
-                  <div style={{ fontSize: '14px', color: '#A7B2C0', marginTop: '4px' }}>
-                    {edu.institution}
-                  </div>
+
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '20px',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)',
+                    marginBottom: '6px',
+                  }}
+                >
+                  {edu.degree}
+                </h3>
+
+                <div
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '14px',
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  {edu.fieldOfStudy}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '13px', color: '#45D6FF', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Calendar size={13} />
-                  <span>{edu.startYear} — {edu.endYear}</span>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '15px',
+                    color: 'var(--text-primary)',
+                    fontWeight: 500,
+                    marginBottom: '8px',
+                  }}
+                >
+                  {edu.institution}
                 </div>
 
                 {edu.highlights && edu.highlights.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                      marginTop: '8px',
+                    }}
+                  >
                     {edu.highlights.map((hl, hIdx) => (
-                      <div key={hIdx} style={{ fontSize: '13px', color: '#A7B2C0', lineHeight: 1.5 }}>
-                        • {hl}
+                      <div
+                        key={hIdx}
+                        style={{
+                          fontFamily: 'var(--font-body)',
+                          fontSize: '13px',
+                          color: 'var(--text-secondary)',
+                        }}
+                      >
+                        &bull; {hl}
                       </div>
                     ))}
                   </div>

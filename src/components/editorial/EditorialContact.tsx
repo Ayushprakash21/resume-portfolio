@@ -15,7 +15,7 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
     name: '',
     email: '',
     organization: '',
-    subject: 'Strategic Operations / Systems Inquiry',
+    subject: 'Operations & Strategy Inquiry',
     message: '',
   });
 
@@ -44,7 +44,7 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
         name: '',
         email: '',
         organization: '',
-        subject: 'Strategic Operations / Systems Inquiry',
+        subject: 'Operations & Strategy Inquiry',
         message: '',
       });
       setTimeout(() => setFormSubmitted(false), 6000);
@@ -59,61 +59,79 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
     <section
       id="contact"
       style={{
-        padding: '120px 0',
-        backgroundColor: '#07090D',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        padding: '130px 0',
+        backgroundColor: 'var(--bg-section)',
+        borderBottom: '1px solid var(--border-subtle)',
       }}
     >
       <div className="container" style={{ maxWidth: '1160px' }}>
-        {/* Eyebrow */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#45D6FF', letterSpacing: '0.1em' }}>
-            08 // DIRECT TRANSMISSION
+        {/* Editorial Eyebrow */}
+        <div style={{ marginBottom: '28px' }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '11px',
+              color: 'var(--text-muted)',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Contact &bull; Let&apos;s Connect
           </span>
-          <span style={{ height: '1px', width: '40px', backgroundColor: '#45D6FF', opacity: 0.4 }} />
         </div>
 
         <h2
           style={{
-            fontFamily: 'Space Grotesk, sans-serif',
-            fontSize: 'clamp(2.4rem, 5vw, 4.2rem)',
-            fontWeight: 700,
-            lineHeight: 1.1,
-            letterSpacing: '-0.03em',
-            color: '#F5F7FA',
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(2.2rem, 4.2vw, 3.8rem)',
+            fontWeight: 500,
+            lineHeight: 1.15,
+            letterSpacing: '-0.02em',
+            color: 'var(--text-primary)',
             maxWidth: '920px',
             marginBottom: '64px',
           }}
         >
-          Initiate direct contact for operational leadership, supply chain advisory, or systems architecture.
+          Let&apos;s start a conversation around supply chain transformation, systems execution, or strategic product roles.
         </h2>
 
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-            gap: '48px',
+            gap: '56px',
+            alignItems: 'start',
           }}
         >
-          {/* Coordinates & Direct Links */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Column 1: Direct Coordinates */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             <div
               style={{
-                backgroundColor: '#111923',
+                backgroundColor: 'var(--bg-card)',
                 padding: '36px',
-                borderRadius: '12px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '8px',
+                border: '1px solid var(--border-subtle)',
               }}
             >
-              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#45D6FF', marginBottom: '8px' }}>
-                DIRECT ELECTRONIC MAIL
-              </div>
               <div
                 style={{
-                  fontFamily: 'Space Grotesk, sans-serif',
-                  fontSize: '22px',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '11px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  color: 'var(--text-muted)',
+                  marginBottom: '10px',
+                }}
+              >
+                Direct Email
+              </div>
+
+              <div
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '20px',
                   fontWeight: 600,
-                  color: '#FFFFFF',
+                  color: 'var(--text-primary)',
                   marginBottom: '20px',
                   wordBreak: 'break-all',
                 }}
@@ -121,148 +139,178 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                 {profile.email}
               </div>
 
-              <button
-                onClick={copyEmail}
-                className="btn-primary"
-                style={{ width: '100%', padding: '12px', fontSize: '14px' }}
-              >
-                {copied ? (
-                  <>
-                    <Check size={16} color="#42D6A4" />
-                    <span>Copied Email to Clipboard</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy size={16} />
-                    <span>Copy Email Address</span>
-                  </>
-                )}
-              </button>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <a
+                  href={`mailto:${profile.email}`}
+                  className="btn-editorial-pill"
+                >
+                  <Mail size={13} />
+                  <span>Send Email</span>
+                </a>
+
+                <button
+                  onClick={copyEmail}
+                  className="btn-editorial-pill"
+                >
+                  {copied ? <Check size={13} color="var(--accent-emerald)" /> : <Copy size={13} />}
+                  <span>{copied ? 'Copied' : 'Copy'}</span>
+                </button>
+              </div>
             </div>
 
-            {/* Social Links */}
+            {/* Social Network Links */}
             <div
               style={{
-                backgroundColor: '#111923',
-                padding: '36px',
-                borderRadius: '12px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                backgroundColor: 'var(--bg-card)',
+                padding: '32px',
+                borderRadius: '8px',
+                border: '1px solid var(--border-subtle)',
               }}
             >
-              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#738195', marginBottom: '16px' }}>
-                VERIFIED NETWORK PROFILES
+              <div
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '11px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  color: 'var(--text-muted)',
+                  marginBottom: '16px',
+                }}
+              >
+                Verified Professional Networks
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <a
-                  href={profile.githubUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '14px 18px',
-                    borderRadius: '6px',
-                    backgroundColor: '#151E29',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    color: '#FFFFFF',
-                    textDecoration: 'none',
-                    transition: 'border-color 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#45D6FF')}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)')}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Github size={18} color="#45D6FF" />
-                    <span style={{ fontSize: '14px', fontWeight: 500 }}>GitHub Repositories</span>
-                  </div>
-                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '12px', color: '#738195' }}>
-                    Ayushprakash21
-                  </span>
-                </a>
+                {profile.linkedinUrl && (
+                  <a
+                    href={profile.linkedinUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      color: 'var(--text-secondary)',
+                      textDecoration: 'none',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '14px',
+                      transition: 'color 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
+                  >
+                    <Linkedin size={16} />
+                    <span>LinkedIn Profile &bull; Ayush Prakash</span>
+                  </a>
+                )}
 
-                <a
-                  href={profile.linkedinUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '14px 18px',
-                    borderRadius: '6px',
-                    backgroundColor: '#151E29',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    color: '#FFFFFF',
-                    textDecoration: 'none',
-                    transition: 'border-color 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#8AB4FF')}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)')}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Linkedin size={18} color="#8AB4FF" />
-                    <span style={{ fontSize: '14px', fontWeight: 500 }}>LinkedIn Profile</span>
-                  </div>
-                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '12px', color: '#738195' }}>
-                    /in/ayushprakash
-                  </span>
-                </a>
+                {profile.githubUrl && (
+                  <a
+                    href={profile.githubUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      color: 'var(--text-secondary)',
+                      textDecoration: 'none',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '14px',
+                      transition: 'color 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
+                  >
+                    <Github size={16} />
+                    <span>GitHub Repositories &bull; Ayushprakash21</span>
+                  </a>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Functional Contact Form */}
+          {/* Column 2: Minimal Editorial Contact Form */}
           <div
             style={{
-              backgroundColor: '#111923',
+              backgroundColor: 'var(--bg-card)',
               padding: '40px',
-              borderRadius: '12px',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '8px',
+              border: '1px solid var(--border-subtle)',
             }}
           >
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#738195', marginBottom: '16px' }}>
-              TRANSMIT DIRECT DISPATCH TO CMS
+            <div
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '20px',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                marginBottom: '8px',
+              }}
+            >
+              Send an Inquiry
             </div>
+            <p
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '14px',
+                color: 'var(--text-muted)',
+                marginBottom: '28px',
+              }}
+            >
+              Messages route directly to my private administrative inbox.
+            </p>
 
             {formSubmitted ? (
               <div
                 style={{
-                  padding: '48px 24px',
-                  textAlign: 'center',
-                  backgroundColor: 'rgba(66, 214, 164, 0.08)',
-                  borderRadius: '8px',
-                  border: '1px solid rgba(66, 214, 164, 0.3)',
+                  padding: '24px',
+                  borderRadius: '6px',
+                  backgroundColor: 'rgba(76, 168, 130, 0.12)',
+                  border: '1px solid rgba(76, 168, 130, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
                 }}
               >
-                <CheckCircle2 size={36} color="#42D6A4" style={{ margin: '0 auto 16px' }} />
-                <h4 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '20px', color: '#FFFFFF', marginBottom: '8px' }}>
-                  Dispatch Delivered & Logged
-                </h4>
-                <p style={{ fontSize: '14px', color: '#A7B2C0', lineHeight: 1.6 }}>
-                  Thank you. Your message has been saved in the private administrator inbox.
-                </p>
+                <CheckCircle2 size={22} color="var(--accent-emerald)" />
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    Message Dispatched Successfully
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                    Thank you. I will review your inquiry and respond promptly.
+                  </div>
+                </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontFamily: 'JetBrains Mono, monospace', color: '#738195', marginBottom: '6px' }}>
-                    FULL NAME
+                  <label
+                    style={{
+                      display: 'block',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '12px',
+                      color: 'var(--text-secondary)',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    Your Name *
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="Your Name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="e.g. Sarah Jenkins"
                     style={{
                       width: '100%',
-                      padding: '12px 16px',
+                      padding: '12px 14px',
                       borderRadius: '6px',
-                      backgroundColor: '#151E29',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      color: '#FFFFFF',
+                      border: '1px solid var(--border-subtle)',
+                      backgroundColor: 'var(--bg-primary)',
+                      color: 'var(--text-primary)',
+                      fontFamily: 'var(--font-body)',
                       fontSize: '14px',
                       outline: 'none',
                     }}
@@ -270,22 +318,31 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontFamily: 'JetBrains Mono, monospace', color: '#738195', marginBottom: '6px' }}>
-                    EMAIL ADDRESS
+                  <label
+                    style={{
+                      display: 'block',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '12px',
+                      color: 'var(--text-secondary)',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    Your Email *
                   </label>
                   <input
                     type="email"
                     required
-                    placeholder="name@organization.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="sarah@organization.com"
                     style={{
                       width: '100%',
-                      padding: '12px 16px',
+                      padding: '12px 14px',
                       borderRadius: '6px',
-                      backgroundColor: '#151E29',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      color: '#FFFFFF',
+                      border: '1px solid var(--border-subtle)',
+                      backgroundColor: 'var(--bg-primary)',
+                      color: 'var(--text-primary)',
+                      fontFamily: 'var(--font-body)',
                       fontSize: '14px',
                       outline: 'none',
                     }}
@@ -293,21 +350,30 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontFamily: 'JetBrains Mono, monospace', color: '#738195', marginBottom: '6px' }}>
-                    ORGANIZATION / AFFILIATION
+                  <label
+                    style={{
+                      display: 'block',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '12px',
+                      color: 'var(--text-secondary)',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    Organization / Company
                   </label>
                   <input
                     type="text"
-                    placeholder="Company or Entity"
                     value={formData.organization}
                     onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
+                    placeholder="Organization name (optional)"
                     style={{
                       width: '100%',
-                      padding: '12px 16px',
+                      padding: '12px 14px',
                       borderRadius: '6px',
-                      backgroundColor: '#151E29',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      color: '#FFFFFF',
+                      border: '1px solid var(--border-subtle)',
+                      backgroundColor: 'var(--bg-primary)',
+                      color: 'var(--text-primary)',
+                      fontFamily: 'var(--font-body)',
                       fontSize: '14px',
                       outline: 'none',
                     }}
@@ -315,25 +381,34 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontFamily: 'JetBrains Mono, monospace', color: '#738195', marginBottom: '6px' }}>
-                    DISPATCH MESSAGE
+                  <label
+                    style={{
+                      display: 'block',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '12px',
+                      color: 'var(--text-secondary)',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    Message *
                   </label>
                   <textarea
                     rows={4}
                     required
-                    placeholder="Inquiry or advisory details..."
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    placeholder="Describe your inquiry, proposal, or context..."
                     style={{
                       width: '100%',
-                      padding: '12px 16px',
+                      padding: '12px 14px',
                       borderRadius: '6px',
-                      backgroundColor: '#151E29',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      color: '#FFFFFF',
+                      border: '1px solid var(--border-subtle)',
+                      backgroundColor: 'var(--bg-primary)',
+                      color: 'var(--text-primary)',
+                      fontFamily: 'var(--font-body)',
                       fontSize: '14px',
-                      outline: 'none',
                       resize: 'vertical',
+                      outline: 'none',
                     }}
                   />
                 </div>
@@ -341,11 +416,17 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn-primary"
-                  style={{ width: '100%', padding: '14px', fontSize: '14px', marginTop: '6px' }}
+                  className="btn-editorial-pill"
+                  style={{
+                    width: '100%',
+                    justifyContent: 'center',
+                    padding: '14px',
+                    backgroundColor: 'rgba(244, 243, 238, 0.08)',
+                    borderColor: 'rgba(244, 243, 238, 0.4)',
+                  }}
                 >
-                  <Send size={15} />
-                  <span>{submitting ? 'Transmitting...' : 'Send Message to CMS'}</span>
+                  <Send size={14} />
+                  <span>{submitting ? 'Transmitting...' : 'Send Message'}</span>
                 </button>
               </form>
             )}

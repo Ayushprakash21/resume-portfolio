@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Universe3DScene } from './components/3d/Universe3DScene';
-import { NavbarRedesigned } from './components/public/NavbarRedesigned';
+import { CinematicHero } from './components/cinematic/CinematicHero';
 import { EditorialAbout } from './components/editorial/EditorialAbout';
 import { EditorialExperience } from './components/editorial/EditorialExperience';
 import { EditorialCapabilities } from './components/editorial/EditorialCapabilities';
@@ -9,7 +8,6 @@ import { EditorialApplyVise } from './components/editorial/EditorialApplyVise';
 import { EditorialCertifications } from './components/editorial/EditorialCertifications';
 import { EditorialEducation } from './components/editorial/EditorialEducation';
 import { EditorialContact } from './components/editorial/EditorialContact';
-import { RecruiterModeModal } from './components/public/RecruiterModeModal';
 import { Footer } from './components/Footer';
 
 // Admin Console Components
@@ -26,7 +24,6 @@ import {
   CertificationRecord,
   SkillRecord,
   EducationRecord,
-  SiteSettings,
 } from './types/cms';
 
 export const App: React.FC = () => {
@@ -39,14 +36,8 @@ export const App: React.FC = () => {
     return authService.isCurrentSessionAdmin();
   });
 
-  // Spatial 3D Active Landmark
-  const [activeLandmarkId, setActiveLandmarkId] = useState<string | null>(null);
-
-  // Recruiter Dossier Modal
-  const [isRecruiterModalOpen, setIsRecruiterModalOpen] = useState(false);
-
   // Reduced motion preference
-  const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
+  const [reducedMotion] = useState<boolean>(() => {
     return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   });
 
@@ -57,11 +48,10 @@ export const App: React.FC = () => {
   const [certifications, setCertifications] = useState<CertificationRecord[]>(() => cmsService.getCertifications(true));
   const [skills, setSkills] = useState<SkillRecord[]>(() => cmsService.getSkills());
   const [education, setEducation] = useState<EducationRecord[]>(() => cmsService.getEducation());
-  const [settings, setSettings] = useState<SiteSettings>(() => cmsService.getSiteSettings());
 
   // Listen for Firebase Auth changes & URL hash / history
   useEffect(() => {
-    const unsubscribeAuth = authService.onAuthStateChange((user, isAdmin) => {
+    const unsubscribeAuth = authService.onAuthStateChange((_user, isAdmin) => {
       setIsAdminAuthenticated(isAdmin);
     });
 
@@ -73,7 +63,7 @@ export const App: React.FC = () => {
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('hashchange', handlePopState);
 
-    // Subscribe to reactive CMS updates so public views re-render in real-time
+    // Subscribe to reactive CMS updates
     const unsubscribeCms = cmsService.subscribe(() => {
       setProfile(cmsService.getProfile());
       setExperiences(cmsService.getExperiences(true));
@@ -81,7 +71,6 @@ export const App: React.FC = () => {
       setCertifications(cmsService.getCertifications(true));
       setSkills(cmsService.getSkills());
       setEducation(cmsService.getEducation());
-      setSettings(cmsService.getSiteSettings());
     });
 
     return () => {
@@ -104,20 +93,8 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSelectLandmark = (landmarkId: string) => {
-    setActiveLandmarkId(landmarkId);
-    if (landmarkId !== 'overview') {
-      const el = document.getElementById(landmarkId);
-      if (el) {
-        setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 300);
-      }
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const handleSkipToEditorial = () => {
-    const el = document.getElementById('about');
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
@@ -147,26 +124,22 @@ export const App: React.FC = () => {
   const applywiseProject = projects.find((p) => p.id === 'applywise-ai');
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', backgroundColor: '#07090D', color: '#F5F7FA' }}>
-      {/* Conventional Sticky Top Navigation */}
-      <NavbarRedesigned
-        profile={profile}
-        onNavigateAdmin={navigateToAdmin}
-        onToggleRecruiterMode={() => setIsRecruiterModalOpen(true)}
-        onSelectZone={handleSelectLandmark}
+    <div
+      style={{
+        position: 'relative',
+        minHeight: '100vh',
+        backgroundColor: 'var(--bg-primary)',
+        color: 'var(--text-primary)',
+      }}
+    >
+      {/* SECTION 3 & 4: CINEMATIC NATURAL HOMEPAGE ENVIRONMENT & LAYOUT */}
+      <CinematicHero
+        reducedMotion={reducedMotion}
+        onNavigateSection={scrollToSection}
+        onOpenAdmin={navigateToAdmin}
       />
 
-      {/* PART 2: HOMEPAGE INTERACTIVE 3D WORLD */}
-      <section id="3d-universe" style={{ position: 'relative', width: '100%', height: '100vh' }}>
-        <Universe3DScene
-          onSelectLandmark={handleSelectLandmark}
-          activeLandmarkId={activeLandmarkId}
-          onSkipToEditorial={handleSkipToEditorial}
-          reducedMotion={reducedMotion}
-        />
-      </section>
-
-      {/* PART 3: PREMIUM EDITORIAL PAGES */}
+      {/* SECTION 9: REFINED EDITORIAL INNER PAGES */}
       <main style={{ position: 'relative', zIndex: 10 }}>
         {/* ABOUT */}
         <EditorialAbout profile={profile} />
@@ -177,13 +150,13 @@ export const App: React.FC = () => {
         {/* CAPABILITIES */}
         <EditorialCapabilities skills={skills} />
 
-        {/* ORION-9 PROJECT SHOWCASE */}
+        {/* ORION-9 CASE STUDY */}
         <EditorialOrion9 project={orionProject} />
 
-        {/* APPLYVISE AI PROJECT SHOWCASE */}
+        {/* APPLYVISE AI CASE STUDY */}
         <EditorialApplyVise project={applywiseProject} />
 
-        {/* CERTIFICATIONS */}
+        {/* ACCREDITATIONS & CERTIFICATIONS */}
         <EditorialCertifications certifications={certifications} />
 
         {/* EDUCATION */}
@@ -193,19 +166,8 @@ export const App: React.FC = () => {
         <EditorialContact profile={profile} />
       </main>
 
-      {/* RECRUITER MODE DOSSIER MODAL */}
-      <RecruiterModeModal
-        isOpen={isRecruiterModalOpen}
-        onClose={() => setIsRecruiterModalOpen(false)}
-        profile={profile}
-        experiences={experiences}
-        projects={projects}
-        certifications={certifications}
-        skills={skills}
-      />
-
-      {/* FOOTER */}
-      <Footer />
+      {/* MINIMAL EDITORIAL FOOTER */}
+      <Footer onOpenAdmin={navigateToAdmin} />
     </div>
   );
 };

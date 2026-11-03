@@ -1,5 +1,4 @@
 import React from 'react';
-import { Truck, TrendingUp, Cpu, Database } from 'lucide-react';
 import { SkillRecord } from '../../types/cms';
 
 interface EditorialCapabilitiesProps {
@@ -16,163 +15,120 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
     categories[sk.category].push(sk);
   });
 
-  const categoryMetadata: Record<string, { icon: React.ElementType; color: string; label: string }> = {
-    'Supply Chain & Logistics Systems': {
-      icon: Truck,
-      color: '#42D6A4',
-      label: 'PHYSICAL SYSTEMS & FLEETS',
-    },
-    'Business Operations & Strategy': {
-      icon: TrendingUp,
-      color: '#45D6FF',
-      label: 'ORGANIZATIONAL EXCELLENCE',
-    },
-    'AI & Applied Product Innovation': {
-      icon: Cpu,
-      color: '#A78BFA',
-      label: 'MACHINE INTELLIGENCE & HEURISTICS',
-    },
-    'Full-Stack & Cloud Architecture': {
-      icon: Database,
-      color: '#8AB4FF',
-      label: 'DISTRIBUTED ARCHITECTURE',
-    },
-  };
-
   return (
     <section
-      id="skills"
+      id="capabilities"
       style={{
-        padding: '120px 0',
-        backgroundColor: '#0C1118',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        padding: '130px 0',
+        backgroundColor: 'var(--bg-primary)',
+        borderBottom: '1px solid var(--border-subtle)',
       }}
     >
       <div className="container" style={{ maxWidth: '1160px' }}>
         {/* Eyebrow */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#45D6FF', letterSpacing: '0.1em' }}>
-            03 // CAPABILITIES & KNOWLEDGE
+        <div style={{ marginBottom: '28px' }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '11px',
+              color: 'var(--text-muted)',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Capabilities &bull; Core Disciplines
           </span>
-          <span style={{ height: '1px', width: '40px', backgroundColor: '#45D6FF', opacity: 0.4 }} />
         </div>
 
         <h2
           style={{
-            fontFamily: 'Space Grotesk, sans-serif',
-            fontSize: 'clamp(2.4rem, 5vw, 4.2rem)',
-            fontWeight: 700,
-            lineHeight: 1.1,
-            letterSpacing: '-0.03em',
-            color: '#F5F7FA',
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(2.2rem, 4.2vw, 3.8rem)',
+            fontWeight: 500,
+            lineHeight: 1.15,
+            letterSpacing: '-0.02em',
+            color: 'var(--text-primary)',
             maxWidth: '920px',
             marginBottom: '64px',
           }}
         >
-          Practical competencies spanning ground logistics, operational strategy, and modern software engineering.
+          Specialized expertise spanning physical supply pipelines, enterprise software, and applied machine intelligence.
         </h2>
 
-        {/* Editorial 2x2 Grid with Asymmetric Accents */}
+        {/* 4-Quadrant Editorial Matrix */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '36px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: '32px',
           }}
         >
-          {Object.entries(categories).map(([catTitle, items]) => {
-            const meta = categoryMetadata[catTitle] || { icon: Database, color: '#45D6FF', label: 'DOMAIN' };
-            const Icon = meta.icon;
-            return (
-              <div
-                key={catTitle}
-                style={{
-                  padding: '36px',
-                  backgroundColor: '#111923',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-                    <div
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '8px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: meta.color,
-                      }}
-                    >
-                      <Icon size={20} />
-                    </div>
-                    <div>
-                      <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: meta.color }}>
-                        {meta.label}
-                      </div>
-                      <h3
-                        style={{
-                          fontFamily: 'Space Grotesk, sans-serif',
-                          fontSize: '18px',
-                          fontWeight: 600,
-                          color: '#FFFFFF',
-                        }}
-                      >
-                        {catTitle}
-                      </h3>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {items.map((sk) => (
-                      <div
-                        key={sk.id}
-                        style={{
-                          borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
-                          paddingBottom: '12px',
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontFamily: 'Inter, sans-serif',
-                            fontSize: '15px',
-                            fontWeight: 600,
-                            color: '#F5F7FA',
-                            marginBottom: '4px',
-                          }}
-                        >
-                          {sk.name}
-                        </div>
-                        {sk.description && (
-                          <div style={{ fontSize: '13px', color: '#A7B2C0', lineHeight: 1.5 }}>
-                            {sk.description}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
+          {Object.entries(categories).map(([categoryName, skillList]) => (
+            <div
+              key={categoryName}
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                borderRadius: '8px',
+                padding: '36px 30px',
+                border: '1px solid var(--border-subtle)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px',
+              }}
+            >
+              <div>
                 <div
                   style={{
-                    marginTop: '24px',
-                    fontFamily: 'JetBrains Mono, monospace',
+                    fontFamily: 'var(--font-body)',
                     fontSize: '11px',
-                    color: '#738195',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    color: 'var(--text-accent-blue)',
+                    marginBottom: '8px',
                   }}
                 >
-                  VERIFIED COMPETENCY // NO INFLATED PERCENTAGES
+                  Domain
                 </div>
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '18px',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)',
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {categoryName}
+                </h3>
               </div>
-            );
-          })}
+
+              {/* Skills List without fake percentage bars */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                }}
+              >
+                {skillList.map((sk) => (
+                  <span
+                    key={sk.id}
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '13px',
+                      color: 'var(--text-secondary)',
+                      padding: '6px 12px',
+                      borderRadius: '4px',
+                      backgroundColor: 'rgba(244, 243, 238, 0.04)',
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  >
+                    {sk.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

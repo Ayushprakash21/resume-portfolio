@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, ArrowUpRight, Compass, Shield, Cpu, Activity } from 'lucide-react';
+import { MapPin, ArrowUpRight } from 'lucide-react';
 import { ProfileData } from '../../types/cms';
 
 interface EditorialAboutProps {
@@ -11,38 +11,45 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile }) => {
     <section
       id="about"
       style={{
-        padding: '120px 0',
-        backgroundColor: '#0C1118',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        padding: '130px 0',
+        backgroundColor: 'var(--bg-primary)',
+        borderBottom: '1px solid var(--border-subtle)',
         position: 'relative',
       }}
     >
       <div className="container" style={{ maxWidth: '1160px' }}>
-        {/* Editorial Section Eyebrow */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#45D6FF', letterSpacing: '0.1em' }}>
-            01 // EDITORIAL PROFILE
+        {/* Editorial Section Label */}
+        <div style={{ marginBottom: '28px' }}>
+          <span
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '11px',
+              color: 'var(--text-muted)',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+            }}
+          >
+            About &bull; Background
           </span>
-          <span style={{ height: '1px', width: '40px', backgroundColor: '#45D6FF', opacity: 0.4 }} />
         </div>
 
-        {/* Large Editorial Headline */}
+        {/* Editorial Headline */}
         <h2
           style={{
-            fontFamily: 'Space Grotesk, sans-serif',
-            fontSize: 'clamp(2.4rem, 5vw, 4.2rem)',
-            fontWeight: 700,
-            lineHeight: 1.1,
-            letterSpacing: '-0.03em',
-            color: '#F5F7FA',
-            maxWidth: '940px',
-            marginBottom: '48px',
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(2.2rem, 4.2vw, 3.8rem)',
+            fontWeight: 500,
+            lineHeight: 1.15,
+            letterSpacing: '-0.02em',
+            color: 'var(--text-primary)',
+            maxWidth: '920px',
+            marginBottom: '56px',
           }}
         >
-          Operating at the confluence of enterprise logistics, physical workflows, and autonomous digital systems.
+          Operating at the intersection of enterprise logistics, physical workflows, and autonomous digital systems.
         </h2>
 
-        {/* Editorial 2-Column Split: Genuine Photo + Longform Narrative */}
+        {/* 2-Column Split: Genuine Photo + Longform Narrative */}
         <div
           style={{
             display: 'grid',
@@ -51,16 +58,16 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile }) => {
             alignItems: 'start',
           }}
         >
-          {/* Column 1: Genuine Professional Portrait & Metadata Frame */}
+          {/* Column 1: Genuine Professional Portrait */}
           <div>
             <div
               style={{
                 position: 'relative',
-                borderRadius: '12px',
+                borderRadius: '8px',
                 overflow: 'hidden',
-                backgroundColor: '#151E29',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                boxShadow: '0 24px 60px rgba(0, 0, 0, 0.6)',
+                backgroundColor: 'var(--bg-forest)',
+                border: '1px solid var(--border-editorial)',
+                boxShadow: 'var(--shadow-editorial)',
               }}
             >
               <img
@@ -81,104 +88,94 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({ profile }) => {
               <div
                 style={{
                   padding: '20px 24px',
-                  backgroundColor: 'rgba(12, 17, 24, 0.95)',
-                  borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                  backgroundColor: 'rgba(17, 21, 20, 0.94)',
+                  borderTop: '1px solid var(--border-subtle)',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                 }}
               >
                 <div>
-                  <div style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '18px', fontWeight: 600, color: '#FFFFFF' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {profile.name}
                   </div>
-                  <div style={{ fontSize: '13px', color: '#8AB4FF', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                    <MapPin size={12} />
-                    <span>{profile.location}</span>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    Bengaluru, India
                   </div>
                 </div>
-
-                <div
-                  style={{
-                    fontFamily: 'JetBrains Mono, monospace',
-                    fontSize: '11px',
-                    color: '#42D6A4',
-                    background: 'rgba(66, 214, 164, 0.1)',
-                    padding: '4px 10px',
-                    borderRadius: '9999px',
-                    border: '1px solid rgba(66, 214, 164, 0.3)',
-                  }}
-                >
-                  ● {profile.availabilityStatus}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <MapPin size={13} color="var(--text-accent-blue)" />
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                    Active
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Column 2: Editorial Prose & Philosophical Focus */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            <div>
-              <h3
-                style={{
-                  fontFamily: 'Space Grotesk, sans-serif',
-                  fontSize: '22px',
-                  fontWeight: 600,
-                  color: '#FFFFFF',
-                  marginBottom: '16px',
-                }}
-              >
-                Background & Career Thesis
-              </h3>
-              <p
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '17px',
-                  lineHeight: 1.75,
-                  color: '#A7B2C0',
-                  marginBottom: '16px',
-                }}
-              >
-                In complex operations, information latency is the silent killer of productivity. Ground logistics and warehouse teams frequently struggle with fragmented systems of record, paper custody handoffs, and disconnected ERP data that leave supply managers blind to transit bottlenecks.
-              </p>
-              <p
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '17px',
-                  lineHeight: 1.75,
-                  color: '#A7B2C0',
-                }}
-              >
-                My work centers on designing transparent systems that eliminate operational friction. Rather than adding superficial dashboards over broken processes, I focus on data integrity, distributed event verification, and grounded software architecture that respects physical realities.
-              </p>
-            </div>
+          {/* Column 2: Editorial Text */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+            <p
+              style={{
+                fontFamily: 'var(--font-serif)',
+                fontSize: '24px',
+                lineHeight: 1.4,
+                color: 'var(--text-primary)',
+                fontStyle: 'italic',
+                fontWeight: 400,
+              }}
+            >
+              &ldquo;Modern supply chains fail not from a lack of data, but from fragmented operational visibility between physical warehouses and enterprise software.&rdquo;
+            </p>
 
-            {/* Core Focus Areas */}
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
+              {profile.bio}
+            </p>
+
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '15px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
+              My operational background centers on orchestrating freight schedules, streamlining procurement pipelines, and translating on-the-ground warehouse hurdles into reliable software architectures. Through building independent platforms like Orion-9 and ApplyVise AI, I connect the rigor of supply chain execution with human-centric software.
+            </p>
+
+            {/* Core Competencies Overview */}
             <div
               style={{
-                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                paddingTop: '28px',
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
                 gap: '24px',
+                paddingTop: '20px',
+                borderTop: '1px solid var(--border-subtle)',
               }}
             >
               <div>
-                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#45D6FF', marginBottom: '8px' }}>
-                  OPERATIONAL PURSUITS
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                  Physical Operations
                 </div>
-                <div style={{ fontSize: '14px', color: '#F5F7FA', lineHeight: 1.6 }}>
-                  Supply Chain Synchronization, Procurement Workflows, Multi-Tier Route Telemetry, ERP Harmonization.
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                  Freight logistics, inventory replenishment, vendor coordination, and warehouse workflows.
                 </div>
               </div>
 
               <div>
-                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#A78BFA', marginBottom: '8px' }}>
-                  DIGITAL PRODUCT DESIGN
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                  Digital Platforms
                 </div>
-                <div style={{ fontSize: '14px', color: '#F5F7FA', lineHeight: 1.6 }}>
-                  Edge Computing, Vector Embeddings, ATS Parsing Heuristics, High-Density Reactive User Interfaces.
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                  Enterprise SaaS, applied language models, ATS parsing systems, and distributed cloud backends.
                 </div>
               </div>
+            </div>
+
+            {/* Resume / Connect Link */}
+            <div style={{ marginTop: '8px' }}>
+              <a
+                href={profile.resumeUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-editorial-pill"
+              >
+                <span>View Full Curriculum Vitae</span>
+                <ArrowUpRight size={13} />
+              </a>
             </div>
           </div>
         </div>

@@ -1,71 +1,68 @@
 /**
- * DESIGN SYSTEM LOCK — AYUSH: THE INTELLIGENCE UNIVERSE
- * Design tokens and CSS variables
+ * CINEMATIC DIGITAL PORTFOLIO — AYUSH PRAKASH
+ * Visual direction inspired by LE:MMA Studio (lemma.studio)
+ * Natural, editorial, minimal, atmospheric, sophisticated palette & typography
  */
 
 :root {
-  /* Surface & Background Palette */
-  --bg-primary: #07090D;
-  --bg-secondary: #0C1118;
-  --bg-section: #111923;
-  --bg-card: #151E29;
-  --bg-elevated: #1B2836;
+  /* Natural Cinematic Surface Palette (Section 5) */
+  --bg-primary: #111514;       /* Main charcoal */
+  --bg-forest: #18211D;        /* Dark forest */
+  --bg-slate: #30383A;         /* Deep slate */
+  --bg-stone: #535655;         /* Natural stone */
+  --bg-muted-forest: #4A5749;  /* Muted forest */
+  --bg-section: #141A18;       /* Subtle section surface */
+  --bg-card: #18201D;          /* Editorial card surface */
+  --bg-elevated: #222B27;      /* Elevated surface */
 
   /* Typography Colors */
-  --text-primary: #F5F7FA;
-  --text-secondary: #A7B2C0;
-  --text-muted: #738195;
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(69, 214, 255, 0.28);
+  --text-primary: #F4F3EE;     /* Warm white */
+  --text-secondary: #C1C4BE;   /* Muted text */
+  --text-muted: #8E948D;       /* Subdued metadata */
+  --text-accent-blue: #8294A6; /* Subtle atmospheric blue */
 
-  /* Interaction & Accents */
-  --accent-primary: #45D6FF;     /* Primary interaction accent: Cyan */
-  --accent-secondary: #8AB4FF;   /* Secondary accent: Depth blue */
-  --accent-tertiary: #777BFF;    /* Tertiary accent: Indigo */
-  --accent-success: #42D6A4;     /* Success & Orion-9 identity */
-  --accent-warning: #FFBF69;
-  --accent-error: #FF6B75;
+  /* Borders & Dividers */
+  --border-subtle: rgba(244, 243, 238, 0.09);
+  --border-hover: rgba(244, 243, 238, 0.22);
+  --border-editorial: rgba(193, 196, 190, 0.15);
 
-  /* Selective Accents according to rules */
-  --accent-applywise-violet: #8B5CF6;  /* Used selectively for ApplyVise AI */
-  --accent-applywise-violet-subtle: rgba(139, 92, 246, 0.12);
-  --accent-gold: #E5B94E;              /* Used for certification highlights */
-  --accent-gold-subtle: rgba(229, 185, 78, 0.12);
-  --accent-green-orion: #42D6A4;       /* Used for Orion-9 visual identity */
-  --accent-green-subtle: rgba(66, 214, 164, 0.12);
+  /* Accents - Grounded & Natural */
+  --accent-primary: #C1C4BE;
+  --accent-atmospheric: #8294A6;
+  --accent-forest: #4A5749;
+  --accent-gold: #D6A854;       /* Restrained gold for credentials */
+  --accent-emerald: #4CA882;    /* Restrained natural green */
 
-  /* Typography Font Families */
-  --font-heading: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* Typography Font Families (Section 6) */
+  --font-display: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-mono: 'Manrope', monospace;
 
   /* Typography Scale */
-  --type-hero: clamp(3.5rem, 8vw, 6.5rem);
-  --type-section-heading: clamp(2.5rem, 5vw, 4rem);
-  --type-project-heading: clamp(2.2rem, 4vw, 3rem);
-  --type-subheading: clamp(1.4rem, 2.5vw, 2rem);
-  --type-body: 17px;
-  --type-body-sm: 16px;
-  --type-nav: 14px;
-  --type-metadata: 12px;
+  --type-hero: clamp(3.2rem, 7vw, 6.2rem);
+  --type-editorial-large: clamp(2.4rem, 5vw, 4.2rem);
+  --type-section-heading: clamp(2rem, 4vw, 3.2rem);
+  --type-project-heading: clamp(1.8rem, 3vw, 2.6rem);
+  --type-subheading: clamp(1.2rem, 2vw, 1.6rem);
+  --type-body: 16px;
+  --type-body-sm: 14px;
+  --type-nav: 13px;
+  --type-metadata: 11px;
 
-  /* Geometry & Spacing */
+  /* Geometry & Radii */
+  --radius-xs: 3px;
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
   --radius-pill: 9999px;
 
-  /* Restrained Shadows & Glows */
-  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
-  --shadow-elevated: 0 12px 32px -4px rgba(0, 0, 0, 0.6);
-  --glow-cyan-subtle: 0 0 20px rgba(69, 214, 255, 0.15);
-  --glow-cyan-button: 0 0 16px rgba(69, 214, 255, 0.25);
-  --glow-violet-subtle: 0 0 24px rgba(139, 92, 246, 0.18);
-  --glow-green-subtle: 0 0 24px rgba(66, 214, 164, 0.18);
+  /* Natural Soft Shadows */
+  --shadow-editorial: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+  --shadow-subtle: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
 
   /* Transitions */
   --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
