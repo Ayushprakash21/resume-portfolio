@@ -13,7 +13,6 @@ import { EditorialContact } from './components/editorial/EditorialContact';
 import { Footer } from './components/Footer';
 import { SwarmCursor } from './components/reactbits/SwarmCursor';
 import { ResumeGeneratorModal } from './components/resume/ResumeGeneratorModal';
-import { FloatingPortfolioNavigation } from './components/public/FloatingPortfolioNavigation';
 
 // Admin Console Components
 import { AdminLogin } from './components/admin/AdminLogin';
@@ -210,9 +209,6 @@ export const App: React.FC = () => {
     >
       {/* REACT BITS: SWARM CURSOR (Monochromatic Silver Liquid-Metal Particle Trail) */}
       <SwarmCursor color="217, 221, 227" particleCount={28} />
-
-      {/* GLOBAL STANDALONE FLOATING WEBSITE NAVIGATION (REACT BITS OPTION WHEEL) */}
-      <FloatingPortfolioNavigation onNavigateSection={scrollToSection} />
 
       {/* SECTION 3 & 4: CINEMATIC NATURAL HOMEPAGE ENVIRONMENT & LAYOUT */}
       {homepageSettings.heroVisibility !== false && (

@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X } from 'lucide-react';
 import { ProfileData } from '../../types/cms';
 import { ApMonogram } from '../brand/ApMonogram';
-import { DEFAULT_NAV_WHEEL_ITEMS } from '../reactbits/OptionWheel';
 
 export interface NavbarRedesignedProps {
   profile?: ProfileData;
@@ -15,13 +13,31 @@ export interface NavbarRedesignedProps {
 }
 
 /**
- * RESTORED MINIMAL LUXURY HEADER
+ * EXACT 5 PUBLIC NAVIGATION OPTIONS:
+ * - Work (#projects)
+ * - Experience (#experience)
+ * - About (#about)
+ * - Open to Work (#opentowork)
+ * - Contact (#contact)
  * 
- * In accordance with specifications:
- * - Left: Dominant AP Brand Monogram + AYUSH PRAKASH wordmark.
- * - Center: Completely spacious, uncluttered, no horizontal wheel, no pills.
- * - Right: Spacious on desktop. Clean layout without extraneous pills or public controls.
- * - Mobile: Sleek mobile-menu-toggle opening accessible navigation drawer for sections.
+ * Orion-9, Recruiter Brief, Admin, and CMS options are excluded.
+ */
+export const NAV_ITEMS = [
+  { label: 'Work', targetId: 'projects' },
+  { label: 'Experience', targetId: 'experience' },
+  { label: 'About', targetId: 'about' },
+  { label: 'Open to Work', targetId: 'opentowork' },
+  { label: 'Contact', targetId: 'contact' },
+];
+
+/**
+ * TOP-RIGHT GLASS NAVIGATION PANEL (Reference Video Implementation)
+ * 
+ * - Left: AP Brand Monogram + AYUSH PRAKASH wordmark.
+ * - Center: Intentionally minimal & spacious.
+ * - Right: Refined, compact three-line menu icon trigger toggling
+ *   a floating dark translucent glass dropdown panel anchored to the top-right.
+ * - Unified across Desktop, Tablet, and Mobile.
  */
 export const NavbarRedesigned: React.FC<NavbarRedesignedProps> = ({
   profile,
@@ -30,7 +46,8 @@ export const NavbarRedesigned: React.FC<NavbarRedesignedProps> = ({
   isScrolled: controlledScrolled,
 }) => {
   const [internalScrolled, setInternalScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuContainerRef = useRef<HTMLDivElement>(null);
 
   const isScrolled = controlledScrolled !== undefined ? controlledScrolled : internalScrolled;
   const name = profile?.name || 'AYUSH PRAKASH';
@@ -44,25 +61,29 @@ export const NavbarRedesigned: React.FC<NavbarRedesignedProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, [controlledScrolled]);
 
-  // Lock body scroll when mobile menu is open
+  // Close menu on click outside or on Escape key
   useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMobileMenuOpen(false);
+    if (!menuOpen) return;
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (menuContainerRef.current && !menuContainerRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
     window.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = '';
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [mobileMenuOpen]);
+  }, [menuOpen]);
 
   const handleNavigate = (targetId: string) => {
-    setMobileMenuOpen(false);
+    setMenuOpen(false);
     if (onNavigateSection) {
       onNavigateSection(targetId);
     } else if (onSelectZone) {
@@ -83,7 +104,7 @@ export const NavbarRedesigned: React.FC<NavbarRedesignedProps> = ({
         transform: 'translateX(-50%)',
         width: isScrolled ? 'min(94%, 1160px)' : 'min(94%, 1200px)',
         height: isScrolled ? '64px' : '72px',
-        padding: isScrolled ? '6px 20px' : '8px 8px',
+        padding: isScrolled ? '6px 20px' : '8px 16px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -140,178 +161,134 @@ export const NavbarRedesigned: React.FC<NavbarRedesignedProps> = ({
 
       {/* ========================================================
           CENTER: INTENTIONALLY MINIMAL & SPACIOUS
-          (Option Wheel moved to right side of Hero)
           ======================================================== */}
       <div style={{ flex: '1 1 auto' }} />
 
       {/* ========================================================
-          RIGHT ACTIONS: CLEAN & SPACIOUS PUBLIC HEADER
-          Mobile Drawer Toggle active on mobile/tablet viewports
+          RIGHT: REFINED TOP-RIGHT MENU TRIGGER & DROPDOWN PANEL
           ======================================================== */}
       <div
-        className="desktop-actions"
+        ref={menuContainerRef}
+        className="header-nav-container"
         style={{
+          position: 'relative',
           display: 'flex',
           alignItems: 'center',
           flexShrink: 0,
         }}
       >
-        {/* Mobile menu toggle */}
         <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label={mobileMenuOpen ? 'Close navigation drawer' : 'Open navigation drawer'}
-          aria-expanded={mobileMenuOpen}
-          className="mobile-menu-toggle"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={menuOpen}
+          aria-controls="top-right-nav-dropdown"
+          className="top-right-nav-trigger mobile-menu-toggle"
           style={{
-            display: 'none',
+            display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '44px',
-            height: '44px',
-            backgroundColor: 'rgba(255, 255, 255, 0.06)',
-            border: '1px solid rgba(255, 255, 255, 0.14)',
+            width: '40px',
+            height: '40px',
+            background: menuOpen ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+            border: menuOpen ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
             borderRadius: '8px',
-            color: '#FFFFFF',
+            color: '#D4D7DC',
             cursor: 'pointer',
+            transition: 'all 0.2s ease',
           }}
         >
-          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          {menuOpen ? <X size={20} strokeWidth={1.75} /> : <Menu size={22} strokeWidth={1.75} />}
         </button>
-      </div>
 
-      {/* ========================================================
-          MOBILE NAVIGATION DRAWER OVERLAY
-          Clean section links, zero recruiter or admin pills
-          Portal-attached to document.body to break out of header transform context
-          ======================================================== */}
-      {mobileMenuOpen &&
-        typeof document !== 'undefined' &&
-        createPortal(
+        {/* TOP-RIGHT FLOATING GLASS DROPDOWN PANEL */}
+        {menuOpen && (
           <div
-            className="mobile-nav-backdrop is-open"
-            onClick={() => setMobileMenuOpen(false)}
+            id="top-right-nav-dropdown"
+            role="menu"
+            aria-label="Portfolio sections"
+            className="top-right-glass-dropdown"
             style={{
-              position: 'fixed',
-              inset: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.85)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              zIndex: 1000,
+              position: 'absolute',
+              top: 'calc(100% + 12px)',
+              right: 0,
+              width: 'min(220px, calc(100vw - 32px))',
+              backgroundColor: 'rgba(14, 15, 19, 0.94)',
+              backdropFilter: 'blur(24px) saturate(140%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(140%)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: '16px',
+              boxShadow: '0 24px 48px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+              padding: '14px 14px 16px',
+              zIndex: 100,
               display: 'flex',
-              justifyContent: 'flex-end',
+              flexDirection: 'column',
+              gap: '4px',
             }}
           >
-            <div
-              className="mobile-nav-drawer"
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: 'min(320px, 85vw)',
-                height: '100%',
-                backgroundColor: '#0A0A0C',
-                borderLeft: '1px solid rgba(255, 255, 255, 0.12)',
-                padding: '28px 24px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                overflowY: 'auto',
-              }}
-            >
-              <div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    paddingBottom: '20px',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                    marginBottom: '24px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <ApMonogram width={48} />
-                    <span style={{ fontSize: '16px', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase' }}>
-                      {name}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="mobile-menu-toggle"
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#D9DDE3',
-                      cursor: 'pointer',
-                      padding: '8px',
-                    }}
-                    aria-label="Close menu"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-
-                <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {DEFAULT_NAV_WHEEL_ITEMS.map((item) => {
-                    const target = item.targetId || item.id || '';
-                    return (
-                      <button
-                        key={item.id || item.label}
-                        onClick={() => handleNavigate(target)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        width: '100%',
-                        padding: '12px 14px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                        border: '1px solid rgba(255, 255, 255, 0.06)',
-                        borderRadius: '8px',
-                        color: item.id === 'opentowork' ? '#6CE098' : '#F4F3EE',
-                        fontSize: '14px',
-                        fontWeight: 500,
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <span>{item.label}</span>
-                      {item.badge && (
-                        <span
-                          style={{
-                            fontSize: '10.5px',
-                            padding: '2px 8px',
-                            borderRadius: '12px',
-                            backgroundColor:
-                              item.id === 'opentowork'
-                                ? 'rgba(74, 180, 120, 0.2)'
-                                : 'rgba(255, 255, 255, 0.08)',
-                            color: item.id === 'opentowork' ? '#6CE098' : 'rgba(255, 255, 255, 0.6)',
-                          }}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-                </nav>
-              </div>
-
-              <div style={{ paddingTop: '20px', borderTop: '1px solid rgba(255, 255, 255, 0.06)', textAlign: 'center' }}>
-                <span style={{ fontSize: '11px', color: 'rgba(217, 221, 227, 0.4)', fontFamily: 'var(--font-mono, monospace)', letterSpacing: '0.08em' }}>
-                  AYUSH PRAKASH &bull; PORTFOLIO
-                </span>
-              </div>
+            {/* Top row with subtle close button */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '4px' }}>
+              <button
+                onClick={() => setMenuOpen(false)}
+                aria-label="Close menu"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '4px',
+                  transition: 'color 0.15s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255, 255, 255, 0.5)')}
+              >
+                <X size={16} strokeWidth={2} />
+              </button>
             </div>
-          </div>,
-          document.body
-        )}
 
-      <style>{`
-        @media (max-width: 960px) {
-          .mobile-menu-toggle {
-            display: flex !important;
-          }
-        }
-      `}</style>
+            {/* Exactly 5 Navigation Items */}
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.targetId}
+                role="menuitem"
+                onClick={() => handleNavigate(item.targetId)}
+                className="top-right-dropdown-link"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '10px 14px',
+                  background: 'transparent',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#C5C8CE',
+                  fontFamily: 'var(--font-display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)',
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  textAlign: 'center',
+                  letterSpacing: '0.01em',
+                  cursor: 'pointer',
+                  transition: 'all 0.18s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#FFFFFF';
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.07)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#C5C8CE';
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </header>
   );
 };
+
+export default NavbarRedesigned;
