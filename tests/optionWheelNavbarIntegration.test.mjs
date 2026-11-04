@@ -2,12 +2,11 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-describe('P0 Right-Side Hero Option Wheel & Clean Header Integration Suite', () => {
+describe('P0 Global Floating Portfolio Navigation & Orion-9 Showcase Removal Suite', () => {
   const navbarFile = fs.readFileSync('src/components/public/NavbarRedesigned.tsx', 'utf-8');
-  const wheelNavFile = fs.readFileSync('src/components/cinematic/HeroOptionWheelNav.tsx', 'utf-8');
+  const floatingNavFile = fs.readFileSync('src/components/public/FloatingPortfolioNavigation.tsx', 'utf-8');
   const wheelFile = fs.readFileSync('src/components/reactbits/OptionWheel.tsx', 'utf-8');
   const wheelCss = fs.readFileSync('src/components/reactbits/OptionWheel.css', 'utf-8');
-  const heroLayoutFile = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
   const orionFile = fs.readFileSync('src/components/editorial/EditorialOrion9.tsx', 'utf-8');
   const appFile = fs.readFileSync('src/App.tsx', 'utf-8');
 
@@ -23,30 +22,57 @@ describe('P0 Right-Side Hero Option Wheel & Clean Header Integration Suite', () 
     assert.ok(!navbarFile.includes('Orion-9 Overview') && !navbarFile.includes('ORION-9'), 'Header has no obsolete Orion-9 pill');
   });
 
-  it('2. Dedicated HeroOptionWheelNav mounts authentic React Bits Option Wheel on the far right', () => {
+  it('2. Global FloatingPortfolioNavigation mounts standalone OptionWheel in homepage shell', () => {
     assert.ok(
-      wheelNavFile.includes("import { OptionWheel") || wheelNavFile.includes("import OptionWheel"),
-      'HeroOptionWheelNav must import OptionWheel'
+      floatingNavFile.includes("import { OptionWheel") || floatingNavFile.includes("import OptionWheel"),
+      'FloatingPortfolioNavigation must import OptionWheel'
     );
     assert.ok(
-      wheelNavFile.includes('<OptionWheel') && wheelNavFile.includes('DEFAULT_NAV_WHEEL_ITEMS'),
-      'HeroOptionWheelNav must render OptionWheel with DEFAULT_NAV_WHEEL_ITEMS'
+      floatingNavFile.includes('<OptionWheel') && floatingNavFile.includes('DEFAULT_NAV_WHEEL_ITEMS'),
+      'FloatingPortfolioNavigation must render OptionWheel with DEFAULT_NAV_WHEEL_ITEMS'
     );
     assert.ok(
-      heroLayoutFile.includes('<HeroOptionWheelNav'),
-      'CinematicHeroLayout must render HeroOptionWheelNav'
+      appFile.includes('<FloatingPortfolioNavigation'),
+      'App.tsx must render FloatingPortfolioNavigation in the global homepage shell'
     );
     assert.ok(
-      wheelCss.includes('.hero-right-wheel-dock'),
-      'OptionWheel.css must define .hero-right-wheel-dock layout'
+      wheelCss.includes('.floating-portfolio-nav'),
+      'OptionWheel.css must define .floating-portfolio-nav layout'
+    );
+    assert.ok(
+      wheelCss.includes('position: fixed') && wheelCss.includes('right: 3vw'),
+      'Floating nav must be fixed at right: 3vw'
     );
     assert.ok(
       wheelCss.includes('top: 50%') && wheelCss.includes('transform: translateY(-50%)'),
-      'Right dock must be vertically centered in the hero negative space'
+      'Floating nav must be vertically centered'
     );
   });
 
-  it('3. Every portfolio navigation item maps to a real section ID in the codebase', () => {
+  it('3. Orion-9 Subsystem Navigator showcase has been completely removed from EditorialOrion9', () => {
+    assert.ok(
+      !orionFile.includes('Orion-9 Subsystem Navigator'),
+      'EditorialOrion9 must NOT contain Orion-9 Subsystem Navigator showcase title'
+    );
+    assert.ok(
+      !orionFile.includes('React Bits Component • 3D Cylindrical Reel') &&
+        !orionFile.includes('React Bits Component &bull; 3D Cylindrical Reel'),
+      'EditorialOrion9 must NOT contain showcase subtitle banner'
+    );
+    assert.ok(
+      !orionFile.includes('id="orion-subsystems"'),
+      'EditorialOrion9 must NOT contain orion-subsystems container'
+    );
+    assert.ok(
+      !orionFile.includes('<OptionWheel'),
+      'EditorialOrion9 must NOT contain duplicate OptionWheel showcase instance'
+    );
+    // Real Orion-9 content is preserved
+    assert.ok(orionFile.includes('id="orion-9"'), 'EditorialOrion9 section remains published with id="orion-9"');
+    assert.ok(orionFile.includes('OrionSupplyChainFlow'), 'Interactive supply chain pipeline flow remains active');
+  });
+
+  it('4. Every portfolio navigation item maps to a real section ID in the codebase', () => {
     const expectedSections = [
       { id: 'work', targetId: 'projects', file: 'src/components/editorial/EditorialProjects.tsx' },
       { id: 'orion9', targetId: 'orion-9', file: 'src/components/editorial/EditorialOrion9.tsx' },
@@ -69,19 +95,18 @@ describe('P0 Right-Side Hero Option Wheel & Clean Header Integration Suite', () 
     }
   });
 
-  it('4. Selecting a wheel item invokes section navigation handler', () => {
+  it('5. Selecting a wheel item invokes section navigation handler', () => {
     assert.ok(
-      wheelNavFile.includes('handleSelect') || wheelNavFile.includes('onSelect'),
-      'HeroOptionWheelNav must define selection callback'
+      floatingNavFile.includes('handleSelect') || floatingNavFile.includes('onSelect'),
+      'FloatingPortfolioNavigation must define selection callback'
     );
     assert.ok(
-      heroLayoutFile.includes('<HeroOptionWheelNav onNavigateSection={scrollTo} />') ||
-        heroLayoutFile.includes('onNavigateSection='),
-      'CinematicHeroLayout must connect section scroll navigation to HeroOptionWheelNav'
+      appFile.includes('<FloatingPortfolioNavigation onNavigateSection={scrollToSection} />'),
+      'App.tsx must pass scrollToSection to FloatingPortfolioNavigation'
     );
   });
 
-  it('5. OptionWheel supports keyboard navigation and accessibility standards', () => {
+  it('6. OptionWheel supports keyboard navigation and accessibility standards', () => {
     assert.ok(wheelFile.includes('handleKeyDown'), 'OptionWheel implements handleKeyDown');
     assert.ok(wheelFile.includes('ArrowUp') && wheelFile.includes('ArrowDown'), 'Supports ArrowUp and ArrowDown');
     assert.ok(wheelFile.includes('ArrowLeft') && wheelFile.includes('ArrowRight'), 'Supports ArrowLeft and ArrowRight');
@@ -92,24 +117,13 @@ describe('P0 Right-Side Hero Option Wheel & Clean Header Integration Suite', () 
     assert.ok(wheelCss.includes(':focus-visible'), 'OptionWheel provides :focus-visible focus ring');
   });
 
-  it('6. Mobile navigation provides accessible drawer without recruiter or admin pills', () => {
+  it('7. Mobile navigation provides accessible drawer without recruiter or admin pills', () => {
     assert.ok(navbarFile.includes('mobile-menu-toggle'), 'NavbarRedesigned provides mobile-menu-toggle');
     assert.ok(navbarFile.includes('mobile-nav-drawer'), 'NavbarRedesigned provides mobile-nav-drawer');
     assert.ok(!navbarFile.includes('Recruiter Brief'), 'Mobile drawer must NOT contain Recruiter Brief button');
     assert.ok(!navbarFile.includes('CMS Console'), 'Mobile drawer must NOT contain CMS Console button');
-    assert.ok(wheelCss.includes('@media (max-width: 767px)'), 'OptionWheel.css provides responsive mobile behavior');
+    assert.ok(wheelCss.includes('@media (max-width: 960px)'), 'OptionWheel.css provides responsive mobile behavior');
     assert.ok(navbarFile.includes("document.body.style.overflow = 'hidden'"), 'Locks body scroll when mobile drawer is open');
-  });
-
-  it('7. The existing Orion-9 section remains intact with authentic subsystem OptionWheel', () => {
-    assert.ok(
-      orionFile.includes('id="orion-9"'),
-      'EditorialOrion9 section must remain published with id="orion-9"'
-    );
-    assert.ok(
-      orionFile.includes('<OptionWheel') && orionFile.includes('DEFAULT_ORION9_ITEMS'),
-      'EditorialOrion9 integrates authentic OptionWheel for Orion-9 subsystem navigation'
-    );
   });
 
   it('8. Private /admin route remains fully accessible and authenticated', () => {

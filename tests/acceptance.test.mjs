@@ -605,8 +605,11 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     const heroLayout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
     assert.ok(!heroLayout.includes('OptionWheel onSelect'), 'CinematicHeroLayout has removed the incorrect header pill dropdown');
 
+    const floatingNav = fs.readFileSync('src/components/public/FloatingPortfolioNavigation.tsx', 'utf-8');
+    assert.ok(floatingNav.includes('OptionWheel'), 'FloatingPortfolioNavigation integrates authentic OptionWheel globally');
+
     const orionFile = fs.readFileSync('src/components/editorial/EditorialOrion9.tsx', 'utf-8');
-    assert.ok(orionFile.includes('OptionWheel'), 'EditorialOrion9 integrates authentic OptionWheel for Orion-9 subsystem navigation');
+    assert.ok(!orionFile.includes('Orion-9 Subsystem Navigator'), 'EditorialOrion9 has removed the demo showcase');
 
     // 4. Border Glow
     const borderGlowFile = fs.readFileSync('src/components/reactbits/BorderGlow.tsx', 'utf-8');

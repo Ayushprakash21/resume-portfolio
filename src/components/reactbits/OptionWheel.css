@@ -147,136 +147,73 @@
 }
 
 /* ============================================================================
-   RIGHT-SIDE HERO NAVIGATION DOCK: .hero-right-wheel-dock & .option-wheel--hero-dock
-   Sophisticated vertical 3D navigation instrument floating in hero right-side space.
-   Metallic silver & dark luxury obsidian aesthetic for Ayush Prakash Portfolio.
+   GLOBAL FLOATING PORTFOLIO NAVIGATION: .floating-portfolio-nav
+   Pure, standalone vertical 3D OptionWheel floating in far-right viewport.
+   Zero outer card, zero outer border, zero panel backgrounds.
    ============================================================================ */
 
-.hero-right-wheel-dock {
-  position: absolute;
+.floating-portfolio-nav {
+  position: fixed;
   top: 50%;
   transform: translateY(-50%);
-  right: clamp(24px, 3.8vw, 64px);
-  width: clamp(260px, 19vw, 310px);
-  height: clamp(390px, 46vh, 440px);
-  z-index: 30;
+  right: 3vw;
+  width: clamp(220px, 16vw, 260px);
+  height: clamp(380px, 44vh, 420px);
+  z-index: 40;
   pointer-events: auto;
   user-select: none;
-  display: flex;
-  flex-direction: column;
-}
-
-.hero-right-wheel-card {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: rgba(10, 11, 15, 0.45);
-  backdrop-filter: blur(16px) saturate(130%);
-  -webkit-backdrop-filter: blur(16px) saturate(130%);
-  border: 1px solid rgba(217, 221, 227, 0.12);
-  border-radius: 20px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.hero-right-wheel-card:hover {
-  border-color: rgba(217, 221, 227, 0.24);
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 0 30px -4px rgba(217, 221, 227, 0.08);
-}
-
-.hero-right-wheel-header {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 14px 20px 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  z-index: 4;
+  justify-content: center;
 }
 
-.hero-right-wheel-tag {
-  font-family: var(--font-mono, monospace);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  color: rgba(217, 221, 227, 0.55);
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.hero-right-wheel-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #FFFFFF;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.85);
-}
-
-.option-wheel--hero-dock {
-  flex: 1;
-  min-height: 0;
+.option-wheel--floating-nav {
   width: 100%;
   height: 100%;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
-.option-wheel--hero-dock .option-wheel__vignette-top {
-  height: 64px;
-  background: linear-gradient(to bottom, rgba(10, 11, 15, 0.85) 0%, transparent 100%);
+.option-wheel--floating-nav .option-wheel__vignette-top {
+  height: 70px;
+  background: linear-gradient(to bottom, rgba(5, 5, 8, 0.75) 0%, transparent 100%);
 }
 
-.option-wheel--hero-dock .option-wheel__vignette-bottom {
-  height: 64px;
-  background: linear-gradient(to top, rgba(10, 11, 15, 0.85) 0%, transparent 100%);
+.option-wheel--floating-nav .option-wheel__vignette-bottom {
+  height: 70px;
+  background: linear-gradient(to top, rgba(5, 5, 8, 0.75) 0%, transparent 100%);
 }
 
-.option-wheel--hero-dock .option-wheel__slot-indicator {
+.option-wheel--floating-nav .option-wheel__slot-indicator {
   height: 52px;
   border-top: 1px solid rgba(217, 221, 227, 0.22);
   border-bottom: 1px solid rgba(217, 221, 227, 0.22);
-  background: linear-gradient(90deg, rgba(217, 221, 227, 0.02) 0%, rgba(217, 221, 227, 0.08) 50%, rgba(217, 221, 227, 0.02) 100%);
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.35), 0 0 24px rgba(217, 221, 227, 0.06);
+  background: linear-gradient(90deg, transparent 0%, rgba(217, 221, 227, 0.04) 50%, transparent 100%);
+  box-shadow: none;
 }
 
-.option-wheel--hero-dock .option-wheel__item {
+.option-wheel--floating-nav .option-wheel__item {
   font-size: 1.15rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   font-weight: 400;
   color: #7E8590;
   text-transform: uppercase;
 }
 
-.option-wheel--hero-dock .option-wheel__item--selected {
+.option-wheel--floating-nav .option-wheel__item--selected {
   font-weight: 700;
   color: #FFFFFF;
-  letter-spacing: 0.06em;
-  text-shadow: 0 0 16px rgba(255, 255, 255, 0.65), 0 0 30px rgba(217, 221, 227, 0.35);
+  letter-spacing: 0.07em;
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.65), 0 0 28px rgba(217, 221, 227, 0.35);
 }
 
-@media (max-width: 1024px) and (min-width: 768px) {
-  .hero-right-wheel-dock {
-    width: clamp(230px, 24vw, 260px);
-    height: clamp(340px, 42vh, 380px);
-    right: 20px;
-  }
-}
-
-@media (max-width: 767px) {
-  .hero-right-wheel-dock {
+@media (max-width: 960px) {
+  .floating-portfolio-nav {
     display: none !important;
   }
-}
-
-/* Benign legacy header fallback */
-.option-wheel--header {
-  height: 44px;
-  min-height: unset;
-  width: 220px;
-  max-width: 240px;
-  background: rgba(14, 16, 20, 0.55);
-  border-radius: 9999px;
 }

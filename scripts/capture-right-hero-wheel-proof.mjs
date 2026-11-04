@@ -9,7 +9,7 @@ if (!fs.existsSync(SCREENSHOT_DIR)) {
 }
 
 async function capture() {
-  console.log('--- Starting Preview Server for Right Hero OptionWheel Proof ---');
+  console.log('--- Starting Preview Server for Global Floating OptionWheel Proof ---');
   const server = spawn('npx', ['vite', 'preview', '--port', '4173'], {
     shell: true,
     stdio: 'pipe',
@@ -23,33 +23,69 @@ async function capture() {
   const browser = await chromium.launch({ headless: true });
 
   try {
-    // 1. Desktop 1440x900 - Hero with Right-Side OptionWheel
-    console.log('Capturing Desktop 1440x900 Right-Side OptionWheel...');
+    // 1. Desktop 1440x900 - Homepage with Global Floating OptionWheel
+    console.log('Capturing Desktop 1440x900 Global Floating OptionWheel...');
     const context1440 = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const page1440 = await context1440.newPage();
     await page1440.goto('http://localhost:4173', { waitUntil: 'domcontentloaded' });
     await page1440.waitForTimeout(2000);
 
-    const shot1440 = path.join(SCREENSHOT_DIR, 'screenshot_1440x900_right_hero_wheel.png');
+    // Validate Desktop 1440 invariants
+    const check1440 = await page1440.evaluate(() => {
+      const headerText = document.querySelector('.portfolio-navbar')?.textContent || '';
+      const hasHeaderWheel = !!document.querySelector('.portfolio-navbar .option-wheel');
+      const hasFloatingWheel = !!document.querySelector('.floating-portfolio-nav .option-wheel');
+      const hasOrionShowcase = !!document.querySelector('#orion-subsystems');
+      const hasShowcaseHeading = document.body.textContent?.includes('Orion-9 Subsystem Navigator') || false;
+
+      const wheelDock = document.querySelector('.floating-portfolio-nav');
+      const rect = wheelDock ? wheelDock.getBoundingClientRect() : null;
+
+      return {
+        hasHeaderWheel,
+        hasFloatingWheel,
+        hasOrionShowcase,
+        hasShowcaseHeading,
+        rect,
+      };
+    });
+
+    console.log('1440px Verification:');
+    console.log(`- Global Floating Wheel present: ${check1440.hasFloatingWheel}`);
+    console.log(`- Center Header Wheel present: ${check1440.hasHeaderWheel} (Must be false)`);
+    console.log(`- Orion-9 Subsystems showcase present: ${check1440.hasOrionShowcase} (Must be false)`);
+    console.log(`- "Orion-9 Subsystem Navigator" text present: ${check1440.hasShowcaseHeading} (Must be false)`);
+    console.log(`- Floating Wheel position:`, check1440.rect);
+
+    const shot1440 = path.join(SCREENSHOT_DIR, 'screenshot_1440x900_global_floating_wheel.png');
     await page1440.screenshot({ path: shot1440, fullPage: false });
     console.log(`📸 Saved: ${shot1440}`);
+
+    // Scroll to #orion-9 and screenshot the clean Orion-9 section
+    const orionSection = page1440.locator('#orion-9');
+    await orionSection.scrollIntoViewIfNeeded();
+    await page1440.waitForTimeout(800);
+    const shotOrion = path.join(SCREENSHOT_DIR, 'screenshot_orion9_section_no_showcase.png');
+    await page1440.screenshot({ path: shotOrion, fullPage: false });
+    console.log(`📸 Saved clean Orion-9 section: ${shotOrion}`);
+
     await page1440.close();
     await context1440.close();
 
-    // 2. Desktop 1920x1080 - Hero with Right-Side OptionWheel
-    console.log('Capturing Desktop 1920x1080 Right-Side OptionWheel...');
+    // 2. Desktop 1920x1080 - Homepage with Global Floating OptionWheel
+    console.log('Capturing Desktop 1920x1080 Global Floating OptionWheel...');
     const context1920 = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
     const page1920 = await context1920.newPage();
     await page1920.goto('http://localhost:4173', { waitUntil: 'domcontentloaded' });
     await page1920.waitForTimeout(2000);
 
-    const shot1920 = path.join(SCREENSHOT_DIR, 'screenshot_1920x1080_right_hero_wheel.png');
+    const shot1920 = path.join(SCREENSHOT_DIR, 'screenshot_1920x1080_global_floating_wheel.png');
     await page1920.screenshot({ path: shot1920, fullPage: false });
     console.log(`📸 Saved: ${shot1920}`);
     await page1920.close();
     await context1920.close();
 
-    // 3. Tablet 768x1024 - Hero View
+    // 3. Tablet 768x1024
     console.log('Capturing Tablet 768x1024...');
     const context768 = await browser.newContext({ viewport: { width: 768, height: 1024 } });
     const page768 = await context768.newPage();
@@ -62,7 +98,7 @@ async function capture() {
     await page768.close();
     await context768.close();
 
-    // 4. Mobile 390x844 - Header & Clean Mobile Drawer
+    // 4. Mobile 390x844
     console.log('Capturing Mobile 390x844...');
     const context390 = await browser.newContext({
       viewport: { width: 390, height: 844 },
