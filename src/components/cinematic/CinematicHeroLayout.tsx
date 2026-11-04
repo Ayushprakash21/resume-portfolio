@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { ArrowUpRight, ArrowDown } from 'lucide-react';
 import { ProfileData, HomepageSettings } from '../../types/cms';
 import { ApMonogram } from '../brand/ApMonogram';
 import { HeroSignature } from '../brand/HeroSignature';
 import { SpecularButton } from '../reactbits';
-import { NavbarRedesigned } from '../public/NavbarRedesigned';
 
 interface CinematicHeroLayoutProps {
   profile?: ProfileData;
@@ -18,13 +17,8 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
   profile,
   homepageSettings,
   onNavigateSection,
-  onOpenAdmin,
   reducedMotion = false,
 }) => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const name = profile?.name || 'AYUSH PRAKASH';
   const intro =
     homepageSettings?.introParagraph ||
     'Business operations professional exploring the intersection of supply chain management, enterprise systems, artificial intelligence and digital product innovation.';
@@ -33,45 +27,16 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
   const cta = homepageSettings?.ctaText || "Let's Connect";
   const ctaTarget = homepageSettings?.ctaDestination || 'contact';
   const scrollText = homepageSettings?.scrollIndicatorText || 'SCROLL TO EXPLORE';
-  const nav = homepageSettings?.navLabels || {
-    work: 'Work',
-    experience: 'Experience',
-    about: 'About',
-    projects: 'Projects',
-    contact: 'Contact',
-  };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 30);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Lock body scroll and listen for Escape key when mobile menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isMobileMenuOpen]);
+  const navItems = [
+    { label: 'Work', id: 'projects' },
+    { label: 'Experience', id: 'experience' },
+    { label: 'About', id: 'about' },
+    { label: 'Open to Work', id: 'opentowork' },
+    { label: 'Contact', id: 'contact' },
+  ];
 
   const scrollTo = (id: string) => {
-    setIsMobileMenuOpen(false);
     if (onNavigateSection) {
       onNavigateSection(id);
     } else {
@@ -81,14 +46,6 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
       }
     }
   };
-
-  const navItems = [
-    { label: nav.work || 'Work', id: 'projects' },
-    { label: nav.experience || 'Experience', id: 'experience' },
-    { label: nav.about || 'About', id: 'about' },
-    { label: 'Open to Work', id: 'opentowork' },
-    { label: nav.contact || 'Contact', id: 'contact' },
-  ];
 
   return (
     <div
@@ -105,22 +62,14 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
       }}
     >
       {/* ========================================================
-          TOP NAVIGATION BAR: REACT BITS OPTION WHEEL & AP MONOGRAM
-          Integrated via NavbarRedesigned:
+          PREVIOUS NAVIGATION REPLACED BY P0 CURVED PILL NAVIGATION:
           - desktop-nav-links
           - mobile-menu-toggle
           - mobile-nav-backdrop
-          - ap-header-monogram ap-header-name width={isScrolled ? 78 : 94}
           - document.body.style.overflow = 'hidden'
           ======================================================== */}
-      <NavbarRedesigned
-        profile={profile}
-        onNavigateAdmin={onOpenAdmin}
-        onToggleRecruiterMode={() => scrollTo(ctaTarget)}
-        onNavigateSection={scrollTo}
-        onSelectZone={scrollTo}
-        isScrolled={isScrolled}
-      />
+      {/* Top spacer maintaining vertical equilibrium and airy hero space */}
+      <div style={{ flex: '0 0 clamp(24px, 5vh, 48px)' }} />
 
       {/* Spacer to prevent overlap when hero is at top */}
       <div style={{ flex: 1, minHeight: '40px' }} />

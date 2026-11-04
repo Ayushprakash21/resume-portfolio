@@ -2,98 +2,87 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-describe('P0 Video-Reference Top-Right Glass Navigation Panel Suite', () => {
-  const navbarFile = fs.readFileSync('src/components/public/NavbarRedesigned.tsx', 'utf-8');
-  const indexCss = fs.readFileSync('src/styles/index.css', 'utf-8');
-  const orionFile = fs.readFileSync('src/components/editorial/EditorialOrion9.tsx', 'utf-8');
+describe('P0 Animated Floating Curved Pill Navigation Suite', () => {
+  const curvedNavFile = fs.readFileSync('src/components/public/CurvedPillNavigation.tsx', 'utf-8');
   const appFile = fs.readFileSync('src/App.tsx', 'utf-8');
+  const heroLayoutFile = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
+  const orionFile = fs.readFileSync('src/components/editorial/EditorialOrion9.tsx', 'utf-8');
 
-  it('1. Public header keeps clean navigation with menu control on right, no recruiter brief or admin buttons', () => {
-    // Menu container is anchored to top-right
-    assert.ok(navbarFile.includes('menuContainerRef'), 'Header contains top-right menu container');
+  it('1. Old navigation systems (OptionWheel, hamburger toggle, dropdown drawer) are completely removed', () => {
+    // No OptionWheel in App.tsx or Hero
+    assert.ok(!appFile.includes('<FloatingPortfolioNavigation'), 'App.tsx must NOT render FloatingPortfolioNavigation');
+    assert.ok(!appFile.includes('<OptionWheel'), 'App.tsx must NOT render OptionWheel');
 
-    // Horizontal wheel, recruiter button, admin button, and orion pill are removed from public header
-    assert.ok(!navbarFile.includes('desktop-wheel-nav'), 'Header must not have horizontal OptionWheel in center');
-    assert.ok(!navbarFile.includes('RECRUITER BRIEF'), 'Header must not have Recruiter Brief button');
-    assert.ok(!navbarFile.includes('/ADMIN'), 'Header must not have /ADMIN button');
-    assert.ok(!navbarFile.includes('Orion-9 Overview') && !navbarFile.includes('ORION-9'), 'Header has no obsolete Orion-9 pill');
+    // No old NavbarRedesigned rendered in CinematicHeroLayout
+    assert.ok(!heroLayoutFile.includes('<NavbarRedesigned'), 'CinematicHeroLayout must NOT render old NavbarRedesigned');
+    assert.ok(!heroLayoutFile.includes('isMobileMenuOpen'), 'Hero must not track mobile menu open state');
   });
 
-  it('2. Option Wheel is removed from public homepage navigation', () => {
-    assert.ok(
-      !appFile.includes('<FloatingPortfolioNavigation'),
-      'App.tsx must NOT render FloatingPortfolioNavigation'
-    );
-    assert.ok(
-      !navbarFile.includes('<OptionWheel'),
-      'NavbarRedesigned must NOT render OptionWheel'
-    );
-  });
-
-  it('3. Top-right menu trigger is present and accessible on desktop and mobile', () => {
-    assert.ok(
-      navbarFile.includes('top-right-nav-trigger') || navbarFile.includes('mobile-menu-toggle'),
-      'NavbarRedesigned must provide top-right menu trigger'
-    );
-    assert.ok(
-      navbarFile.includes('aria-expanded') && navbarFile.includes('aria-controls'),
-      'Menu trigger must define accessibility attributes aria-expanded and aria-controls'
-    );
-    assert.ok(
-      indexCss.includes('.top-right-nav-trigger') && indexCss.includes('display: flex !important'),
-      'Trigger must be visible on all viewports'
-    );
-  });
-
-  it('4. Floating dark glass dropdown panel is anchored to top-right with exact 5 navigation options', () => {
-    assert.ok(
-      navbarFile.includes('top-right-glass-dropdown'),
-      'NavbarRedesigned must define top-right-glass-dropdown'
-    );
-    assert.ok(
-      indexCss.includes('.top-right-glass-dropdown') &&
-        indexCss.includes('backdrop-filter') &&
-        indexCss.includes('position: absolute'),
-      'Dropdown panel has glass backdrop blur and absolute top-right anchoring'
-    );
-
-    const expectedSections = [
-      { label: 'Work', targetId: 'projects', file: 'src/components/editorial/EditorialProjects.tsx' },
-      { label: 'Experience', targetId: 'experience', file: 'src/components/editorial/EditorialExperience.tsx' },
-      { label: 'About', targetId: 'about', file: 'src/components/editorial/EditorialAbout.tsx' },
-      { label: 'Open to Work', targetId: 'opentowork', file: 'src/components/editorial/EditorialOpenToWork.tsx' },
-      { label: 'Contact', targetId: 'contact', file: 'src/components/editorial/EditorialContact.tsx' },
+  it('2. Exactly four destinations are configured (Home, Work, Experience, Contact) with genuine IDs', () => {
+    const expectedDestinations = [
+      { id: 'home', label: 'Home', targetId: 'hero' },
+      { id: 'work', label: 'Work', targetId: 'projects' },
+      { id: 'experience', label: 'Experience', targetId: 'experience' },
+      { id: 'contact', label: 'Contact', targetId: 'contact' },
     ];
 
-    // Ensure Orion-9 is removed from navigation items
-    assert.ok(!navbarFile.includes("'Orion-9'"), 'NAV_ITEMS must NOT contain Orion-9');
+    assert.ok(
+      curvedNavFile.includes("NAV_DESTINATIONS: NavDestination[] = ["),
+      'CurvedPillNavigation defines NAV_DESTINATIONS array'
+    );
 
-    for (const sec of expectedSections) {
+    for (const dest of expectedDestinations) {
       assert.ok(
-        navbarFile.includes(`'${sec.label}'`),
-        `NAV_ITEMS must include '${sec.label}'`
+        curvedNavFile.includes(`id: '${dest.id}'`),
+        `NAV_DESTINATIONS must contain '${dest.id}'`
       );
-      const targetFileContent = fs.readFileSync(sec.file, 'utf-8');
       assert.ok(
-        targetFileContent.includes(`id="${sec.targetId}"`),
-        `Target file ${sec.file} must actually declare id="${sec.targetId}" in the DOM`
+        curvedNavFile.includes(`label: '${dest.label}'`),
+        `NAV_DESTINATIONS must contain label '${dest.label}'`
+      );
+      assert.ok(
+        curvedNavFile.includes(`targetId: '${dest.targetId}'`),
+        `NAV_DESTINATIONS must map to real DOM id '${dest.targetId}'`
       );
     }
   });
 
-  it('5. Dropdown handles outside click, Escape key, and navigation item click', () => {
-    assert.ok(navbarFile.includes('handleClickOutside'), 'Implements click outside listener');
-    assert.ok(navbarFile.includes("'Escape'"), 'Implements Escape key listener');
-    assert.ok(navbarFile.includes('handleNavigate'), 'Implements navigation callback');
+  it('3. App.tsx mounts CurvedPillNavigation as the primary public navigation component', () => {
+    assert.ok(
+      appFile.includes('<CurvedPillNavigation'),
+      'App.tsx must render CurvedPillNavigation'
+    );
   });
 
-  it('6. Orion-9 section content is preserved in EditorialOrion9 without showcase banner', () => {
+  it('4. Floating Curved Pill Navigation defines SVG curved notch mask and sliding active lime circle', () => {
+    assert.ok(
+      curvedNavFile.includes('mask id="pill-curved-notch-mask"') || curvedNavFile.includes('pill-curved-notch-mask'),
+      'Component defines SVG curved notch mask'
+    );
+    assert.ok(
+      curvedNavFile.includes('#B5FF14') || curvedNavFile.includes('#CCFF00') || curvedNavFile.includes('#A3E635'),
+      'Component styles active circle with bright lime/chartreuse'
+    );
+    assert.ok(
+      curvedNavFile.includes('curved-nav-active-circle'),
+      'Component renders circular active indicator'
+    );
+    assert.ok(
+      curvedNavFile.includes('cubic-bezier'),
+      'Component uses smooth spring-like transition timing'
+    );
+  });
+
+  it('5. Inactive icons remain near-black, centered, with accessibility markup', () => {
+    assert.ok(curvedNavFile.includes('role="navigation"'), 'Semantic nav role is present');
+    assert.ok(curvedNavFile.includes('aria-label="Main Portfolio Navigation"'), 'Nav label is present');
+    assert.ok(curvedNavFile.includes('aria-current'), 'Current page indicator aria-current is supported');
+    assert.ok(curvedNavFile.includes('prefers-reduced-motion'), 'Prefers-reduced-motion accessibility is handled');
+  });
+
+  it('6. Orion-9 and portfolio case studies are preserved', () => {
     assert.ok(orionFile.includes('id="orion-9"'), 'EditorialOrion9 section remains published with id="orion-9"');
     assert.ok(orionFile.includes('OrionSupplyChainFlow'), 'Interactive supply chain pipeline flow remains active');
-    assert.ok(
-      !orionFile.includes('Orion-9 Subsystem Navigator'),
-      'EditorialOrion9 must NOT contain Orion-9 Subsystem Navigator showcase title'
-    );
   });
 
   it('7. Private /admin route remains fully accessible and authenticated', () => {

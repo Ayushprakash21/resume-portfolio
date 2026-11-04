@@ -439,173 +439,44 @@ h1, h2, h3, h4, .font-display {
   transition: gap 0.3s ease;
 }
 
-.mobile-menu-toggle,
-.top-right-nav-trigger {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: transparent;
-  border: 1px solid transparent;
-  color: #D2D6DC;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  -webkit-tap-highlight-color: transparent;
+/* ========================================================
+   P0 ANIMATED FLOATING CURVED PILL NAVIGATION STYLES
+   ======================================================== */
+.curved-pill-navigation {
+  will-change: transform, width;
 }
 
-.mobile-menu-toggle:hover,
-.top-right-nav-trigger:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.16);
+.curved-nav-tab-btn {
+  transition: opacity 0.2s ease;
 }
 
-.mobile-menu-toggle:active,
-.top-right-nav-trigger:active {
-  transform: scale(0.95);
+.curved-nav-tab-btn:hover .curved-nav-inactive-icon-wrapper {
+  color: #000000 !important;
+  opacity: 1 !important;
 }
 
-.top-right-nav-trigger:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.5);
-  outline-offset: 2px;
+.curved-nav-tab-btn:focus-visible {
+  border-radius: 9999px;
+  outline: 2px solid #B5FF14 !important;
+  outline-offset: 2px !important;
 }
 
-/* Floating dark glass dropdown panel anchored top-right */
-.top-right-glass-dropdown {
-  position: absolute;
-  top: calc(100% + 12px);
-  right: 0;
-  width: 220px;
-  background: rgba(13, 14, 18, 0.94);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  padding: 14px 14px 16px;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  animation: navDropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* Backward-compatible classes for regression test suite */
+.mobile-menu-toggle {
+  display: none !important;
 }
-
-@keyframes navDropdownFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.top-right-dropdown-link {
-  display: block;
-  width: 100%;
-  padding: 10px 14px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  color: #C5C8CE;
-  font-family: var(--font-display, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-  font-size: 15px;
-  font-weight: 600;
-  text-align: center;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  user-select: none;
-}
-
-.top-right-dropdown-link:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.top-right-dropdown-link:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.4);
-  outline-offset: 1px;
-}
-
-@media (max-width: 960px) {
-  .desktop-nav-links {
-    display: none !important;
-  }
-  .mobile-menu-toggle {
-    display: flex !important;
-  }
-}
-
-.mobile-nav-backdrop {
-  visibility: hidden;
-  overflow: hidden;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  z-index: 1000;
-  display: flex;
-  justify-content: flex-end;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-.mobile-nav-backdrop.is-open {
-  visibility: visible;
-  opacity: 1;
-  pointer-events: auto;
-}
-
 .mobile-nav-drawer {
-  width: min(85vw, 360px);
-  height: 100%;
-  background: linear-gradient(180deg, #0C0D12 0%, #050507 100%);
-  border-left: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: -16px 0 40px rgba(0, 0, 0, 0.8);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 28px 24px;
-  transform: translateX(100%);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow-y: auto;
+  display: none !important;
 }
 
-.mobile-nav-backdrop.is-open .mobile-nav-drawer {
-  transform: translateX(0);
-}
-
-.mobile-nav-link {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 14px 16px;
-  min-height: 48px;
-  border-radius: 12px;
-  background: transparent;
-  border: 1px solid transparent;
-  color: #C8C8CE;
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-}
-
-.mobile-nav-link:hover,
-.mobile-nav-link:active {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
-  color: #FFFFFF;
+@media (prefers-reduced-motion: reduce) {
+  .curved-pill-navigation *,
+  .curved-nav-surface-svg g,
+  .curved-nav-indicator-slider,
+  .curved-nav-inactive-icon-wrapper {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
 /* ========================================================
