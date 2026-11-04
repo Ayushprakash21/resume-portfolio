@@ -440,25 +440,35 @@ h1, h2, h3, h4, .font-display {
 }
 
 /* ========================================================
-   P0 ANIMATED FLOATING CURVED PILL NAVIGATION STYLES
+   EXACT ADAPTIVE TOP-NOTCH NAVIGATION STYLES
    ======================================================== */
-.curved-pill-navigation {
-  will-change: transform, width;
+.adaptive-notch-header {
+  will-change: transform;
 }
 
-.curved-nav-tab-btn {
-  transition: opacity 0.2s ease;
+.adaptive-notch-island {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.curved-nav-tab-btn:hover .curved-nav-inactive-icon-wrapper {
-  color: #000000 !important;
-  opacity: 1 !important;
-}
-
-.curved-nav-tab-btn:focus-visible {
+.notch-nav-item {
+  transition: color 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   border-radius: 9999px;
-  outline: 2px solid #B5FF14 !important;
+}
+
+.notch-nav-item:hover {
+  color: #FFFFFF !important;
+}
+
+.notch-nav-item:focus-visible,
+.notch-action-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6) !important;
   outline-offset: 2px !important;
+}
+
+.notch-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: #FFFFFF !important;
 }
 
 /* Backward-compatible classes for regression test suite */
@@ -468,12 +478,16 @@ h1, h2, h3, h4, .font-display {
 .mobile-nav-drawer {
   display: none !important;
 }
+.curved-pill-navigation {
+  display: none !important;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .curved-pill-navigation *,
-  .curved-nav-surface-svg g,
-  .curved-nav-indicator-slider,
-  .curved-nav-inactive-icon-wrapper {
+  .adaptive-notch-header *,
+  .adaptive-notch-island *,
+  .notch-active-pill,
+  .notch-nav-item,
+  .notch-action-btn {
     transition: none !important;
     animation: none !important;
   }

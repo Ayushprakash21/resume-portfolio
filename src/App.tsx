@@ -13,7 +13,7 @@ import { EditorialContact } from './components/editorial/EditorialContact';
 import { Footer } from './components/Footer';
 import { SwarmCursor } from './components/reactbits/SwarmCursor';
 import { ResumeGeneratorModal } from './components/resume/ResumeGeneratorModal';
-import { CurvedPillNavigation } from './components/public/CurvedPillNavigation';
+import { AdaptiveNotchNavigation } from './components/public/AdaptiveNotchNavigation';
 
 // Admin Console Components
 import { AdminLogin } from './components/admin/AdminLogin';
@@ -255,8 +255,8 @@ export const App: React.FC = () => {
       {/* MINIMAL EDITORIAL FOOTER */}
       <Footer profile={profile} onOpenAdmin={navigateToAdmin} />
 
-      {/* P0 ANIMATED FLOATING CURVED PILL NAVIGATION (VIDEO REFERENCE) */}
-      <CurvedPillNavigation onNavigateSection={scrollToSection} />
+      {/* EXACT ADAPTIVE NOTCH NAVIGATION (TOP GEOMETRY REFERENCE) */}
+      <AdaptiveNotchNavigation onNavigateSection={scrollToSection} />
 
       {/* DYNAMIC ATS RESUME GENERATOR MODAL */}
       <ResumeGeneratorModal

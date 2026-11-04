@@ -2,16 +2,16 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-describe('P0 Animated Floating Curved Pill Navigation Suite', () => {
-  const curvedNavFile = fs.readFileSync('src/components/public/CurvedPillNavigation.tsx', 'utf-8');
+describe('Exact Adaptive Notch Navigation Suite', () => {
+  const notchNavFile = fs.readFileSync('src/components/public/AdaptiveNotchNavigation.tsx', 'utf-8');
   const appFile = fs.readFileSync('src/App.tsx', 'utf-8');
   const heroLayoutFile = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
   const orionFile = fs.readFileSync('src/components/editorial/EditorialOrion9.tsx', 'utf-8');
 
-  it('1. Old navigation systems (OptionWheel, hamburger toggle, dropdown drawer) are completely removed', () => {
-    // No OptionWheel in App.tsx or Hero
+  it('1. Old navigation systems (OptionWheel, hamburger toggle, bottom pill) are completely removed', () => {
     assert.ok(!appFile.includes('<FloatingPortfolioNavigation'), 'App.tsx must NOT render FloatingPortfolioNavigation');
     assert.ok(!appFile.includes('<OptionWheel'), 'App.tsx must NOT render OptionWheel');
+    assert.ok(!appFile.includes('<CurvedPillNavigation'), 'App.tsx must NOT render CurvedPillNavigation');
 
     // No old NavbarRedesigned rendered in CinematicHeroLayout
     assert.ok(!heroLayoutFile.includes('<NavbarRedesigned'), 'CinematicHeroLayout must NOT render old NavbarRedesigned');
@@ -27,65 +27,86 @@ describe('P0 Animated Floating Curved Pill Navigation Suite', () => {
     ];
 
     assert.ok(
-      curvedNavFile.includes("NAV_DESTINATIONS: NavDestination[] = ["),
-      'CurvedPillNavigation defines NAV_DESTINATIONS array'
+      notchNavFile.includes("NAV_DESTINATIONS: NavDestination[] = ["),
+      'AdaptiveNotchNavigation defines NAV_DESTINATIONS array'
     );
 
     for (const dest of expectedDestinations) {
       assert.ok(
-        curvedNavFile.includes(`id: '${dest.id}'`),
+        notchNavFile.includes(`id: '${dest.id}'`),
         `NAV_DESTINATIONS must contain '${dest.id}'`
       );
       assert.ok(
-        curvedNavFile.includes(`label: '${dest.label}'`),
+        notchNavFile.includes(`label: '${dest.label}'`),
         `NAV_DESTINATIONS must contain label '${dest.label}'`
       );
       assert.ok(
-        curvedNavFile.includes(`targetId: '${dest.targetId}'`),
+        notchNavFile.includes(`targetId: '${dest.targetId}'`),
         `NAV_DESTINATIONS must map to real DOM id '${dest.targetId}'`
       );
     }
   });
 
-  it('3. App.tsx mounts CurvedPillNavigation as the primary public navigation component', () => {
+  it('3. App.tsx mounts AdaptiveNotchNavigation as the primary public top navigation component', () => {
     assert.ok(
-      appFile.includes('<CurvedPillNavigation'),
-      'App.tsx must render CurvedPillNavigation'
+      appFile.includes('<AdaptiveNotchNavigation'),
+      'App.tsx must render AdaptiveNotchNavigation'
     );
   });
 
-  it('4. Floating Curved Pill Navigation defines SVG curved notch mask and sliding active lime circle', () => {
+  it('4. Distinctive sculpted notch geometry: Left Brand Notch, Center Navigation Notch, Right Action Notch', () => {
     assert.ok(
-      curvedNavFile.includes('mask id="pill-curved-notch-mask"') || curvedNavFile.includes('pill-curved-notch-mask'),
-      'Component defines SVG curved notch mask'
+      notchNavFile.includes('left-brand-notch'),
+      'Component defines Left Brand Notch'
     );
     assert.ok(
-      curvedNavFile.includes('#B5FF14') || curvedNavFile.includes('#CCFF00') || curvedNavFile.includes('#A3E635'),
-      'Component styles active circle with bright lime/chartreuse'
+      notchNavFile.includes('center-nav-notch'),
+      'Component defines Center Navigation Notch'
     );
     assert.ok(
-      curvedNavFile.includes('curved-nav-active-circle'),
-      'Component renders circular active indicator'
+      notchNavFile.includes('right-action-notch'),
+      'Component defines Right Action Notch'
+    );
+    // Inverted concave fillets
+    assert.ok(
+      notchNavFile.includes('filletRadius'),
+      'Component defines concave fillet geometry'
+    );
+    // Pearl/silver active pill highlight, no fluorescent green
+    assert.ok(
+      notchNavFile.includes('notch-active-pill'),
+      'Component defines sliding active indicator capsule pill'
     );
     assert.ok(
-      curvedNavFile.includes('cubic-bezier'),
-      'Component uses smooth spring-like transition timing'
+      !notchNavFile.includes('#B5FF14') && !notchNavFile.includes('#CCFF00'),
+      'Component does not use fluorescent green per AP brand specifications'
     );
   });
 
-  it('5. Inactive icons remain near-black, centered, with accessibility markup', () => {
-    assert.ok(curvedNavFile.includes('role="navigation"'), 'Semantic nav role is present');
-    assert.ok(curvedNavFile.includes('aria-label="Main Portfolio Navigation"'), 'Nav label is present');
-    assert.ok(curvedNavFile.includes('aria-current'), 'Current page indicator aria-current is supported');
-    assert.ok(curvedNavFile.includes('prefers-reduced-motion'), 'Prefers-reduced-motion accessibility is handled');
+  it('5. Left Brand Notch houses authentic AP logo asset without unnecessary wordmark', () => {
+    assert.ok(
+      notchNavFile.includes('ApMonogram'),
+      'Left Brand Notch houses ApMonogram brand logo asset'
+    );
+    assert.ok(
+      !notchNavFile.includes('AYUSH PRAKASH wordmark') && !notchNavFile.includes('THE INTELLIGENCE UNIVERSE'),
+      'Navigation does not contain unnecessary wordmark'
+    );
   });
 
-  it('6. Orion-9 and portfolio case studies are preserved', () => {
+  it('6. Inactive icons/text use muted silver and semantic accessibility markup', () => {
+    assert.ok(notchNavFile.includes('role="navigation"'), 'Semantic nav role is present');
+    assert.ok(notchNavFile.includes('aria-label="Primary Adaptive Notch Navigation"'), 'Nav label is present');
+    assert.ok(notchNavFile.includes('aria-selected'), 'Aria-selected indicator is present on tabs');
+    assert.ok(notchNavFile.includes('prefers-reduced-motion'), 'Prefers-reduced-motion accessibility is handled');
+  });
+
+  it('7. Orion-9 and portfolio case studies are preserved', () => {
     assert.ok(orionFile.includes('id="orion-9"'), 'EditorialOrion9 section remains published with id="orion-9"');
     assert.ok(orionFile.includes('OrionSupplyChainFlow'), 'Interactive supply chain pipeline flow remains active');
   });
 
-  it('7. Private /admin route remains fully accessible and authenticated', () => {
+  it('8. Private /admin route remains fully accessible and authenticated', () => {
     assert.ok(
       appFile.includes("window.location.pathname.startsWith('/admin')"),
       'App.tsx handles direct /admin route navigation'
