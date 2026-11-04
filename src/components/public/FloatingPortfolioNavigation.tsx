@@ -10,7 +10,6 @@ export interface FloatingPortfolioNavigationProps {
 /**
  * Real Section Targets in published portfolio DOM:
  * - Work -> 'projects' (id="projects")
- * - Orion-9 -> 'orion-9' (id="orion-9")
  * - Experience -> 'experience' (id="experience")
  * - About -> 'about' (id="about")
  * - Open to Work -> 'opentowork' (id="opentowork")
@@ -18,7 +17,6 @@ export interface FloatingPortfolioNavigationProps {
  */
 export const portfolioItems = [
   'Work',
-  'Orion-9',
   'Experience',
   'About',
   'Open to Work',

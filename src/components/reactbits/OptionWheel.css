@@ -2,6 +2,7 @@
    REACT BITS: OPTION WHEEL (Official Implementation Baseline)
    Curved option picker that spins with scroll, drag or arrow keys, tilting items away.
    Metallic silver & dark luxury aesthetic for Ayush Prakash Portfolio.
+   NO BRACKETS, NO CORNER MARKERS, NO SELECTION FRAMES, NO HORIZONTAL LINES.
    ============================================================================ */
 
 .option-wheel {
@@ -20,13 +21,15 @@
   user-select: none;
   touch-action: none;
   outline: none;
-  border-radius: 16px;
+  border-radius: 0;
   background: transparent;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  border: none;
+  box-shadow: none;
+  transition: opacity 0.25s ease;
 }
 
 .option-wheel:focus-visible {
-  outline: 2px solid rgba(217, 221, 227, 0.5);
+  outline: 2px solid rgba(217, 221, 227, 0.4);
   outline-offset: 4px;
 }
 
@@ -46,8 +49,8 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 60px;
-  background: linear-gradient(to bottom, rgba(5, 5, 8, 0.8) 0%, transparent 100%);
+  height: 50px;
+  background: linear-gradient(to bottom, rgba(5, 5, 8, 0.7) 0%, transparent 100%);
   pointer-events: none;
   z-index: 2;
 }
@@ -57,52 +60,10 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 60px;
-  background: linear-gradient(to top, rgba(5, 5, 8, 0.8) 0%, transparent 100%);
+  height: 50px;
+  background: linear-gradient(to top, rgba(5, 5, 8, 0.7) 0%, transparent 100%);
   pointer-events: none;
   z-index: 2;
-}
-
-/* Center indicator slot with fine metallic silver bracket markers */
-.option-wheel__slot-indicator {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 48px;
-  transform: translateY(-50%);
-  pointer-events: none;
-  z-index: 1;
-  border-top: 1px solid rgba(217, 221, 227, 0.18);
-  border-bottom: 1px solid rgba(217, 221, 227, 0.18);
-  background: linear-gradient(90deg, transparent 0%, rgba(217, 221, 227, 0.04) 50%, transparent 100%);
-}
-
-/* Left & right precision bracket notches */
-.option-wheel__slot-indicator::before {
-  content: '';
-  position: absolute;
-  left: 8px;
-  top: 50%;
-  width: 5px;
-  height: 16px;
-  transform: translateY(-50%);
-  border-left: 2px solid rgba(217, 221, 227, 0.5);
-  border-top: 2px solid rgba(217, 221, 227, 0.5);
-  border-bottom: 2px solid rgba(217, 221, 227, 0.5);
-}
-
-.option-wheel__slot-indicator::after {
-  content: '';
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  width: 5px;
-  height: 16px;
-  transform: translateY(-50%);
-  border-right: 2px solid rgba(217, 221, 227, 0.5);
-  border-top: 2px solid rgba(217, 221, 227, 0.5);
-  border-bottom: 2px solid rgba(217, 221, 227, 0.5);
 }
 
 /* Each option is absolutely centered, then offset along the curve by the
@@ -141,24 +102,25 @@
 
 .option-wheel__item--selected {
   font-weight: 700;
+  color: #ffffff;
   letter-spacing: 0.04em;
-  text-shadow: 0 0 16px rgba(255, 255, 255, 0.45), 0 0 32px rgba(217, 221, 227, 0.25);
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.55), 0 0 28px rgba(217, 221, 227, 0.3);
 }
 
 /* ============================================================================
    GLOBAL FLOATING PORTFOLIO NAVIGATION: .floating-portfolio-navigation
-   Pure, standalone vertical 3D OptionWheel floating in far-right viewport.
-   Zero outer card, zero outer border, zero panel backgrounds.
+   Pure, standalone vertical 3D OptionWheel floating in TOP-RIGHT viewport.
+   Zero brackets, zero frames, zero borders, zero outer cards.
    ============================================================================ */
 
 .floating-portfolio-navigation,
 .floating-portfolio-nav {
   position: fixed;
-  right: 3.5vw;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 105px;
+  right: 4vw;
+  transform: none;
   width: 250px;
-  height: 420px;
+  height: 390px;
   z-index: 40;
   pointer-events: auto;
   user-select: none;
@@ -179,24 +141,6 @@
   box-shadow: none !important;
 }
 
-.option-wheel--floating-nav .option-wheel__vignette-top {
-  height: 60px;
-  background: linear-gradient(to bottom, rgba(5, 5, 8, 0.75) 0%, transparent 100%);
-}
-
-.option-wheel--floating-nav .option-wheel__vignette-bottom {
-  height: 60px;
-  background: linear-gradient(to top, rgba(5, 5, 8, 0.75) 0%, transparent 100%);
-}
-
-.option-wheel--floating-nav .option-wheel__slot-indicator {
-  height: 52px;
-  border-top: 1px solid rgba(217, 221, 227, 0.2);
-  border-bottom: 1px solid rgba(217, 221, 227, 0.2);
-  background: linear-gradient(90deg, transparent 0%, rgba(217, 221, 227, 0.04) 50%, transparent 100%);
-  box-shadow: none;
-}
-
 .option-wheel--floating-nav .option-wheel__item {
   font-size: 1.55rem;
   letter-spacing: 0.04em;
@@ -208,7 +152,7 @@
 .option-wheel--floating-nav .option-wheel__item--selected {
   font-weight: 700;
   color: #ffffff;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-shadow: 0 0 16px rgba(255, 255, 255, 0.65), 0 0 28px rgba(217, 221, 227, 0.35);
 }
 
@@ -216,13 +160,15 @@
 @media (max-width: 1024px) and (min-width: 769px) {
   .floating-portfolio-navigation,
   .floating-portfolio-nav {
-    right: 2vw;
-    width: 220px;
-    height: 380px;
+    top: 96px;
+    right: 3vw;
+    transform: none;
+    width: 210px;
+    height: 340px;
   }
 
   .option-wheel--floating-nav .option-wheel__item {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
   }
 }
 

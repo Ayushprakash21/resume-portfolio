@@ -22,15 +22,10 @@ describe('P0 Global Floating Portfolio Navigation & Orion-9 Showcase Removal Sui
     assert.ok(!navbarFile.includes('Orion-9 Overview') && !navbarFile.includes('ORION-9'), 'Header has no obsolete Orion-9 pill');
   });
 
-  it('2. Global FloatingPortfolioNavigation mounts standalone OptionWheel in homepage shell', () => {
+  it('2. Global FloatingPortfolioNavigation is positioned top-right with zero brackets or frames', () => {
     assert.ok(
       floatingNavFile.includes("import { OptionWheel") || floatingNavFile.includes("import OptionWheel"),
       'FloatingPortfolioNavigation must import OptionWheel'
-    );
-    assert.ok(
-      floatingNavFile.includes('<OptionWheel') &&
-        (floatingNavFile.includes('portfolioItems') || floatingNavFile.includes('DEFAULT_NAV_WHEEL_ITEMS')),
-      'FloatingPortfolioNavigation must render OptionWheel with portfolioItems'
     );
     assert.ok(
       appFile.includes('<FloatingPortfolioNavigation'),
@@ -41,12 +36,28 @@ describe('P0 Global Floating Portfolio Navigation & Orion-9 Showcase Removal Sui
       'OptionWheel.css must define .floating-portfolio-navigation layout'
     );
     assert.ok(
-      wheelCss.includes('position: fixed') && wheelCss.includes('right: 3.5vw'),
-      'Floating nav must be fixed at right: 3.5vw'
+      wheelCss.includes('position: fixed') &&
+        wheelCss.includes('top: 105px') &&
+        wheelCss.includes('right: 4vw'),
+      'Floating nav must be fixed at top: 105px and right: 4vw'
     );
     assert.ok(
-      wheelCss.includes('top: 50%') && wheelCss.includes('transform: translateY(-50%)'),
-      'Floating nav must be vertically centered'
+      wheelCss.includes('transform: none'),
+      'Floating nav must have transform: none (no vertical centering)'
+    );
+
+    // Brackets and slot indicator must be completely removed
+    assert.ok(
+      !wheelFile.includes('option-wheel__slot-indicator'),
+      'OptionWheel.tsx must NOT contain option-wheel__slot-indicator'
+    );
+    assert.ok(
+      !wheelCss.includes('option-wheel__slot-indicator'),
+      'OptionWheel.css must NOT contain option-wheel__slot-indicator'
+    );
+    assert.ok(
+      !wheelCss.includes("content: '['") && !wheelCss.includes("content: ']'"),
+      'OptionWheel.css must NOT define bracket pseudo-content'
     );
   });
 
@@ -73,20 +84,29 @@ describe('P0 Global Floating Portfolio Navigation & Orion-9 Showcase Removal Sui
     assert.ok(orionFile.includes('OrionSupplyChainFlow'), 'Interactive supply chain pipeline flow remains active');
   });
 
-  it('4. Every portfolio navigation item maps to a real section ID in the codebase', () => {
+  it('4. Exactly 5 portfolio navigation options exist and map to real section IDs without Orion-9', () => {
     const expectedSections = [
-      { id: 'work', targetId: 'projects', file: 'src/components/editorial/EditorialProjects.tsx' },
-      { id: 'orion9', targetId: 'orion-9', file: 'src/components/editorial/EditorialOrion9.tsx' },
-      { id: 'experience', targetId: 'experience', file: 'src/components/editorial/EditorialExperience.tsx' },
-      { id: 'about', targetId: 'about', file: 'src/components/editorial/EditorialAbout.tsx' },
-      { id: 'opentowork', targetId: 'opentowork', file: 'src/components/editorial/EditorialOpenToWork.tsx' },
-      { id: 'contact', targetId: 'contact', file: 'src/components/editorial/EditorialContact.tsx' },
+      { label: 'Work', targetId: 'projects', file: 'src/components/editorial/EditorialProjects.tsx' },
+      { label: 'Experience', targetId: 'experience', file: 'src/components/editorial/EditorialExperience.tsx' },
+      { label: 'About', targetId: 'about', file: 'src/components/editorial/EditorialAbout.tsx' },
+      { label: 'Open to Work', targetId: 'opentowork', file: 'src/components/editorial/EditorialOpenToWork.tsx' },
+      { label: 'Contact', targetId: 'contact', file: 'src/components/editorial/EditorialContact.tsx' },
     ];
+
+    // Ensure Orion-9 is removed from portfolioItems
+    assert.ok(
+      !floatingNavFile.includes("'Orion-9'"),
+      'FloatingPortfolioNavigation portfolioItems must NOT contain Orion-9'
+    );
+    assert.ok(
+      !wheelFile.includes("{ id: 'orion9'"),
+      'DEFAULT_NAV_WHEEL_ITEMS must NOT contain Orion-9'
+    );
 
     for (const sec of expectedSections) {
       assert.ok(
-        wheelFile.includes(`targetId: '${sec.targetId}'`) || floatingNavFile.includes(sec.targetId),
-        `Portfolio navigation must define targetId: '${sec.targetId}'`
+        floatingNavFile.includes(`'${sec.label}'`),
+        `portfolioItems must include '${sec.label}'`
       );
       const targetFileContent = fs.readFileSync(sec.file, 'utf-8');
       assert.ok(

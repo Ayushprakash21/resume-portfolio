@@ -63,7 +63,6 @@ interface WheelConfig {
  */
 export const DEFAULT_NAV_WHEEL_ITEMS: OptionWheelItemObject[] = [
   { id: 'work', label: 'Work', targetId: 'projects', badge: 'Projects', description: 'Selected Engineering & Product Implementations' },
-  { id: 'orion9', label: 'Orion-9', targetId: 'orion-9', badge: 'OS', description: 'Autonomous Supply Chain Architecture' },
   { id: 'experience', label: 'Experience', targetId: 'experience', badge: 'Career', description: 'Enterprise Operations Leadership' },
   { id: 'about', label: 'About', targetId: 'about', badge: 'Bio', description: 'Background & Strategic Positioning' },
   { id: 'opentowork', label: 'Open to Work', targetId: 'opentowork', badge: 'Active', description: 'Role & Location Preferences' },
@@ -444,9 +443,6 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
       onPointerCancel={handlePointerEnd}
       onKeyDown={handleKeyDown}
     >
-      {/* Center Target Slot Marker */}
-      <div className="option-wheel__slot-indicator" />
-
       {/* Curved 3D Option Elements */}
       {validItems.map((item, index) => {
         const labelText = getItemLabel(item);
