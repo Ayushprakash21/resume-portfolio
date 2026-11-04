@@ -2,36 +2,47 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-describe('P0 React Bits Option Wheel Header Integration Suite', () => {
+describe('P0 Right-Side Hero Option Wheel & Clean Header Integration Suite', () => {
   const navbarFile = fs.readFileSync('src/components/public/NavbarRedesigned.tsx', 'utf-8');
+  const wheelNavFile = fs.readFileSync('src/components/cinematic/HeroOptionWheelNav.tsx', 'utf-8');
   const wheelFile = fs.readFileSync('src/components/reactbits/OptionWheel.tsx', 'utf-8');
   const wheelCss = fs.readFileSync('src/components/reactbits/OptionWheel.css', 'utf-8');
   const heroLayoutFile = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
   const orionFile = fs.readFileSync('src/components/editorial/EditorialOrion9.tsx', 'utf-8');
+  const appFile = fs.readFileSync('src/App.tsx', 'utf-8');
 
-  it('1. NavbarRedesigned imports and renders the authentic OptionWheel component', () => {
-    assert.ok(
-      navbarFile.includes("import { OptionWheel") || navbarFile.includes("import OptionWheel"),
-      'NavbarRedesigned must import OptionWheel'
-    );
-    assert.ok(
-      navbarFile.includes('<OptionWheel') && navbarFile.includes('DEFAULT_NAV_WHEEL_ITEMS'),
-      'NavbarRedesigned must render OptionWheel with DEFAULT_NAV_WHEEL_ITEMS'
-    );
-    assert.ok(
-      navbarFile.includes('option-wheel--header'),
-      'NavbarRedesigned must apply .option-wheel--header precision styling'
-    );
+  it('1. Public header is minimal, spacious, and free of center wheels, recruiter brief, or admin buttons', () => {
+    // Left brand identity is preserved
+    assert.ok(navbarFile.includes('ApMonogram'), 'Header preserves AP brand monogram');
+    assert.ok(navbarFile.includes('ap-header-name'), 'Header preserves AYUSH PRAKASH wordmark');
+
+    // Horizontal wheel, recruiter button, admin button, and orion pill are removed from public header
+    assert.ok(!navbarFile.includes('desktop-wheel-nav'), 'Header must not have horizontal OptionWheel in center');
+    assert.ok(!navbarFile.includes('RECRUITER BRIEF'), 'Header must not have Recruiter Brief button');
+    assert.ok(!navbarFile.includes('/ADMIN'), 'Header must not have /ADMIN button');
+    assert.ok(!navbarFile.includes('Orion-9 Overview') && !navbarFile.includes('ORION-9'), 'Header has no obsolete Orion-9 pill');
   });
 
-  it('2. Legacy Orion-9 standalone pill / dropdown is absent from the header', () => {
+  it('2. Dedicated HeroOptionWheelNav mounts authentic React Bits Option Wheel on the far right', () => {
     assert.ok(
-      !navbarFile.includes('pill-status'),
-      'NavbarRedesigned must not render obsolete pill-status'
+      wheelNavFile.includes("import { OptionWheel") || wheelNavFile.includes("import OptionWheel"),
+      'HeroOptionWheelNav must import OptionWheel'
     );
     assert.ok(
-      !navbarFile.includes('Orion-9 Overview') && !navbarFile.includes('ORION-9'),
-      'NavbarRedesigned must not have a standalone Orion-9-only pill navigation'
+      wheelNavFile.includes('<OptionWheel') && wheelNavFile.includes('DEFAULT_NAV_WHEEL_ITEMS'),
+      'HeroOptionWheelNav must render OptionWheel with DEFAULT_NAV_WHEEL_ITEMS'
+    );
+    assert.ok(
+      heroLayoutFile.includes('<HeroOptionWheelNav'),
+      'CinematicHeroLayout must render HeroOptionWheelNav'
+    );
+    assert.ok(
+      wheelCss.includes('.hero-right-wheel-dock'),
+      'OptionWheel.css must define .hero-right-wheel-dock layout'
+    );
+    assert.ok(
+      wheelCss.includes('top: 50%') && wheelCss.includes('transform: translateY(-50%)'),
+      'Right dock must be vertically centered in the hero negative space'
     );
   });
 
@@ -60,12 +71,13 @@ describe('P0 React Bits Option Wheel Header Integration Suite', () => {
 
   it('4. Selecting a wheel item invokes section navigation handler', () => {
     assert.ok(
-      navbarFile.includes('handleWheelSelect'),
-      'NavbarRedesigned must define handleWheelSelect callback'
+      wheelNavFile.includes('handleSelect') || wheelNavFile.includes('onSelect'),
+      'HeroOptionWheelNav must define selection callback'
     );
     assert.ok(
-      navbarFile.includes('onNavigateSection') && navbarFile.includes('onSelectZone'),
-      'NavbarRedesigned must support both onNavigateSection and onSelectZone callbacks'
+      heroLayoutFile.includes('<HeroOptionWheelNav onNavigateSection={scrollTo} />') ||
+        heroLayoutFile.includes('onNavigateSection='),
+      'CinematicHeroLayout must connect section scroll navigation to HeroOptionWheelNav'
     );
   });
 
@@ -80,11 +92,13 @@ describe('P0 React Bits Option Wheel Header Integration Suite', () => {
     assert.ok(wheelCss.includes(':focus-visible'), 'OptionWheel provides :focus-visible focus ring');
   });
 
-  it('6. Mobile navigation is provided via responsive drawer without breaking layout', () => {
+  it('6. Mobile navigation provides accessible drawer without recruiter or admin pills', () => {
     assert.ok(navbarFile.includes('mobile-menu-toggle'), 'NavbarRedesigned provides mobile-menu-toggle');
     assert.ok(navbarFile.includes('mobile-nav-drawer'), 'NavbarRedesigned provides mobile-nav-drawer');
-    assert.ok(wheelCss.includes('@media (max-width: 960px)'), 'OptionWheel hides desktop wheel on mobile screens');
-    assert.ok(navbarFile.includes('document.body.style.overflow = \'hidden\''), 'Locks body scroll when mobile drawer is open');
+    assert.ok(!navbarFile.includes('Recruiter Brief'), 'Mobile drawer must NOT contain Recruiter Brief button');
+    assert.ok(!navbarFile.includes('CMS Console'), 'Mobile drawer must NOT contain CMS Console button');
+    assert.ok(wheelCss.includes('@media (max-width: 767px)'), 'OptionWheel.css provides responsive mobile behavior');
+    assert.ok(navbarFile.includes("document.body.style.overflow = 'hidden'"), 'Locks body scroll when mobile drawer is open');
   });
 
   it('7. The existing Orion-9 section remains intact with authentic subsystem OptionWheel', () => {
@@ -98,18 +112,14 @@ describe('P0 React Bits Option Wheel Header Integration Suite', () => {
     );
   });
 
-  it('8. CinematicHeroLayout delegates to NavbarRedesigned with no duplicate desktop text links', () => {
+  it('8. Private /admin route remains fully accessible and authenticated', () => {
     assert.ok(
-      heroLayoutFile.includes('<NavbarRedesigned'),
-      'CinematicHeroLayout must render NavbarRedesigned'
+      appFile.includes("window.location.pathname.startsWith('/admin')"),
+      'App.tsx handles direct /admin route navigation'
     );
     assert.ok(
-      !heroLayoutFile.includes('<nav className="desktop-nav-links">'),
-      'CinematicHeroLayout must not have duplicate desktop-nav-links text links'
-    );
-    assert.ok(
-      !heroLayoutFile.includes('OptionWheel onSelect'),
-      'CinematicHeroLayout has no obsolete pill dropdown'
+      appFile.includes('<AdminLogin') && appFile.includes('<AdminConsole'),
+      'App.tsx renders AdminLogin and AdminConsole on /admin'
     );
   });
 });

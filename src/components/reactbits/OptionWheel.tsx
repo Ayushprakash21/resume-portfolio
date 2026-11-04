@@ -102,7 +102,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
   soundVolume = 0.5,
   className = '',
   style,
-  height = '48px',
+  height = '100%',
   label = 'Portfolio Section Navigation',
 }) => {
   const rootRef = useRef<HTMLDivElement>(null);

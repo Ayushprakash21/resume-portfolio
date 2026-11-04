@@ -5,6 +5,7 @@ import { ApMonogram } from '../brand/ApMonogram';
 import { HeroSignature } from '../brand/HeroSignature';
 import { SpecularButton } from '../reactbits';
 import { NavbarRedesigned } from '../public/NavbarRedesigned';
+import { HeroOptionWheelNav } from './HeroOptionWheelNav';
 
 interface CinematicHeroLayoutProps {
   profile?: ProfileData;
@@ -125,6 +126,12 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
 
       {/* Spacer to prevent overlap when hero is at top */}
       <div style={{ height: '60px' }} />
+
+      {/* ========================================================
+          FAR-RIGHT: REACT BITS 3D CYLINDRICAL OPTION WHEEL NAVIGATION
+          Positioned in the open right-side hero column (user reference)
+          ======================================================== */}
+      <HeroOptionWheelNav onNavigateSection={scrollTo} />
 
       {/* ========================================================
           ILLUMINATED AYUSH PRAKASH SIGNATURE (HERO NEGATIVE SPACE)
