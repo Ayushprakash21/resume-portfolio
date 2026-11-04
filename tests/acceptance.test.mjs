@@ -232,11 +232,11 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(html.includes('#050505'), 'Theme color set to #050505');
   });
 
-  // Test 17: Header & Hero AP Brand Treatment
-  await t.test('17. Header has [AP MONOGRAM] AYUSH PRAKASH and Hero has AP monogram emblem', () => {
+  // Test 17: Hero AP Brand & Dominant Identity Treatment
+  await t.test('17. Hero renders large standalone AP monogram and dominant AYUSH PRAKASH identity', () => {
     const layout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
-    assert.ok(layout.includes('<ApMonogram'), 'Must render ApMonogram in header');
-    assert.ok(layout.includes('{name}'), 'Must render full name beside monogram');
+    assert.ok(layout.includes('<ApMonogram'), 'Must render ApMonogram in hero');
+    assert.ok(layout.includes('AYUSH') && layout.includes('PRAKASH'), 'Must render dominant AYUSH PRAKASH display name');
     assert.ok(layout.includes('BUSINESS. SYSTEMS.'), 'Must preserve core positioning');
     assert.ok(layout.includes('Intelligence & Innovation.') || layout.includes('Intelligence &amp; Innovation.'), 'Must preserve italic positioning');
   });
@@ -266,19 +266,17 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(adminConsole.includes('Portfolio Administration'), 'AdminConsole has Portfolio Administration in sidebar');
   });
 
-  // Test 20: Hero Introduction Text Visibility & Local Glass Backdrop
-  await t.test('20. Hero introduction is protected by local glass backdrop with high-contrast readable typography', () => {
+  // Test 20: Hero Introduction Editorial Treatment & Reference Hierarchy
+  await t.test('20. Hero introduction is positioned in hero left column above logo and name with restrained readable typography', () => {
     const layout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
     assert.ok(layout.includes('hero-intro-panel'), 'CinematicHeroLayout must contain hero-intro-panel');
     assert.ok(layout.includes('hero-intro'), 'CinematicHeroLayout must contain hero-intro');
-    assert.ok(layout.includes('rgba(5, 5, 5, 0.85)'), 'Must contain local glass backdrop background');
-    assert.ok(layout.includes('blur(16px)'), 'Must apply blur backdrop filter');
-    assert.ok(layout.includes('#F5F5F5'), 'Must render high-contrast bright white text (#F5F5F5)');
+    assert.ok(layout.includes('intro}'), 'CinematicHeroLayout must render intro text');
 
     const css = fs.readFileSync('src/styles/index.css', 'utf-8');
     assert.ok(css.includes('.hero-intro-panel'), 'CSS must define .hero-intro-panel');
     assert.ok(css.includes('.hero-intro'), 'CSS must define .hero-intro');
-    assert.ok(css.includes('text-shadow: 0 2px 12px rgba(0, 0, 0, 0.95)'), 'CSS must specify text-shadow for readability');
+    assert.ok(css.includes('text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95)'), 'CSS must specify text-shadow for readability');
   });
 
   // Test 21: Controlled 3D Background Layering and Elimination of Visual Clutter
@@ -421,25 +419,20 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(css.includes('.project-card-actions'), 'CSS contains .project-card-actions responsive rules');
   });
 
-  // Test 28: Prominent AP Brand Identity & Sizing Specifications
-  // Test 28: Prominent AP Brand Identity & Header Branding Size Correction
-  await t.test('28. AP monogram is prominent across header (85-100px desktop), hero brand signature, and footer (76-96px)', () => {
-    const header = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
-    assert.ok(header.includes('ap-header-monogram'), 'Header uses .ap-header-monogram');
-    assert.ok(header.includes('ap-header-name'), 'Header uses .ap-header-name');
-    assert.ok(header.includes('hero-brand-signature'), 'Hero has dedicated .hero-brand-signature');
-    assert.ok(header.includes('width={isScrolled ? 78 : 94}'), 'Header passes 85-100px desktop monogram width');
+  // Test 28: Prominent AP Brand Identity & Hero Monogram Sizing Specifications
+  await t.test('28. AP monogram is prominent in hero (90-115px desktop) and footer (76-96px)', () => {
+    const heroLayout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
+    assert.ok(heroLayout.includes('hero-standalone-monogram'), 'Hero uses .hero-standalone-monogram');
+    assert.ok(heroLayout.includes('width={105}'), 'Hero passes 90-115px desktop monogram width (105px)');
 
     const footer = fs.readFileSync('src/components/Footer.tsx', 'utf-8');
     assert.ok(footer.includes('ap-footer-monogram'), 'Footer uses .ap-footer-monogram');
     assert.ok(footer.includes('width={88}'), 'Footer passes 88px monogram width (76-96px range)');
 
     const css = fs.readFileSync('src/styles/index.css', 'utf-8');
-    assert.ok(css.includes('width: 94px'), 'CSS sets 94px desktop logo width (85-100px)');
-    assert.ok(css.includes('width: 72px'), 'CSS sets 72px tablet logo width (65-78px)');
-    assert.ok(css.includes('width: 52px'), 'CSS sets 52px mobile logo width (48-60px)');
-    assert.ok(css.includes('font-size: 40px'), 'CSS sets 40px name typography (38-44px)');
-    assert.ok(css.includes('width: 88px'), 'CSS sets 88px footer logo width (76-96px)');
+    assert.ok(css.includes('width: 105px'), 'CSS sets 105px desktop logo width (90-115px)');
+    assert.ok(css.includes('width: 88px'), 'CSS sets 88px tablet logo width (80-90px)');
+    assert.ok(css.includes('width: 74px'), 'CSS sets 74px mobile logo width');
   });
 
   // Test 29: Complete Mobile and Tablet Responsive Architecture

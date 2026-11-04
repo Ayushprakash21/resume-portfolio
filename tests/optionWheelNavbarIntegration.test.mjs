@@ -8,10 +8,9 @@ describe('P0 Video-Reference Top-Right Glass Navigation Panel Suite', () => {
   const orionFile = fs.readFileSync('src/components/editorial/EditorialOrion9.tsx', 'utf-8');
   const appFile = fs.readFileSync('src/App.tsx', 'utf-8');
 
-  it('1. Public header has AP monogram + AYUSH PRAKASH on left, no recruiter brief or admin buttons', () => {
-    // Left brand identity is preserved
-    assert.ok(navbarFile.includes('ApMonogram'), 'Header preserves AP brand monogram');
-    assert.ok(navbarFile.includes('ap-header-name'), 'Header preserves AYUSH PRAKASH wordmark');
+  it('1. Public header keeps clean navigation with menu control on right, no recruiter brief or admin buttons', () => {
+    // Menu container is anchored to top-right
+    assert.ok(navbarFile.includes('menuContainerRef'), 'Header contains top-right menu container');
 
     // Horizontal wheel, recruiter button, admin button, and orion pill are removed from public header
     assert.ok(!navbarFile.includes('desktop-wheel-nav'), 'Header must not have horizontal OptionWheel in center');

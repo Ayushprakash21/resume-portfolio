@@ -219,46 +219,67 @@ h1, h2, h3, h4, .font-display {
 }
 
 /* ========================================================
-   HERO INTRODUCTION GLASS BACKDROP & HIGH-CONTRAST TYPOGRAPHY
+   HERO INTRODUCTION & BRAND IDENTITY HIERARCHY
+   Hierarchy:
+   1. Professional Introduction
+   2. Large Standalone AP Metallic Silver Logo (90–115px desktop)
+   3. Dominant Two-Line Name: AYUSH / PRAKASH (112–150px desktop)
+   4. Tagline: BUSINESS. SYSTEMS. / Intelligence & Innovation.
    ======================================================== */
 .hero-intro-panel {
   position: relative;
   z-index: 20;
-  background: linear-gradient(
-    135deg,
-    rgba(5, 5, 5, 0.85),
-    rgba(9, 9, 12, 0.52)
-  );
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 14px;
-  padding: 18px 22px;
-  max-width: 430px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  max-width: 480px;
+  box-shadow: none;
+  margin-bottom: 24px;
 }
 
 .hero-intro {
   position: relative;
   z-index: 20;
-  color: #F5F5F5;
-  font-size: clamp(15px, 1.15vw, 18px);
+  color: #E8ECF2;
+  font-size: clamp(14px, 1.1vw, 16px);
   font-weight: 400;
-  line-height: 1.7;
-  max-width: 390px;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.95);
+  line-height: 1.6;
+  max-width: 460px;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95);
   letter-spacing: 0.01em;
+}
+
+.hero-standalone-logo-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.hero-standalone-monogram {
+  width: 105px;
+}
+
+@media (max-width: 1024px) {
+  .hero-standalone-monogram {
+    width: 88px;
+  }
 }
 
 @media (max-width: 768px) {
   .hero-intro-panel {
-    background: linear-gradient(
-      135deg,
-      rgba(5, 5, 5, 0.92),
-      rgba(5, 5, 5, 0.75)
-    );
-    padding: 16px 18px;
-    max-width: min(92vw, 380px);
+    max-width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .hero-standalone-monogram {
+    width: 74px;
+  }
+
+  .hero-founder-name {
+    font-size: clamp(48px, 12vw, 84px) !important;
   }
 
   .project-compact-card {

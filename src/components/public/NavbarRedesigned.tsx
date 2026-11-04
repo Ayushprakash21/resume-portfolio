@@ -122,45 +122,7 @@ export const NavbarRedesigned: React.FC<NavbarRedesignedProps> = ({
       }}
     >
       {/* ========================================================
-          LEFT: AP BRAND IDENTITY ([AP MONOGRAM] + AYUSH PRAKASH)
-          ======================================================== */}
-      <div
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        style={{
-          cursor: 'pointer',
-          userSelect: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          gap: isScrolled ? '14px' : '18px',
-          textDecoration: 'none',
-          flexShrink: 0,
-        }}
-        className="brand-logo-trigger"
-        aria-label="Ayush Prakash Home"
-      >
-        <ApMonogram
-          width={isScrolled ? 78 : 94}
-          className="ap-header-monogram"
-          withGlow={true}
-        />
-        <span
-          className="ap-header-name"
-          style={{
-            fontFamily: 'var(--font-display, Orenza, sans-serif)',
-            fontWeight: 700,
-            letterSpacing: '-0.02em',
-            lineHeight: 1,
-            textTransform: 'uppercase',
-            color: '#FFFFFF',
-            display: 'inline-block',
-          }}
-        >
-          {name}
-        </span>
-      </div>
-
-      {/* ========================================================
-          CENTER: INTENTIONALLY MINIMAL & SPACIOUS
+          HEADER: CLEAN REFINED TOP BAR (MENU CONTROL ON RIGHT)
           ======================================================== */}
       <div style={{ flex: '1 1 auto' }} />
 

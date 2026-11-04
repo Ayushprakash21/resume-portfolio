@@ -131,13 +131,14 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
       <HeroSignature reducedMotion={reducedMotion} />
 
       {/* ========================================================
-          BOTTOM ROW (AP BRANDED HERO PRESENTATION):
-          - HERO INTRO PANEL ANCHORED INTO TYPOGRAPHY COLUMN
-          - AP MONOGRAM & AYUSH PRAKASH EMBLEM
-          - BUSINESS. SYSTEMS.
-          - Intelligence & Innovation.
-          - SCROLL TO EXPLORE
-          - Let's Connect ↗ (With spring physics)
+          BOTTOM ROW (AP APPROVED HERO BRAND LAYOUT):
+          1. Professional introduction (restrained & readable)
+          2. Large standalone AP logo (90–115px desktop, metallic silver)
+          3. AYUSH (Dominant display near-white #F8FAFC)
+          4. PRAKASH (Dominant display metallic silver gradient)
+          5. BUSINESS. SYSTEMS. (Clean uppercase)
+          6. Intelligence & Innovation. (Editorial italic)
+          7. Bottom-Right: SCROLL TO EXPLORE & LET'S CONNECT ↗
           ======================================================== */}
       <div
         style={{
@@ -145,81 +146,65 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           flexWrap: 'wrap',
           alignItems: 'flex-end',
           justifyContent: 'space-between',
-          gap: '20px',
+          gap: '24px',
           width: '100%',
           marginTop: 'auto',
         }}
       >
-        {/* BOTTOM LEFT: HERO INTRO CARD + AP BRAND SIGNATURE + HEADLINE */}
-        <div style={{ maxWidth: 'min(100%, 780px)', minWidth: 0 }}>
-          {/* Refined Glass Intro Panel anchored directly into the left typography column */}
+        {/* BOTTOM LEFT: HIERARCHY AS APPROVED IN REFERENCE SCREENSHOT */}
+        <div style={{ maxWidth: 'min(100%, 740px)', minWidth: 0 }}>
+          {/* 1. PROFESSIONAL INTRODUCTION (ABOVE BRAND LOGO AND LARGE NAME) */}
           <div
             className="hero-intro-panel"
             style={{
               position: 'relative',
               zIndex: 20,
               pointerEvents: 'auto',
-              marginBottom: '16px',
-              background: 'linear-gradient(135deg, rgba(5, 5, 5, 0.85), rgba(9, 9, 12, 0.52))',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.10)',
-              borderRadius: '12px',
-              padding: '16px 20px',
-              maxWidth: 'min(100%, 430px)',
-              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+              marginBottom: '24px',
+              maxWidth: 'min(100%, 460px)',
+              background: 'transparent',
+              backdropFilter: 'none',
+              WebkitBackdropFilter: 'none',
+              border: 'none',
+              borderRadius: 0,
+              padding: 0,
+              boxShadow: 'none',
             }}
           >
             <p
               className="hero-intro"
               style={{
                 fontFamily: 'var(--font-body)',
-                fontSize: 'clamp(13px, 1.05vw, 15px)',
+                fontSize: 'clamp(14px, 1.1vw, 16px)',
                 lineHeight: 1.6,
                 fontWeight: 400,
-                color: '#F5F5F5',
+                color: '#E8ECF2',
                 letterSpacing: '0.01em',
                 margin: 0,
-                textShadow: '0 2px 12px rgba(0, 0, 0, 0.95)',
+                textShadow: '0 2px 14px rgba(0, 0, 0, 0.95)',
               }}
             >
               {intro}
             </p>
           </div>
 
-          {/* Prominent AP Identity Treatment (Hero Brand Signature) */}
-          <div className="hero-brand-signature" style={{ marginBottom: '14px' }}>
-            <ApMonogram width={62} withGlow={true} />
-            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <span
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  color: '#FFFFFF',
-                  lineHeight: 1.2,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {name}
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-serif)',
-                  fontSize: '11.5px',
-                  fontStyle: 'italic',
-                  color: 'var(--accent-silver)',
-                  letterSpacing: '0.02em',
-                }}
-              >
-                Personal Brand &bull; Digital Universe
-              </span>
-            </div>
+          {/* 2. LARGE STANDALONE AP METALLIC SILVER LOGO (NO TEXT, NO BADGE, NO CARD) */}
+          <div
+            className="hero-standalone-logo-container"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              marginBottom: '18px',
+            }}
+          >
+            <ApMonogram
+              width={105}
+              className="hero-standalone-monogram"
+              withGlow={true}
+            />
           </div>
 
-          {/* OVERSIZED EDITORIAL HERO FOUNDER NAME: AYUSH / PRAKASH (VOID WALKER REFERENCE INSPIRATION) */}
+          {/* 3. & 4. DOMINANT HERO IDENTITY: AYUSH / PRAKASH (112–150px DESKTOP) */}
           <div
             className="hero-founder-name"
             style={{
@@ -230,8 +215,8 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
               textTransform: 'uppercase',
               fontFamily: 'var(--font-display, Orenza, sans-serif)',
               fontWeight: 800,
-              fontSize: 'clamp(48px, 8.4vw, 132px)',
-              margin: '0 0 14px 0',
+              fontSize: 'clamp(54px, 8.6vw, 138px)',
+              margin: '0 0 16px 0',
               userSelect: 'none',
               overflowWrap: 'break-word',
               wordBreak: 'break-word',
@@ -261,20 +246,20 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             </span>
           </div>
 
-          {/* Main Supporting Tagline */}
+          {/* 5. & 6. TAGLINE POSITION: BUSINESS. SYSTEMS. / Intelligence & Innovation. */}
           <div
             style={{
               display: 'flex',
               alignItems: 'baseline',
               gap: '12px',
               flexWrap: 'wrap',
-              marginTop: '4px',
+              marginTop: '6px',
             }}
           >
             <div
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(1.1rem, 2.4vw, 2.0rem)',
+                fontSize: 'clamp(1.15rem, 2.5vw, 2.1rem)',
                 lineHeight: 1.1,
                 fontWeight: 600,
                 letterSpacing: '-0.01em',
@@ -289,7 +274,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             <div
               style={{
                 fontFamily: 'var(--font-serif)',
-                fontSize: 'clamp(1.1rem, 2.2vw, 1.85rem)',
+                fontSize: 'clamp(1.15rem, 2.3vw, 1.95rem)',
                 lineHeight: 1.15,
                 fontWeight: 400,
                 fontStyle: 'italic',
@@ -303,7 +288,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           </div>
         </div>
 
-        {/* BOTTOM CENTRE & RIGHT: SCROLL TO EXPLORE & CTA */}
+        {/* BOTTOM RIGHT: SCROLL TO EXPLORE & LET'S CONNECT */}
         <div
           style={{
             display: 'flex',
