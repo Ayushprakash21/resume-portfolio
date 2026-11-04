@@ -420,19 +420,19 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
   });
 
   // Test 28: Prominent AP Brand Identity & Hero Monogram Sizing Specifications
-  await t.test('28. AP monogram is prominent in hero (90-115px desktop) and footer (76-96px)', () => {
+  await t.test('28. AP monogram is prominent in hero (150-180px desktop, 105-135px mobile) and footer (76-96px)', () => {
     const heroLayout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
     assert.ok(heroLayout.includes('hero-standalone-monogram'), 'Hero uses .hero-standalone-monogram');
-    assert.ok(heroLayout.includes('width={105}'), 'Hero passes 90-115px desktop monogram width (105px)');
+    assert.ok(heroLayout.includes('width={165}'), 'Hero passes 150-180px desktop monogram width (165px)');
 
     const footer = fs.readFileSync('src/components/Footer.tsx', 'utf-8');
     assert.ok(footer.includes('ap-footer-monogram'), 'Footer uses .ap-footer-monogram');
     assert.ok(footer.includes('width={88}'), 'Footer passes 88px monogram width (76-96px range)');
 
     const css = fs.readFileSync('src/styles/index.css', 'utf-8');
-    assert.ok(css.includes('width: 105px'), 'CSS sets 105px desktop logo width (90-115px)');
-    assert.ok(css.includes('width: 88px'), 'CSS sets 88px tablet logo width (80-90px)');
-    assert.ok(css.includes('width: 74px'), 'CSS sets 74px mobile logo width');
+    assert.ok(css.includes('width: 165px'), 'CSS sets 165px desktop logo width (150-180px)');
+    assert.ok(css.includes('width: 140px'), 'CSS sets 140px tablet logo width');
+    assert.ok(css.includes('width: 120px'), 'CSS sets 120px mobile logo width (105-135px)');
   });
 
   // Test 29: Complete Mobile and Tablet Responsive Architecture

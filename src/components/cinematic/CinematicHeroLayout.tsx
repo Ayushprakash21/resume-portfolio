@@ -137,17 +137,17 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             </p>
           </div>
 
-          {/* 2. LARGE STANDALONE AP METALLIC SILVER LOGO (NO TEXT, NO BADGE, NO CARD) */}
+          {/* 2. LARGE STANDALONE AP METALLIC SILVER LOGO (PROMINENT: 150-180PX DESKTOP, 105-135PX MOBILE) */}
           <div
             className="hero-standalone-logo-container"
             style={{
               display: 'flex',
               alignItems: 'center',
-              marginBottom: '18px',
+              marginBottom: '16px',
             }}
           >
             <ApMonogram
-              width={105}
+              width={165}
               className="hero-standalone-monogram"
               withGlow={true}
             />

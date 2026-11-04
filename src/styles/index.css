@@ -298,16 +298,20 @@ h1, h2, h3, h4, .font-display {
 .hero-standalone-logo-container {
   display: flex;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 16px; /* 12–20px deliberate visual gap directly above AYUSH */
 }
 
-.hero-standalone-monogram {
-  width: 105px;
+.hero-standalone-monogram,
+.hero-standalone-monogram .ap-monogram-img {
+  width: 165px !important; /* Desktop: 150–180px prominent standalone AP logo */
+  height: auto !important;
+  max-height: none !important;
 }
 
 @media (max-width: 1024px) {
-  .hero-standalone-monogram {
-    width: 88px;
+  .hero-standalone-monogram,
+  .hero-standalone-monogram .ap-monogram-img {
+    width: 140px !important;
   }
 }
 
@@ -317,8 +321,15 @@ h1, h2, h3, h4, .font-display {
     margin-bottom: 20px;
   }
 
-  .hero-standalone-monogram {
-    width: 74px;
+  .hero-standalone-logo-container {
+    margin-bottom: 14px; /* Proportional gap on mobile */
+  }
+
+  .hero-standalone-monogram,
+  .hero-standalone-monogram .ap-monogram-img {
+    width: 120px !important; /* Mobile: 105–135px prominent standalone AP logo */
+    height: auto !important;
+    max-height: none !important;
   }
 
   .hero-founder-name {
