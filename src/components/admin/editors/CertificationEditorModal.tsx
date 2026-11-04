@@ -1,18 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Upload,
   Trash2,
-  Award,
   ExternalLink,
-  FileText,
-  Image as ImageIcon,
   Save,
   CheckCircle2,
   Search,
+  Globe,
+  Sparkles,
+  Building2,
+  RefreshCw,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { CertificationRecord, SkillRecord } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
+import { storageClient } from '../../../services/storage/storageClient';
+import { issuerService, IssuerCandidate, VERIFIED_ISSUERS_DIRECTORY } from '../../../services/issuerService';
 
 interface CertificationEditorModalProps {
   initialCertification: CertificationRecord | null;
@@ -38,6 +42,18 @@ const MONTHS = [
   'December',
 ];
 
+const POPULAR_ISSUERS = [
+  'Anthropic',
+  'Google Cloud',
+  'DeepLearning.AI',
+  'Professional Operations Institute',
+  'AWS',
+  'Microsoft',
+  'Coursera',
+  'IBM',
+  'Cisco',
+];
+
 export const CertificationEditorModal: React.FC<CertificationEditorModalProps> = ({
   initialCertification,
   allSkills,
@@ -53,6 +69,13 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
       return {
         title: initialCertification.title,
         issuer: initialCertification.issuer,
+        issuerWebsite: initialCertification.issuerWebsite || '',
+        issuerDomain: initialCertification.issuerDomain || '',
+        issuerLogo: initialCertification.issuerLogo || '',
+        issuerLogoKey: initialCertification.issuerLogoKey || '',
+        issuerLogoSource: initialCertification.issuerLogoSource || 'directory',
+        issuerLogoFormat: initialCertification.issuerLogoFormat || 'svg',
+        issuerLogoAlt: initialCertification.issuerLogoAlt || '',
         issueMonth: initialCertification.issueMonth || 'January',
         issueYear: initialCertification.issueYear || '2024',
         completionDate: initialCertification.completionDate || 'Jan 2024',
@@ -75,6 +98,13 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
     return {
       title: '',
       issuer: '',
+      issuerWebsite: '',
+      issuerDomain: '',
+      issuerLogo: '',
+      issuerLogoKey: '',
+      issuerLogoSource: 'directory',
+      issuerLogoFormat: 'svg',
+      issuerLogoAlt: '',
       issueMonth: 'January',
       issueYear: new Date().getFullYear().toString(),
       completionDate: 'Jan ' + new Date().getFullYear(),
@@ -95,11 +125,92 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
     };
   });
 
+  const [issuerSearchQuery, setIssuerSearchQuery] = useState(form.issuer || '');
+  const [issuerCandidates, setIssuerCandidates] = useState<IssuerCandidate[]>([]);
+  const [isSearchingIssuer, setIsSearchingIssuer] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [skillSearchQuery, setSkillSearchQuery] = useState('');
   const [isUploadingDoc, setIsUploadingDoc] = useState(false);
 
+  // Trigger search when user types or clicks an issuer
+  const handleSearchIssuer = async (query: string) => {
+    setIssuerSearchQuery(query);
+    if (!query.trim()) {
+      setIssuerCandidates([]);
+      return;
+    }
+
+    setIsSearchingIssuer(true);
+    try {
+      const candidates = await issuerService.resolveLogoCandidates(query);
+      setIssuerCandidates(candidates);
+    } catch (e) {
+      console.warn('[Issuer Search Error]:', e);
+    } finally {
+      setIsSearchingIssuer(false);
+    }
+  };
+
+  // Pre-load candidates on open if editing
+  useEffect(() => {
+    if (form.issuer) {
+      issuerService.resolveLogoCandidates(form.issuer).then((res) => {
+        setIssuerCandidates(res);
+      });
+    }
+  }, []);
+
   const updateField = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSelectIssuerCandidate = (cand: IssuerCandidate) => {
+    setForm((prev) => ({
+      ...prev,
+      issuer: cand.name,
+      issuerDomain: cand.domain,
+      issuerWebsite: cand.website,
+      issuerLogo: cand.logoUrl,
+      issuerLogoSource: cand.source,
+      issuerLogoFormat: cand.logoFormat,
+      issuerLogoAlt: cand.altText,
+    }));
+    setIssuerSearchQuery(cand.name);
+    showNotification(`Selected verified logo for ${cand.name}`);
+  };
+
+  const handleCustomLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingLogo(true);
+    try {
+      // Upload logo directly to Cloudflare R2
+      const stored = await storageClient.uploadFile(file, {
+        category: 'branding',
+        customFileName: `issuer_${Date.now()}_${file.name.replace(/\s+/g, '_')}`,
+        visibility: 'public',
+      });
+
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      const format = ext === 'svg' ? 'svg' : ext === 'webp' ? 'webp' : 'png';
+      const logoUrl = stored.publicUrl || `/api/storage/files/${stored.objectKey}`;
+
+      setForm((prev) => ({
+        ...prev,
+        issuerLogo: logoUrl,
+        issuerLogoKey: stored.objectKey,
+        issuerLogoSource: 'upload',
+        issuerLogoFormat: format as any,
+        issuerLogoAlt: `${prev.issuer || 'Issuer'} Official Logo`,
+      }));
+
+      showNotification(`Logo uploaded to Cloudflare R2 successfully.`);
+    } catch (err: any) {
+      showNotification('Logo upload failed: ' + (err.message || 'Error'), 'error');
+    } finally {
+      setIsUploadingLogo(false);
+    }
   };
 
   const handleAddSkill = async (skillName: string) => {
@@ -170,7 +281,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
         onSave({ ...payload, id: initialCertification.id });
         showNotification(
           targetStatus === 'published'
-            ? 'Certification updated and published.'
+            ? 'Certification updated and published with verified issuer logo.'
             : 'Certification draft saved.'
         );
       } else {
@@ -178,7 +289,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
         onSave(created);
         showNotification(
           targetStatus === 'published'
-            ? 'Certification added and published.'
+            ? 'Certification added and published with verified issuer logo.'
             : 'Certification draft saved.'
         );
       }
@@ -201,7 +312,8 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        backgroundColor: 'rgba(0, 0, 0, 0.88)',
+        backdropFilter: 'blur(8px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -213,20 +325,20 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
         style={{
           backgroundColor: '#0F1015',
           border: '1px solid rgba(255, 255, 255, 0.14)',
-          borderRadius: '12px',
-          maxWidth: '760px',
+          borderRadius: '16px',
+          maxWidth: '840px',
           width: '100%',
           maxHeight: '94vh',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.75)',
+          boxShadow: '0 30px 80px rgba(0, 0, 0, 0.85)',
         }}
       >
         {/* Sticky Header */}
         <div
           style={{
-            padding: '16px 20px',
+            padding: '16px 24px',
             borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
             display: 'flex',
             alignItems: 'center',
@@ -245,10 +357,10 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                 margin: 0,
               }}
             >
-              {isEditing ? 'Edit License / Certification' : 'Add License / Certification'}
+              {isEditing ? 'Edit Accreditation & Brand Identity' : 'Add Accreditation & Brand Identity'}
             </h3>
             <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: '#A7B0A9' }}>
-              LinkedIn Reference Screenshot 1: Verified credentials, credential ID, URLs, and PDF media.
+              Cloudflare R2 Persistent Storage &bull; Verified Brand Logos &bull; React Bits Circular Carousel
             </span>
           </div>
           <button
@@ -258,7 +370,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
               border: 'none',
               color: '#A7B0A9',
               cursor: 'pointer',
-              padding: '4px',
+              padding: '6px',
             }}
           >
             <X size={20} />
@@ -267,8 +379,9 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
 
         {/* Scrollable Form Body */}
         <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* Title & Issuer */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+            
+            {/* 1. BASIC INFORMATION */}
             <div
               style={{
                 display: 'grid',
@@ -286,7 +399,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     marginBottom: '6px',
                   }}
                 >
-                  Certification Name <span style={{ color: '#D9534F' }}>*</span>
+                  Certification / Credential Name <span style={{ color: '#E06C75' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -297,8 +410,8 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    backgroundColor: '#14151C',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
                     color: '#F4F3EE',
                     fontSize: '14px',
                     outline: 'none',
@@ -316,19 +429,19 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     marginBottom: '6px',
                   }}
                 >
-                  Issuing Organization <span style={{ color: '#D9534F' }}>*</span>
+                  Highlight Tag (Badge on Card)
                 </label>
                 <input
                   type="text"
-                  value={form.issuer}
-                  onChange={(e) => updateField('issuer', e.target.value)}
-                  placeholder="e.g. Anthropic / Claude Academy"
+                  value={form.highlightTag}
+                  onChange={(e) => updateField('highlightTag', e.target.value)}
+                  placeholder="e.g. CLAUDE AGENTS"
                   style={{
                     width: '100%',
                     padding: '10px 12px',
                     borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    backgroundColor: '#14151C',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
                     color: '#F4F3EE',
                     fontSize: '14px',
                     outline: 'none',
@@ -337,11 +450,399 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
               </div>
             </div>
 
-            {/* Dates & Does Not Expire Toggle */}
+            {/* 2. DEDICATED ISSUER & BRAND IDENTITY SECTION */}
             <div
               style={{
-                backgroundColor: '#0E1412',
-                border: '1px solid rgba(244, 243, 238, 0.08)',
+                backgroundColor: 'rgba(20, 22, 28, 0.85)',
+                border: '1px solid rgba(220, 80, 95, 0.25)',
+                borderRadius: '12px',
+                padding: '20px',
+                position: 'relative',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '14px',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                  paddingBottom: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Building2 size={16} color="#DC505F" />
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: '#FFFFFF',
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    Issuer &amp; Brand Identity Search
+                  </span>
+                </div>
+                <span style={{ fontSize: '11px', color: '#DC505F', fontWeight: 500 }}>
+                  Live Logo Discovery &bull; Multi-Cert Reusable
+                </span>
+              </div>
+
+              {/* Quick Select Popular Issuers */}
+              <div style={{ marginBottom: '14px' }}>
+                <span style={{ fontSize: '11px', color: '#A7B0A9', display: 'block', marginBottom: '8px' }}>
+                  Quick Search Verified Brands:
+                </span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {POPULAR_ISSUERS.map((iss) => (
+                    <button
+                      key={iss}
+                      type="button"
+                      onClick={() => handleSearchIssuer(iss)}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '14px',
+                        backgroundColor:
+                          form.issuer.toLowerCase() === iss.toLowerCase()
+                            ? 'rgba(220, 80, 95, 0.25)'
+                            : 'rgba(255, 255, 255, 0.05)',
+                        border:
+                          form.issuer.toLowerCase() === iss.toLowerCase()
+                            ? '1px solid rgba(220, 80, 95, 0.5)'
+                            : '1px solid rgba(255, 255, 255, 0.1)',
+                        color: form.issuer.toLowerCase() === iss.toLowerCase() ? '#FFFFFF' : '#D2D6DC',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {iss}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Organization Search Input */}
+              <div style={{ marginBottom: '16px' }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
+                    color: '#A7B0A9',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Search Organization Name or Domain <span style={{ color: '#E06C75' }}>*</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    value={issuerSearchQuery}
+                    onChange={(e) => handleSearchIssuer(e.target.value)}
+                    placeholder="Type brand name (e.g. Anthropic, Google Cloud, DeepLearning.AI, AWS, Microsoft, Coursera)..."
+                    style={{
+                      width: '100%',
+                      padding: '10px 38px 10px 12px',
+                      borderRadius: '6px',
+                      backgroundColor: '#0F1015',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      color: '#F4F3EE',
+                      fontSize: '14px',
+                      outline: 'none',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#A7B0A9',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    {isSearchingIssuer ? <RefreshCw size={15} className="spin" /> : <Search size={15} />}
+                  </div>
+                </div>
+              </div>
+
+              {/* Logo Candidates Grid */}
+              {issuerCandidates.length > 0 && (
+                <div style={{ marginBottom: '18px' }}>
+                  <div style={{ fontSize: '11px', color: '#D4D7DC', fontWeight: 600, marginBottom: '8px' }}>
+                    Available Logo Candidates ({issuerCandidates.length}):
+                  </div>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                      gap: '10px',
+                    }}
+                  >
+                    {issuerCandidates.map((cand) => {
+                      const isSelected = form.issuerLogo === cand.logoUrl;
+                      return (
+                        <div
+                          key={cand.id}
+                          onClick={() => handleSelectIssuerCandidate(cand)}
+                          style={{
+                            padding: '10px 12px',
+                            borderRadius: '8px',
+                            backgroundColor: isSelected ? 'rgba(220, 80, 95, 0.18)' : '#14151C',
+                            border: isSelected
+                              ? '1px solid rgba(220, 80, 95, 0.6)'
+                              : '1px solid rgba(255, 255, 255, 0.08)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            transition: 'all 0.2s',
+                          }}
+                        >
+                          {/* Logo Preview Box */}
+                          <div
+                            style={{
+                              width: '44px',
+                              height: '44px',
+                              borderRadius: '6px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                              padding: '4px',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <img
+                              src={cand.logoUrl}
+                              alt={cand.altText}
+                              style={{
+                                maxWidth: '100%',
+                                maxHeight: '100%',
+                                objectFit: 'contain',
+                              }}
+                              onError={(e) => {
+                                // Graceful fallback
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div
+                              style={{
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                color: '#FFFFFF',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              {cand.name}
+                            </div>
+                            <div style={{ fontSize: '10px', color: '#8E948D' }}>{cand.domain}</div>
+                            <span
+                              style={{
+                                display: 'inline-block',
+                                marginTop: '3px',
+                                padding: '1px 6px',
+                                borderRadius: '4px',
+                                fontSize: '9px',
+                                backgroundColor: cand.verified
+                                  ? 'rgba(74, 180, 120, 0.15)'
+                                  : 'rgba(255, 255, 255, 0.06)',
+                                color: cand.verified ? '#6CE098' : '#A7B0A9',
+                              }}
+                            >
+                              {cand.badge}
+                            </span>
+                          </div>
+
+                          {isSelected && (
+                            <CheckCircle2 size={16} color="#6CE098" style={{ flexShrink: 0 }} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Selected Logo & Fallback Controls */}
+              <div
+                style={{
+                  backgroundColor: '#0F1015',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.10)',
+                  padding: '14px',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '16px',
+                }}
+              >
+                {/* Current Logo Preview */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div
+                    style={{
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '8px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {form.issuerLogo ? (
+                      <img
+                        src={form.issuerLogo}
+                        alt={form.issuerLogoAlt || form.issuer}
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          objectFit: 'contain',
+                        }}
+                      />
+                    ) : (
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-display)',
+                          fontSize: '14px',
+                          fontWeight: 700,
+                          color: '#A7B0A9',
+                        }}
+                      >
+                        {form.issuer ? form.issuer.slice(0, 3).toUpperCase() : 'LOGO'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#F4F3EE' }}>
+                      {form.issuer || 'No organization selected'}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#8E948D', marginTop: '2px' }}>
+                      {form.issuerDomain ? `Domain: ${form.issuerDomain}` : 'Search above or upload custom'}
+                    </div>
+                    {form.issuerLogo && (
+                      <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                        <span
+                          style={{
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            backgroundColor: 'rgba(220, 80, 95, 0.2)',
+                            color: '#FFFFFF',
+                          }}
+                        >
+                          Source: {form.issuerLogoSource || 'directory'}
+                        </span>
+                        <span
+                          style={{
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                            color: '#A7B0A9',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          {form.issuerLogoFormat || 'svg'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Manual Upload & URL Fallbacks */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <label
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 14px',
+                      borderRadius: '6px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      color: '#FFFFFF',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Upload size={13} />
+                    <span>{isUploadingLogo ? 'Uploading to R2...' : 'Upload Logo File (SVG/PNG)'}</span>
+                    <input
+                      type="file"
+                      accept=".svg,.png,.webp,.jpg,.jpeg"
+                      onChange={handleCustomLogoUpload}
+                      style={{ display: 'none' }}
+                      disabled={isUploadingLogo}
+                    />
+                  </label>
+
+                  {form.issuerLogo && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateField('issuerLogo', '');
+                        updateField('issuerLogoKey', '');
+                        updateField('issuerLogoSource', 'directory');
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        backgroundColor: 'transparent',
+                        border: '1px solid rgba(217, 83, 79, 0.3)',
+                        color: '#E06C75',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Clear Logo
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Optional Custom Logo URL input */}
+              <div style={{ marginTop: '12px' }}>
+                <input
+                  type="text"
+                  value={form.issuerLogo || ''}
+                  onChange={(e) => {
+                    updateField('issuerLogo', e.target.value);
+                    updateField('issuerLogoSource', 'url');
+                  }}
+                  placeholder="Or paste direct image URL (https://...)"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: '#0F1015',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    color: '#C1C4BE',
+                    fontSize: '12px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* 3. DATES & DOES NOT EXPIRE TOGGLE */}
+            <div
+              style={{
+                backgroundColor: '#14151C',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
                 borderRadius: '8px',
                 padding: '16px',
               }}
@@ -362,7 +863,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     type="checkbox"
                     checked={form.doesNotExpire}
                     onChange={(e) => updateField('doesNotExpire', e.target.checked)}
-                    style={{ accentColor: '#4A5749', width: '16px', height: '16px' }}
+                    style={{ accentColor: '#DC505F', width: '16px', height: '16px' }}
                   />
                   <span>This credential does not expire</span>
                 </label>
@@ -395,8 +896,8 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                         flex: 1,
                         padding: '8px 10px',
                         borderRadius: '6px',
-                        backgroundColor: 'rgba(18, 18, 22, 0.72)',
-                        border: '1px solid rgba(244, 243, 238, 0.12)',
+                        backgroundColor: '#0F1015',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
                         color: '#F4F3EE',
                         fontSize: '13px',
                       }}
@@ -416,8 +917,8 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                         width: '80px',
                         padding: '8px 10px',
                         borderRadius: '6px',
-                        backgroundColor: 'rgba(18, 18, 22, 0.72)',
-                        border: '1px solid rgba(244, 243, 238, 0.12)',
+                        backgroundColor: '#0F1015',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
                         color: '#F4F3EE',
                         fontSize: '13px',
                         textAlign: 'center',
@@ -447,8 +948,8 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                         flex: 1,
                         padding: '8px 10px',
                         borderRadius: '6px',
-                        backgroundColor: form.doesNotExpire ? '#111514' : '#141C19',
-                        border: '1px solid rgba(244, 243, 238, 0.12)',
+                        backgroundColor: form.doesNotExpire ? '#0A0A0C' : '#0F1015',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
                         color: form.doesNotExpire ? '#6B7F72' : '#F4F3EE',
                         fontSize: '13px',
                       }}
@@ -469,8 +970,8 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                         width: '80px',
                         padding: '8px 10px',
                         borderRadius: '6px',
-                        backgroundColor: form.doesNotExpire ? '#111514' : '#141C19',
-                        border: '1px solid rgba(244, 243, 238, 0.12)',
+                        backgroundColor: form.doesNotExpire ? '#0A0A0C' : '#0F1015',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
                         color: form.doesNotExpire ? '#6B7F72' : '#F4F3EE',
                         fontSize: '13px',
                         textAlign: 'center',
@@ -481,7 +982,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
               </div>
             </div>
 
-            {/* Credential ID & Verification URL */}
+            {/* 4. CREDENTIAL ID & VERIFICATION URL */}
             <div
               style={{
                 display: 'grid',
@@ -499,7 +1000,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     marginBottom: '6px',
                   }}
                 >
-                  Credential ID (Leave blank if unassigned)
+                  Credential ID (Optional)
                 </label>
                 <input
                   type="text"
@@ -510,8 +1011,8 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     width: '100%',
                     padding: '8px 12px',
                     borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    backgroundColor: '#14151C',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
                     color: '#F4F3EE',
                     fontSize: '13px',
                     outline: 'none',
@@ -529,7 +1030,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     marginBottom: '6px',
                   }}
                 >
-                  Verification URL
+                  Verification URL (Public verification link)
                 </label>
                 <input
                   type="url"
@@ -540,8 +1041,8 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     width: '100%',
                     padding: '8px 12px',
                     borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    backgroundColor: '#14151C',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
                     color: '#F4F3EE',
                     fontSize: '13px',
                     outline: 'none',
@@ -550,7 +1051,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
               </div>
             </div>
 
-            {/* Description */}
+            {/* 5. DESCRIPTION */}
             <div>
               <label
                 style={{
@@ -561,27 +1062,28 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                   marginBottom: '6px',
                 }}
               >
-                Credential Scope &amp; Verified Competencies
+                Description / Core Topics Covered
               </label>
               <textarea
-                rows={3}
                 value={form.description || ''}
                 onChange={(e) => updateField('description', e.target.value)}
-                placeholder="Curriculum covered, architectures mastered, evaluation criteria..."
+                rows={3}
+                placeholder="Comprehensive study and practical verification of models, prompt caching, tool use..."
                 style={{
                   width: '100%',
                   padding: '8px 12px',
                   borderRadius: '6px',
-                  backgroundColor: '#0E1412',
-                  border: '1px solid rgba(244, 243, 238, 0.12)',
+                  backgroundColor: '#14151C',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
                   color: '#F4F3EE',
                   fontSize: '13px',
+                  resize: 'vertical',
                   outline: 'none',
                 }}
               />
             </div>
 
-            {/* Associated Skills */}
+            {/* 6. ASSOCIATED SKILLS */}
             <div>
               <label
                 style={{
@@ -592,141 +1094,152 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                   marginBottom: '6px',
                 }}
               >
-                Skills Associated With This Credential
+                Associated Skills &amp; Competencies
               </label>
-
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '6px',
+                  marginBottom: '10px',
+                  minHeight: '32px',
+                  padding: '8px',
+                  borderRadius: '6px',
+                  backgroundColor: '#14151C',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                }}
+              >
                 {(form.skillsUsed || []).map((sk) => (
                   <span
                     key={sk}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '6px',
-                      padding: '4px 10px',
-                      backgroundColor: 'rgba(130, 148, 166, 0.15)',
-                      border: '1px solid rgba(130, 148, 166, 0.3)',
-                      borderRadius: '16px',
+                      gap: '4px',
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
                       fontSize: '12px',
                       color: '#F4F3EE',
                     }}
                   >
-                    {sk}
+                    <span>{sk}</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveSkill(sk)}
-                      style={{ background: 'none', border: 'none', color: '#8294A6', cursor: 'pointer', padding: 0 }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#A7B0A9',
+                        cursor: 'pointer',
+                        padding: 0,
+                        display: 'flex',
+                      }}
                     >
-                      <X size={11} />
+                      <X size={12} />
                     </button>
                   </span>
                 ))}
               </div>
 
+              {/* Add Skill Search */}
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
                   type="text"
                   value={skillSearchQuery}
                   onChange={(e) => setSkillSearchQuery(e.target.value)}
-                  placeholder="Search skills to associate with this credential..."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (skillSearchQuery.trim()) {
+                        handleAddSkill(skillSearchQuery);
+                      }
+                    }
+                  }}
+                  placeholder="Type to search or add new skill..."
                   style={{
                     flex: 1,
                     padding: '8px 12px',
                     borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    backgroundColor: '#14151C',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
                     color: '#F4F3EE',
                     fontSize: '13px',
                     outline: 'none',
                   }}
                 />
-                {skillSearchQuery.trim() && (
-                  <button
-                    type="button"
-                    onClick={() => handleAddSkill(skillSearchQuery)}
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: '6px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                      border: 'none',
-                      color: '#F4F3EE',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    + Add
-                  </button>
-                )}
-              </div>
-
-              {skillSearchQuery && filteredSkills.length > 0 && (
-                <div
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (skillSearchQuery.trim()) {
+                      handleAddSkill(skillSearchQuery);
+                    }
+                  }}
                   style={{
-                    backgroundColor: '#18211D',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
+                    padding: '8px 14px',
                     borderRadius: '6px',
-                    maxHeight: '120px',
-                    overflowY: 'auto',
-                    padding: '4px',
-                    marginTop: '4px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    color: '#F4F3EE',
+                    fontSize: '12px',
+                    cursor: 'pointer',
                   }}
                 >
-                  {filteredSkills.slice(0, 6).map((sk) => (
+                  Add Skill
+                </button>
+              </div>
+
+              {filteredSkills.length > 0 && skillSearchQuery.trim() && (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '6px',
+                    marginTop: '8px',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    backgroundColor: '#14151C',
+                  }}
+                >
+                  {filteredSkills.slice(0, 6).map((name) => (
                     <button
-                      key={sk}
+                      key={name}
                       type="button"
-                      onClick={() => handleAddSkill(sk)}
+                      onClick={() => handleAddSkill(name)}
                       style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '6px 10px',
-                        background: 'none',
-                        border: 'none',
-                        color: '#C1C4BE',
-                        fontSize: '12px',
+                        padding: '2px 8px',
                         borderRadius: '4px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        color: '#A7B0A9',
+                        fontSize: '11px',
                         cursor: 'pointer',
                       }}
                     >
-                      + {sk}
+                      + {name}
                     </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Media Support: Certificate Document / Image Upload */}
+            {/* 7. CERTIFICATE ATTACHMENT */}
             <div
               style={{
-                backgroundColor: '#0E1412',
-                border: '1px solid rgba(244, 243, 238, 0.08)',
+                backgroundColor: '#14151C',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
                 borderRadius: '8px',
                 padding: '16px',
               }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '10px',
-                }}
-              >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      color: '#F4F3EE',
-                    }}
-                  >
-                    Certificate PDF Document or Image
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: '#8E948D' }}>
-                    Upload official certificate PDF or verification badge image
-                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#F4F3EE', display: 'block' }}>
+                    Certificate Attachment (PDF or Image)
+                  </span>
+                  <span style={{ fontSize: '11px', color: '#8E948D' }}>
+                    Upload credential artifact for verification modal preview.
+                  </span>
                 </div>
 
                 <label
@@ -734,19 +1247,20 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '6px 12px',
+                    padding: '8px 14px',
+                    borderRadius: '6px',
                     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                    borderRadius: '4px',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
                     color: '#F4F3EE',
                     fontSize: '12px',
                     cursor: 'pointer',
                   }}
                 >
-                  <Upload size={12} />
-                  {isUploadingDoc ? 'Uploading...' : 'Upload File'}
+                  <Upload size={13} />
+                  <span>{isUploadingDoc ? 'Uploading...' : 'Upload File'}</span>
                   <input
                     type="file"
-                    accept="image/*,application/pdf"
+                    accept=".pdf,.png,.jpg,.jpeg,.webp"
                     onChange={handleCertificateUpload}
                     style={{ display: 'none' }}
                     disabled={isUploadingDoc}
@@ -754,52 +1268,171 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                 </label>
               </div>
 
-              {(form.certificateImage || form.certificatePdfUrl) && (
+              {(form.certificatePdfUrl || form.certificateImage) && (
                 <div
                   style={{
+                    marginTop: '12px',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: '#0F1015',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '8px 12px',
-                    backgroundColor: 'rgba(18, 18, 22, 0.72)',
-                    borderRadius: '6px',
-                    border: '1px solid rgba(244, 243, 238, 0.1)',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <FileText size={16} color="#8294A6" />
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-body)',
-                        fontSize: '12px',
-                        color: '#F4F3EE',
-                        maxWidth: '400px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {form.certificatePdfUrl || form.certificateImage}
-                    </span>
-                  </div>
-                  <a
-                    href={form.certificatePdfUrl || form.certificateImage}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <span
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      fontSize: '11px',
-                      color: '#8294A6',
-                      textDecoration: 'none',
+                      fontSize: '12px',
+                      color: '#6CE098',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      maxWidth: '80%',
                     }}
                   >
-                    <ExternalLink size={11} /> View
-                  </a>
+                    Attached: {form.certificatePdfUrl || form.certificateImage}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateField('certificatePdfUrl', '');
+                      updateField('certificateImage', '');
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#E06C75',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                    }}
+                  >
+                    Remove
+                  </button>
                 </div>
               )}
             </div>
+
+            {/* 8. LIVE CREDENTIAL CARD PREVIEW */}
+            <div
+              style={{
+                backgroundColor: '#090A0E',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '12px',
+                padding: '20px',
+              }}
+            >
+              <div style={{ fontSize: '11px', color: '#D4D7DC', fontWeight: 600, marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                Live Circular Carousel Card Preview:
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div
+                  style={{
+                    width: '268px',
+                    height: '268px',
+                    borderRadius: '23px',
+                    background: 'linear-gradient(145deg, rgba(18, 20, 26, 0.95) 0%, rgba(10, 11, 15, 0.98) 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    boxShadow: '0 16px 40px rgba(0, 0, 0, 0.7), 0 0 24px rgba(140, 21, 36, 0.18)',
+                    padding: '20px',
+                    boxSizing: 'border-box',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  {/* Top row */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        fontSize: '9.5px',
+                        color: '#D4D7DC',
+                        fontWeight: 600,
+                        letterSpacing: '0.06em',
+                      }}
+                    >
+                      {form.highlightTag || 'ACCREDITATION'}
+                    </span>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10.5px', color: '#6CE098', fontWeight: 600 }}>
+                      <CheckCircle2 size={12} />
+                      <span>Verified</span>
+                    </div>
+                  </div>
+
+                  {/* Logo Center */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '64px', margin: '6px 0' }}>
+                    {form.issuerLogo ? (
+                      <img
+                        src={form.issuerLogo}
+                        alt={form.issuerLogoAlt || form.issuer}
+                        style={{
+                          maxHeight: '48px',
+                          maxWidth: '180px',
+                          objectFit: 'contain',
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          fontSize: '18px',
+                          fontWeight: 700,
+                          color: '#FFFFFF',
+                          fontFamily: 'var(--font-display)',
+                        }}
+                      >
+                        {form.issuer || 'Issuer Name'}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Details */}
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        color: '#FFFFFF',
+                        lineHeight: 1.25,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        marginBottom: '4px',
+                      }}
+                    >
+                      {form.title || 'Certification Title'}
+                    </div>
+
+                    <div style={{ fontSize: '11px', color: '#A7B0A9' }}>
+                      {form.issuer || 'Issuing Body'} &bull; {form.issueMonth} {form.issueYear}
+                    </div>
+                  </div>
+
+                  {/* Inspect Credential pill */}
+                  <div
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: '14px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      fontSize: '10.5px',
+                      color: '#FFFFFF',
+                      textAlign: 'center',
+                      fontWeight: 500,
+                    }}
+                  >
+                    Inspect Credential ↗
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -807,11 +1440,11 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
         <div
           style={{
             padding: '14px 24px',
-            borderTop: '1px solid rgba(244, 243, 238, 0.08)',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: '#18211D',
+            backgroundColor: '#14151C',
             flexShrink: 0,
           }}
         >
@@ -824,7 +1457,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                   onClose();
                 }
               }}
-              className="btn-glass-destructive" style={{
+              style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
@@ -848,7 +1481,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
             <button
               type="button"
               onClick={onClose}
-              className="btn-glass-secondary" style={{
+              style={{
                 padding: '10px 18px',
                 borderRadius: '6px',
                 background: 'transparent',
@@ -864,7 +1497,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
             <button
               type="button"
               onClick={() => handleSubmit('draft')}
-              className="btn-glass-primary" style={{
+              style={{
                 padding: '10px 18px',
                 borderRadius: '6px',
                 backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -880,7 +1513,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
             <button
               type="button"
               onClick={() => handleSubmit('published')}
-              className="btn-luxury-primary" style={{
+              style={{
                 padding: '10px 22px',
                 borderRadius: '6px',
                 backgroundColor: '#FFFFFF',
@@ -900,3 +1533,5 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
     </div>
   );
 };
+
+export default CertificationEditorModal;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Award, CheckCircle2, ExternalLink, X, Eye } from 'lucide-react';
+import { Award, CheckCircle2, ExternalLink, X, Eye, FileText } from 'lucide-react';
 import { CertificationRecord } from '../../types/cms';
+import CircularCarousel from '../reactbits/CircularCarousel';
 import { BorderGlow } from '../reactbits';
 
 interface EditorialCertificationsProps {
@@ -10,13 +11,29 @@ interface EditorialCertificationsProps {
 export const EditorialCertifications: React.FC<EditorialCertificationsProps> = ({ certifications }) => {
   const [activeCert, setActiveCert] = useState<CertificationRecord | null>(null);
 
+  // Filter only published certifications for public view
+  const publishedCertifications = (certifications || []).filter(
+    (c) => c.status === 'published'
+  );
+
+  // Map real fields to CircularCarousel item format
+  const carouselItems = publishedCertifications.map((cert) => ({
+    src: cert.issuerLogo || '',
+    title: cert.title,
+    subtitle: `${cert.issuer} • ${cert.completionDate}`,
+    alt: cert.issuerLogoAlt || `${cert.issuer} Verified Credential`,
+    cert,
+  }));
+
   return (
     <section
       id="certifications"
       style={{
-        padding: 'clamp(56px, 6vw, 84px) 0',
+        padding: 'clamp(64px, 7vw, 96px) 0',
         backgroundColor: 'var(--bg-section)',
         borderBottom: '1px solid var(--border-subtle)',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
       <div
@@ -55,306 +72,558 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
             letterSpacing: '-0.02em',
             color: '#FFFFFF',
             maxWidth: '920px',
-            marginBottom: '36px',
+            marginBottom: '16px',
             overflowWrap: 'break-word',
           }}
         >
           Verified accreditations in cloud infrastructure, machine learning systems, and enterprise logistics.
         </h2>
 
-        {/* Editorial Certificates Grid */}
-        <div
+        <p
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
-            gap: 'clamp(20px, 3vw, 32px)',
+            fontFamily: 'var(--font-body)',
+            fontSize: 'clamp(14px, 1.2vw, 16px)',
+            lineHeight: 1.6,
+            color: 'var(--text-secondary)',
+            maxWidth: '780px',
+            margin: '0 0 36px 0',
           }}
         >
-          {certifications.map((cert) => (
-            <BorderGlow
-              key={cert.id}
-              borderRadius="16px"
-              glowRadius={300}
-              glowIntensity={0.30}
-              glowColor="#D9DDE3"
-            >
-              <div
-                className="glass-card"
-                style={{
-                  borderRadius: '16px',
-                  padding: 'clamp(20px, 3.5vw, 32px)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                }}
-              >
-              <div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '20px',
-                  }}
+          Curated industry certifications backed by official authorities. Drag horizontally or use arrow controls to rotate the accreditation cylinder.
+        </p>
+
+        {/* ========================================================
+            OFFICIAL REACT BITS PRO: CIRCULAR CAROUSEL
+            3D Cylindrical accreditation showcase with live CMS data
+            ======================================================== */}
+        {carouselItems.length > 0 ? (
+          <CircularCarousel
+            items={carouselItems}
+            preset="cylinder"
+            intro="rise"
+            cardWidth={268}
+            aspectRatio={1}
+            speed={6}
+            captions={true}
+            gap={52}
+            tilt={-1}
+            curve={0.81}
+            parallax={0.63}
+            cornerRadius={23}
+            onSelect={(item) => setActiveCert(item.cert)}
+            renderCard={(item, index, isCenter) => {
+              const cert = item.cert as CertificationRecord;
+              return (
+                <BorderGlow
+                  borderRadius="23px"
+                  glowRadius={260}
+                  glowIntensity={0.25}
+                  glowColor={isCenter ? '#DC505F' : '#D9DDE3'}
+                  style={{ width: '100%', height: '100%' }}
                 >
                   <div
                     style={{
-                      width: '38px',
-                      height: '38px',
-                      borderRadius: '6px',
-                      backgroundColor: 'rgba(214, 168, 84, 0.1)',
-                      border: '1px solid rgba(214, 168, 84, 0.25)',
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '23px',
+                      background: isCenter
+                        ? 'linear-gradient(145deg, rgba(18, 20, 26, 0.98) 0%, rgba(10, 11, 15, 0.98) 100%)'
+                        : 'linear-gradient(145deg, rgba(14, 16, 22, 0.92) 0%, rgba(8, 9, 13, 0.96) 100%)',
+                      border: isCenter
+                        ? '1px solid rgba(255, 255, 255, 0.22)'
+                        : '1px solid rgba(255, 255, 255, 0.10)',
+                      padding: '20px',
+                      boxSizing: 'border-box',
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'var(--accent-gold)',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      boxShadow: isCenter
+                        ? '0 24px 60px rgba(0, 0, 0, 0.9), 0 0 32px rgba(140, 21, 36, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
+                        : '0 12px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                      transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
                     }}
                   >
-                    <Award size={18} />
-                  </div>
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '11px',
-                      color: 'var(--accent-emerald)',
-                    }}
-                  >
-                    <CheckCircle2 size={12} />
-                    <span>Verified</span>
-                  </div>
-                </div>
-
-                <h3
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '18px',
-                    fontWeight: 600,
-                    lineHeight: 1.3,
-                    color: 'var(--text-primary)',
-                    marginBottom: '8px',
-                  }}
-                >
-                  {cert.title}
-                </h3>
-
-                <div
-                  style={{
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '13px',
-                    color: 'var(--text-secondary)',
-                    marginBottom: '16px',
-                  }}
-                >
-                  {cert.issuer} &bull; {cert.completionDate}
-                </div>
-
-                {cert.credentialId && (
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '11px',
-                      color: 'var(--text-muted)',
-                      letterSpacing: '0.04em',
-                      marginBottom: '14px',
-                    }}
-                  >
-                    ID: {cert.credentialId}
-                  </div>
-                )}
-
-                {cert.skillsUsed && cert.skillsUsed.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '20px' }}>
-                    {cert.skillsUsed.map((sk, sIdx) => (
+                    {/* Card Top Row: Badge & Verified Pill */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
                       <span
-                        key={sIdx}
                         style={{
-                          padding: '2px 8px',
-                          backgroundColor: 'rgba(244, 243, 238, 0.04)',
-                          borderRadius: '4px',
-                          fontSize: '11px',
-                          color: 'var(--text-muted)',
+                          padding: '2.5px 8px',
+                          borderRadius: '12px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          fontSize: '9.5px',
+                          color: '#D4D7DC',
+                          fontWeight: 600,
+                          letterSpacing: '0.06em',
+                          textTransform: 'uppercase',
                         }}
                       >
-                        {sk}
+                        {cert.highlightTag || 'ACCREDITATION'}
                       </span>
-                    ))}
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontFamily: 'var(--font-body)',
+                          fontSize: '11px',
+                          color: 'var(--accent-emerald)',
+                          fontWeight: 600,
+                        }}
+                      >
+                        <CheckCircle2 size={12} />
+                        <span>Verified</span>
+                      </div>
+                    </div>
+
+                    {/* Prominent Issuer Brand Logo */}
+                    <div
+                      style={{
+                        height: '56px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '4px 0',
+                      }}
+                    >
+                      {cert.issuerLogo ? (
+                        <img
+                          src={cert.issuerLogo}
+                          alt={cert.issuerLogoAlt || `${cert.issuer} Brand Logo`}
+                          style={{
+                            maxHeight: '48px',
+                            maxWidth: '180px',
+                            objectFit: 'contain',
+                            filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.65))',
+                          }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '8px',
+                            backgroundColor: 'rgba(214, 168, 84, 0.1)',
+                            border: '1px solid rgba(214, 168, 84, 0.25)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--accent-gold)',
+                          }}
+                        >
+                          <Award size={20} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Credential Name & Organization */}
+                    <div>
+                      <h3
+                        style={{
+                          fontFamily: 'var(--font-display)',
+                          fontSize: '15px',
+                          fontWeight: 700,
+                          lineHeight: 1.25,
+                          color: '#FFFFFF',
+                          margin: '0 0 4px 0',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {cert.title}
+                      </h3>
+
+                      <div
+                        style={{
+                          fontFamily: 'var(--font-body)',
+                          fontSize: '11.5px',
+                          color: 'var(--text-secondary)',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {cert.issuer} &bull; {cert.completionDate}
+                      </div>
+
+                      {cert.credentialId && (
+                        <div
+                          style={{
+                            fontFamily: 'var(--font-body)',
+                            fontSize: '10px',
+                            color: 'var(--text-muted)',
+                            marginTop: '2px',
+                          }}
+                        >
+                          ID: {cert.credentialId}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bottom Action Pill */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        paddingTop: '10px',
+                        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveCert(cert);
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          background: 'none',
+                          border: 'none',
+                          color: '#FFFFFF',
+                          fontFamily: 'var(--font-body)',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          padding: 0,
+                        }}
+                      >
+                        <Eye size={12} />
+                        <span>Inspect Credential</span>
+                      </button>
+
+                      {cert.verificationUrl && (
+                        <a
+                          href={cert.verificationUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            color: '#6CE098',
+                            fontFamily: 'var(--font-body)',
+                            fontSize: '11px',
+                            textDecoration: 'none',
+                            fontWeight: 500,
+                          }}
+                        >
+                          <span>Verify</span>
+                          <ExternalLink size={10} />
+                        </a>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-
-              {/* Action buttons */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  paddingTop: '20px',
-                  borderTop: '1px solid var(--border-subtle)',
-                }}
-              >
-                <button
-                  onClick={() => setActiveCert(cert)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    padding: 0,
-                  }}
-                >
-                  <Eye size={13} />
-                  <span>Inspect Credential</span>
-                </button>
-
-                {cert.verificationUrl && (
-                  <a
-                    href={cert.verificationUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      color: 'var(--text-accent-blue)',
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '12px',
-                      textDecoration: 'none',
-                      marginLeft: 'auto',
-                    }}
-                  >
-                    <span>Verify Link</span>
-                    <ExternalLink size={12} />
-                  </a>
-                )}
-              </div>
-            </div>
-          </BorderGlow>
-        ))}
-        </div>
+                </BorderGlow>
+              );
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              padding: '48px 24px',
+              textAlign: 'center',
+              backgroundColor: 'rgba(255, 255, 255, 0.03)',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              color: 'var(--text-muted)',
+              fontSize: '14px',
+            }}
+          >
+            No verified accreditations published yet.
+          </div>
+        )}
       </div>
 
       {/* Credential Inspection Modal */}
       {activeCert && (
         <div
+          id="credential-detail-modal"
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(10, 13, 12, 0.85)',
-            backdropFilter: 'blur(10px)',
+            inset: 0,
+            backgroundColor: 'rgba(5, 7, 10, 0.88)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 100,
+            zIndex: 9999,
             padding: '24px',
           }}
           onClick={() => setActiveCert(null)}
         >
           <div
             style={{
-              backgroundColor: 'var(--bg-card)',
-              border: '1px solid var(--border-editorial)',
-              borderRadius: '8px',
-              padding: '40px',
-              maxWidth: '540px',
+              backgroundColor: '#0F1015',
+              border: '1px solid rgba(255, 255, 255, 0.16)',
+              borderRadius: '16px',
+              padding: '36px',
+              maxWidth: '560px',
               width: '100%',
               position: 'relative',
-              boxShadow: 'var(--shadow-editorial)',
+              boxShadow: '0 25px 70px rgba(0, 0, 0, 0.85), 0 0 35px rgba(140, 21, 36, 0.25)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setActiveCert(null)}
+              aria-label="Close modal"
               style={{
                 position: 'absolute',
                 top: '20px',
                 right: '20px',
                 background: 'none',
                 border: 'none',
-                color: 'var(--text-muted)',
+                color: '#A7B0A9',
                 cursor: 'pointer',
+                padding: '4px',
               }}
             >
               <X size={20} />
             </button>
 
-            <div style={{ marginBottom: '20px' }}>
+            {/* Modal Header: Issuer Logo & Status */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '20px',
+              }}
+            >
               <div
                 style={{
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '11px',
-                  textTransform: 'uppercase',
-                  color: 'var(--accent-gold)',
-                  letterSpacing: '0.1em',
-                  marginBottom: '8px',
+                  height: '42px',
+                  display: 'flex',
+                  alignItems: 'center',
                 }}
               >
-                Verified Certification Record
+                {activeCert.issuerLogo ? (
+                  <img
+                    src={activeCert.issuerLogo}
+                    alt={activeCert.issuer}
+                    style={{
+                      maxHeight: '38px',
+                      maxWidth: '180px',
+                      objectFit: 'contain',
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: '#FFFFFF',
+                    }}
+                  >
+                    {activeCert.issuer}
+                  </div>
+                )}
               </div>
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '11px',
+                  color: 'var(--accent-emerald)',
+                  fontWeight: 600,
+                }}
+              >
+                <CheckCircle2 size={13} />
+                <span>Verified Authority</span>
+              </div>
+            </div>
+
+            {/* Credential Title */}
+            <div style={{ marginBottom: '22px' }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '10.5px',
+                  textTransform: 'uppercase',
+                  color: '#DC505F',
+                  letterSpacing: '0.12em',
+                  fontWeight: 600,
+                  display: 'block',
+                  marginBottom: '6px',
+                }}
+              >
+                {activeCert.highlightTag || 'ACCREDITATION RECORD'}
+              </span>
               <h3
                 style={{
                   fontFamily: 'var(--font-display)',
                   fontSize: '22px',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
+                  fontWeight: 700,
+                  color: '#FFFFFF',
                   lineHeight: 1.25,
+                  margin: 0,
                 }}
               >
                 {activeCert.title}
               </h3>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px' }}>
+            {/* Metadata Grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '14px',
+                marginBottom: '22px',
+                padding: '16px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
               <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: '#8E948D' }}>
                   Issuing Organization
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '13.5px', color: '#F4F3EE', fontWeight: 600, marginTop: '2px' }}>
                   {activeCert.issuer}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: '#8E948D' }}>
                   Issue Date
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-secondary)' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '13.5px', color: '#F4F3EE', marginTop: '2px' }}>
                   {activeCert.completionDate}
                 </div>
               </div>
 
               {activeCert.credentialId && (
                 <div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)' }}>
-                    Credential License ID
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: '#8E948D' }}>
+                    Credential ID
                   </div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-primary)' }}>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12.5px', color: '#D4D7DC', marginTop: '2px' }}>
                     {activeCert.credentialId}
                   </div>
                 </div>
               )}
+
+              <div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: '#8E948D' }}>
+                  Expiration
+                </div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12.5px', color: '#D4D7DC', marginTop: '2px' }}>
+                  {activeCert.doesNotExpire ? 'Does not expire' : activeCert.expiryDate || 'N/A'}
+                </div>
+              </div>
             </div>
 
+            {/* Description */}
+            {activeCert.description && (
+              <p
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '13px',
+                  lineHeight: 1.6,
+                  color: '#C1C4BE',
+                  margin: '0 0 20px 0',
+                }}
+              >
+                {activeCert.description}
+              </p>
+            )}
+
+            {/* Associated Skills */}
+            {activeCert.skillsUsed && activeCert.skillsUsed.length > 0 && (
+              <div style={{ marginBottom: '24px' }}>
+                <div style={{ fontSize: '11px', color: '#8E948D', marginBottom: '8px' }}>
+                  Validated Skills:
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {activeCert.skillsUsed.map((sk, sIdx) => (
+                    <span
+                      key={sIdx}
+                      style={{
+                        padding: '3px 9px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        color: '#E1E2E6',
+                      }}
+                    >
+                      {sk}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Certificate Attachment Preview */}
+            {(activeCert.certificatePdfUrl || activeCert.certificateImage) && (
+              <div style={{ marginBottom: '24px' }}>
+                <a
+                  href={activeCert.certificatePdfUrl || activeCert.certificateImage}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 14px',
+                    borderRadius: '6px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    color: '#FFFFFF',
+                    fontSize: '12px',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <FileText size={13} />
+                  <span>View Attached Certificate Document</span>
+                  <ExternalLink size={11} />
+                </a>
+              </div>
+            )}
+
+            {/* Verification Link Button */}
             {activeCert.verificationUrl && (
               <a
                 href={activeCert.verificationUrl}
                 target="_blank"
-                rel="noreferrer"
-                className="btn-editorial-pill"
-                style={{ width: '100%', justifyContent: 'center' }}
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  padding: '12px 20px',
+                  borderRadius: '8px',
+                  backgroundColor: '#FFFFFF',
+                  color: '#050505',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  transition: 'opacity 0.2s',
+                  boxSizing: 'border-box',
+                }}
               >
                 <span>Open Official Verification Authority</span>
                 <ExternalLink size={14} />
@@ -366,3 +635,5 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
     </section>
   );
 };
+
+export default EditorialCertifications;

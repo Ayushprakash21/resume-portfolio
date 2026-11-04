@@ -1209,46 +1209,92 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                     display: 'flex',
                     alignItems: 'flex-start',
                     justifyContent: 'space-between',
+                    gap: '16px',
                   }}
                 >
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 600, color: '#F4F3EE' }}>
-                        {cert.title}
-                      </span>
-                      <span
+                  <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                    {cert.issuerLogo ? (
+                      <div
                         style={{
-                          padding: '2px 8px',
-                          borderRadius: '10px',
-                          backgroundColor: cert.status === 'published' ? 'rgba(74, 180, 120, 0.15)' : 'rgba(214, 168, 84, 0.15)',
-                          color: cert.status === 'published' ? '#6CE098' : '#E8CE7D',
-                          fontSize: '11px',
-                          fontWeight: 600,
+                          width: '52px',
+                          height: '52px',
+                          borderRadius: '8px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '6px',
+                          flexShrink: 0,
+                          overflow: 'hidden',
                         }}
                       >
-                        ● {cert.status}
-                      </span>
-                    </div>
-
-                    <div style={{ fontSize: '13px', color: '#8294A6', marginTop: '2px' }}>
-                      {cert.issuer} &bull; Issued {cert.completionDate}
-                    </div>
-
-                    {cert.credentialId && (
-                      <div style={{ fontSize: '11px', color: '#8E948D', marginTop: '2px' }}>
-                        Credential ID: {cert.credentialId}
+                        <img
+                          src={cert.issuerLogo}
+                          alt={cert.issuer}
+                          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          width: '52px',
+                          height: '52px',
+                          borderRadius: '8px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#A7B0A9',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {cert.issuer ? cert.issuer.slice(0, 3).toUpperCase() : 'CRT'}
                       </div>
                     )}
 
-                    {cert.skillsUsed && cert.skillsUsed.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                        {cert.skillsUsed.map((sk) => (
-                          <span key={sk} style={{ padding: '2px 6px', borderRadius: '4px', backgroundColor: 'rgba(244, 243, 238, 0.05)', fontSize: '10px', color: '#8E948D' }}>
-                            {sk}
-                          </span>
-                        ))}
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 600, color: '#F4F3EE' }}>
+                          {cert.title}
+                        </span>
+                        <span
+                          style={{
+                            padding: '2px 8px',
+                            borderRadius: '10px',
+                            backgroundColor: cert.status === 'published' ? 'rgba(74, 180, 120, 0.15)' : 'rgba(214, 168, 84, 0.15)',
+                            color: cert.status === 'published' ? '#6CE098' : '#E8CE7D',
+                            fontSize: '11px',
+                            fontWeight: 600,
+                          }}
+                        >
+                          ● {cert.status}
+                        </span>
                       </div>
-                    )}
+
+                      <div style={{ fontSize: '13px', color: '#8294A6', marginTop: '2px' }}>
+                        {cert.issuer} &bull; Issued {cert.completionDate}
+                      </div>
+
+                      {cert.credentialId && (
+                        <div style={{ fontSize: '11px', color: '#8E948D', marginTop: '2px' }}>
+                          Credential ID: {cert.credentialId}
+                        </div>
+                      )}
+
+                      {cert.skillsUsed && cert.skillsUsed.length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                          {cert.skillsUsed.map((sk) => (
+                            <span key={sk} style={{ padding: '2px 6px', borderRadius: '4px', backgroundColor: 'rgba(244, 243, 238, 0.05)', fontSize: '10px', color: '#8E948D' }}>
+                              {sk}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

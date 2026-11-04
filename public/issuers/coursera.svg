@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 48" fill="none">
+  <!-- Coursera Official Geometric Logo -->
+  <g transform="translate(6, 6)">
+    <polygon points="12,0 24,12 12,24 0,12" fill="#0056D2"/>
+    <polygon points="12,5 19,12 12,19 5,12" fill="#FFFFFF"/>
+    <polygon points="12,8 16,12 12,16 8,12" fill="#0056D2"/>
+    <text x="32" y="17" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">coursera</text>
+  </g>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 48" fill="none">
+  <!-- Google Cloud Official 4-Color Logo -->
+  <g transform="translate(6, 4)">
+    <!-- Cloud Icon -->
+    <g transform="translate(0, 0)">
+      <path d="M22.8 11.2C22.2 6.8 18.4 3.5 13.9 3.5C10.7 3.5 7.8 5.1 6.3 7.8C2.7 8.3 0 11.4 0 15.2C0 19.5 3.5 23 7.8 23H22.4C26.1 23 29.1 20 29.1 16.3C29.1 13 26.5 11.5 22.8 11.2Z" fill="none"/>
+      <!-- Segments in Google Colors -->
+      <path d="M13.9 3.5C10.7 3.5 7.8 5.1 6.3 7.8L9.8 11.3C10.6 9.8 12.1 8.8 13.9 8.8C16.4 8.8 18.5 10.7 18.8 13.2L23.2 11.5C22.2 6.8 18.4 3.5 13.9 3.5Z" fill="#EA4335"/>
+      <path d="M22.4 23H7.8C5.6 23 3.6 22.1 2.3 20.7L5.8 17.2C6.3 17.5 7 17.7 7.8 17.7H22.4C23.2 17.7 23.8 17.1 23.8 16.3C23.8 15.5 23.2 14.9 22.4 14.9H18.8V10.2C18.8 9.7 18.7 9.2 18.5 8.8L22.9 7.1C23.5 8.3 23.8 9.7 23.8 11.2C26.5 11.5 29.1 13 29.1 16.3C29.1 20 26.1 23 22.4 23Z" fill="#4285F4"/>
+      <path d="M6.3 7.8C2.7 8.3 0 11.4 0 15.2C0 17.4 0.9 19.4 2.3 20.7L5.8 17.2C5.5 16.6 5.3 15.9 5.3 15.2C5.3 12.8 7.1 10.8 9.5 10.5L6.3 7.8Z" fill="#FBBC05"/>
+      <path d="M2.3 20.7C3.6 22.1 5.6 23 7.8 23H15V17.7H7.8C7 17.7 6.3 17.5 5.8 17.2L2.3 20.7Z" fill="#34A853"/>
+    </g>
+    <!-- Google Cloud Text -->
+    <text x="36" y="19" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="600" fill="#FFFFFF" letter-spacing="-0.01em">Google Cloud</text>
+  </g>
+</svg>

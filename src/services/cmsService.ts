@@ -28,7 +28,9 @@ import {
   ResumeGeneratorSettings,
   ResumeVersionRecord,
   ResumeAuditEntry,
+  IssuerRecord,
 } from '../types/cms';
+import { VERIFIED_ISSUERS_DIRECTORY } from './issuerService';
 import { LinkedInImportAudit, LinkedInParsedRecord } from '../types/linkedin';
 import {
   DEFAULT_PROFILE,
@@ -74,6 +76,7 @@ const STORAGE_KEYS = {
   resumeVersions: 'ayush_cms_resume_versions_v1',
   resumeAudit: 'ayush_cms_resume_audit_v1',
   linkedinAudit: 'ayush_cms_linkedin_audit_v1',
+  issuers: 'ayush_cms_issuers_v1',
 };
 
 function safeStorageGet<T>(key: string, fallback: T): T {
@@ -117,11 +120,53 @@ interface CmsStore {
   experiences: ExperienceRecord[];
   projects: ProjectRecord[];
   certifications: CertificationRecord[];
+  issuers: IssuerRecord[];
   skills: SkillRecord[];
   education: EducationRecord[];
   media: MediaAsset[];
   siteSettings: SiteSettings;
   messages: ContactMessage[];
+}
+
+function initCertifications(): CertificationRecord[] {
+  const stored = safeStorageGet<CertificationRecord[]>(STORAGE_KEYS.certifications, DEFAULT_CERTIFICATIONS);
+  // Ensure default certifications have their verified logos populated
+  const defaultMap = new Map(DEFAULT_CERTIFICATIONS.map((c) => [c.id, c]));
+  let modified = false;
+
+  const upgraded = stored.map((cert) => {
+    const def = defaultMap.get(cert.id);
+    if (def && (!cert.issuerLogo || !cert.issuerWebsite)) {
+      modified = true;
+      return {
+        ...cert,
+        issuerWebsite: cert.issuerWebsite || def.issuerWebsite,
+        issuerDomain: cert.issuerDomain || def.issuerDomain,
+        issuerLogo: cert.issuerLogo || def.issuerLogo,
+        issuerLogoSource: cert.issuerLogoSource || def.issuerLogoSource,
+        issuerLogoFormat: cert.issuerLogoFormat || def.issuerLogoFormat,
+        issuerLogoAlt: cert.issuerLogoAlt || def.issuerLogoAlt,
+      };
+    }
+    return cert;
+  });
+
+  if (modified) {
+    safeStorageSet(STORAGE_KEYS.certifications, upgraded);
+  }
+  return upgraded;
+}
+
+function initIssuers(): IssuerRecord[] {
+  const stored = safeStorageGet<IssuerRecord[]>(STORAGE_KEYS.issuers, VERIFIED_ISSUERS_DIRECTORY as IssuerRecord[]);
+  const existingIds = new Set(stored.map((iss) => iss.id));
+  const missing = (VERIFIED_ISSUERS_DIRECTORY as IssuerRecord[]).filter((iss) => !existingIds.has(iss.id));
+  if (missing.length > 0) {
+    const merged = [...stored, ...missing];
+    safeStorageSet(STORAGE_KEYS.issuers, merged);
+    return merged;
+  }
+  return stored;
 }
 
 function initSkills(): SkillRecord[] {
@@ -155,7 +200,8 @@ const store: CmsStore = {
   appearance: safeStorageGet(STORAGE_KEYS.appearance, DEFAULT_APPEARANCE_SETTINGS),
   experiences: safeStorageGet(STORAGE_KEYS.experiences, DEFAULT_EXPERIENCES),
   projects: safeStorageGet(STORAGE_KEYS.projects, DEFAULT_PROJECTS),
-  certifications: safeStorageGet(STORAGE_KEYS.certifications, DEFAULT_CERTIFICATIONS),
+  certifications: initCertifications(),
+  issuers: initIssuers(),
   skills: initSkills(),
   education: safeStorageGet(STORAGE_KEYS.education, DEFAULT_EDUCATION),
   media: safeStorageGet(STORAGE_KEYS.media, DEFAULT_MEDIA_ASSETS),
@@ -880,6 +926,20 @@ export const cmsService = {
       await setDoc(doc(db, 'certifications', newRecord.id), newRecord);
     }
 
+    if (newRecord.issuer && newRecord.issuerLogo) {
+      this.saveIssuer({
+        issuerName: newRecord.issuer,
+        issuerDomain: newRecord.issuerDomain || '',
+        issuerWebsite: newRecord.issuerWebsite || '',
+        logoUrl: newRecord.issuerLogo,
+        logoObjectKey: newRecord.issuerLogoKey || '',
+        logoFormat: newRecord.issuerLogoFormat || 'svg',
+        logoSource: newRecord.issuerLogoSource || 'directory',
+        altText: newRecord.issuerLogoAlt || `${newRecord.issuer} Official Brand Logo`,
+        verifiedByAdmin: true,
+      }).catch((e) => console.warn('[saveIssuer notice]:', e));
+    }
+
     store.certifications.unshift(newRecord);
     safeStorageSet(STORAGE_KEYS.certifications, store.certifications);
     notifyListeners();
@@ -898,7 +958,23 @@ export const cmsService = {
 
     const idx = store.certifications.findIndex((c) => c.id === id);
     if (idx !== -1) {
-      store.certifications[idx] = { ...store.certifications[idx], ...payload };
+      const merged = { ...store.certifications[idx], ...payload };
+      store.certifications[idx] = merged;
+
+      if (merged.issuer && merged.issuerLogo) {
+        this.saveIssuer({
+          issuerName: merged.issuer,
+          issuerDomain: merged.issuerDomain || '',
+          issuerWebsite: merged.issuerWebsite || '',
+          logoUrl: merged.issuerLogo,
+          logoObjectKey: merged.issuerLogoKey || '',
+          logoFormat: merged.issuerLogoFormat || 'svg',
+          logoSource: merged.issuerLogoSource || 'directory',
+          altText: merged.issuerLogoAlt || `${merged.issuer} Official Brand Logo`,
+          verifiedByAdmin: true,
+        }).catch((e) => console.warn('[saveIssuer notice]:', e));
+      }
+
       safeStorageSet(STORAGE_KEYS.certifications, store.certifications);
       notifyListeners();
     }
@@ -924,6 +1000,47 @@ export const cmsService = {
       displayOrder: (cert.displayOrder || 1) + 1,
     };
     return await this.addCertification(duplicated);
+  },
+
+  // ================= ISSUERS & BRAND LOGOS =================
+  getIssuers(): IssuerRecord[] {
+    return [...store.issuers].sort((a, b) => a.issuerName.localeCompare(b.issuerName));
+  },
+
+  findIssuer(nameOrDomain: string): IssuerRecord | undefined {
+    const q = nameOrDomain.trim().toLowerCase();
+    if (!q) return undefined;
+    return store.issuers.find(
+      (iss) =>
+        iss.issuerName.toLowerCase() === q ||
+        (iss.issuerDomain && iss.issuerDomain.toLowerCase() === q)
+    );
+  },
+
+  async saveIssuer(data: Omit<IssuerRecord, 'id'> & { id?: string }): Promise<IssuerRecord> {
+    const id = data.id || `iss-${data.issuerDomain ? data.issuerDomain.replace(/[^a-z0-9]/gi, '-') : Date.now()}`;
+    const record: IssuerRecord = {
+      ...data,
+      id,
+      verifiedByAdmin: data.verifiedByAdmin ?? true,
+      updatedAt: new Date().toISOString(),
+      createdAt: data.createdAt || new Date().toISOString(),
+    };
+
+    if (db) {
+      await setDoc(doc(db, 'issuers', record.id), record);
+    }
+
+    const existingIdx = store.issuers.findIndex((iss) => iss.id === record.id || iss.issuerName.toLowerCase() === record.issuerName.toLowerCase());
+    if (existingIdx !== -1) {
+      store.issuers[existingIdx] = { ...store.issuers[existingIdx], ...record };
+    } else {
+      store.issuers.push(record);
+    }
+
+    safeStorageSet(STORAGE_KEYS.issuers, store.issuers);
+    notifyListeners();
+    return record;
   },
 
   // ================= SKILLS =================

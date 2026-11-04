@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 48" fill="none">
+  <!-- DeepLearning.AI Official Logo -->
+  <g transform="translate(6, 4)">
+    <!-- Geometric Cubes Icon -->
+    <g transform="translate(0, 2)">
+      <polygon points="12,2 22,7.5 12,13 2,7.5" fill="#00A3E0"/>
+      <polygon points="2,7.5 12,13 12,24 2,18.5" fill="#1F77B4"/>
+      <polygon points="12,13 22,7.5 22,18.5 12,24" fill="#0E4D7A"/>
+      <circle cx="12" cy="13" r="2.2" fill="#FFFFFF"/>
+    </g>
+    <!-- Text: DeepLearning.AI -->
+    <text x="32" y="19" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#FFFFFF" letter-spacing="-0.02em">
+      DeepLearning<tspan fill="#00A3E0">.AI</tspan>
+    </text>
+  </g>
+</svg>

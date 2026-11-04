@@ -6,3 +6,5 @@ export { BorderGlow } from './BorderGlow';
 export { SpecularButton } from './SpecularButton';
 export { ConcaveCarousel } from './ConcaveCarousel';
 export type { ConcaveCarouselProps } from './ConcaveCarousel';
+export { CircularCarousel } from './CircularCarousel';
+export type { CircularCarouselProps, CircularCarouselItem } from './CircularCarousel';

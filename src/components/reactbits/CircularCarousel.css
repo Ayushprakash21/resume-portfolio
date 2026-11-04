@@ -1,0 +1,170 @@
+/* ============================================================================
+   REACT BITS PRO: CIRCULAR CAROUSEL
+   Official React Bits 3D Cylindrical Carousel.
+   - Cylinder 3D layout with outward normal & configurable tilt, curve, parallax.
+   - Smooth inertia drag & click-to-center snapping.
+   - Ambient speed drift with pause guards (hover, drag, visibility).
+   - Obsidian surface, metallic silver borders, and crimson ambient accents.
+   ============================================================================ */
+
+.circular-carousel {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  user-select: none;
+  touch-action: pan-y;
+  cursor: grab;
+  padding: 32px 0 48px 0;
+  perspective: 1400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.circular-carousel--dragging {
+  cursor: grabbing;
+}
+
+.circular-carousel__stage {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+@media (max-width: 768px) {
+  .circular-carousel__stage {
+    height: 340px;
+  }
+}
+
+@media (max-width: 480px) {
+  .circular-carousel__stage {
+    height: 320px;
+  }
+}
+
+.circular-carousel__card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  box-sizing: border-box;
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.circular-carousel__card button,
+.circular-carousel__card a {
+  pointer-events: auto;
+  cursor: pointer;
+  position: relative;
+  z-index: 5;
+}
+
+.circular-carousel__card--center {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.9),
+    0 0 35px rgba(140, 21, 36, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Floor reflection below active card */
+.circular-carousel__reflection {
+  position: absolute;
+  bottom: -24px;
+  left: 10%;
+  right: 10%;
+  height: 36px;
+  background: radial-gradient(ellipse at center, rgba(140, 21, 36, 0.25) 0%, rgba(255, 255, 255, 0.08) 40%, transparent 75%);
+  filter: blur(14px);
+  pointer-events: none;
+  transform: rotateX(90deg) translateZ(-10px);
+}
+
+/* Navigation Controls & Pagination */
+.circular-carousel__controls {
+  position: relative;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+  pointer-events: auto;
+}
+
+.circular-carousel__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #D2D6DC;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.circular-carousel__btn:hover {
+  color: #FFFFFF;
+  background: rgba(140, 21, 36, 0.3);
+  border-color: rgba(220, 80, 95, 0.45);
+  box-shadow: 0 0 16px rgba(140, 21, 36, 0.3);
+  transform: scale(1.06);
+}
+
+.circular-carousel__btn:active {
+  transform: scale(0.95);
+}
+
+.circular-carousel__dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.circular-carousel__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.circular-carousel__dot:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.circular-carousel__dot--active {
+  width: 24px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #FFFFFF 0%, #D85060 100%);
+  box-shadow: 0 0 10px rgba(220, 80, 95, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .circular-carousel__card,
+  .circular-carousel__btn,
+  .circular-carousel__dot {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 48" fill="none">
+  <!-- Anthropic Minimalist Geometric Logo -->
+  <g transform="translate(4, 4)">
+    <!-- Anthropic 'A' Geometric Icon -->
+    <path d="M18.8 2.5L28.2 24H21.5L19.4 18.8H10.6L8.5 24H1.8L11.2 2.5H18.8ZM12.5 13.8H17.5L15 7.6L12.5 13.8Z" fill="#D97757"/>
+    <!-- Anthropic Wordmark -->
+    <text x="36" y="19" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" letter-spacing="-0.02em" fill="#FAF9F5">ANTHROPIC</text>
+  </g>
+</svg>

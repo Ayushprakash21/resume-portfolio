@@ -166,6 +166,13 @@ export interface CertificationRecord {
   id: string;
   title: string;
   issuer: string;
+  issuerWebsite?: string;
+  issuerDomain?: string;
+  issuerLogo?: string;
+  issuerLogoKey?: string;
+  issuerLogoSource?: 'directory' | 'clearbit' | 'upload' | 'url';
+  issuerLogoFormat?: 'svg' | 'png' | 'webp';
+  issuerLogoAlt?: string;
   issueMonth?: string;
   issueYear?: string;
   completionDate: string;
@@ -183,6 +190,21 @@ export interface CertificationRecord {
   highlightTag: string;
   displayOrder?: number;
   status: 'published' | 'draft';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface IssuerRecord {
+  id: string;
+  issuerName: string;
+  issuerDomain?: string;
+  issuerWebsite?: string;
+  logoObjectKey?: string;
+  logoUrl: string;
+  logoFormat?: 'svg' | 'png' | 'webp';
+  logoSource: 'directory' | 'clearbit' | 'upload' | 'url';
+  altText: string;
+  verifiedByAdmin: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
