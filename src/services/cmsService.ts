@@ -124,6 +124,18 @@ interface CmsStore {
   messages: ContactMessage[];
 }
 
+function initSkills(): SkillRecord[] {
+  const stored = safeStorageGet<SkillRecord[]>(STORAGE_KEYS.skills, DEFAULT_SKILLS);
+  const existingIds = new Set(stored.map((s) => s.id));
+  const missing = DEFAULT_SKILLS.filter((s) => !existingIds.has(s.id));
+  if (missing.length > 0) {
+    const merged = [...stored, ...missing];
+    safeStorageSet(STORAGE_KEYS.skills, merged);
+    return merged;
+  }
+  return stored;
+}
+
 const store: CmsStore = {
   profile: safeStorageGet(STORAGE_KEYS.profile, DEFAULT_PROFILE),
   profileDraft: null,
@@ -144,7 +156,7 @@ const store: CmsStore = {
   experiences: safeStorageGet(STORAGE_KEYS.experiences, DEFAULT_EXPERIENCES),
   projects: safeStorageGet(STORAGE_KEYS.projects, DEFAULT_PROJECTS),
   certifications: safeStorageGet(STORAGE_KEYS.certifications, DEFAULT_CERTIFICATIONS),
-  skills: safeStorageGet(STORAGE_KEYS.skills, DEFAULT_SKILLS),
+  skills: initSkills(),
   education: safeStorageGet(STORAGE_KEYS.education, DEFAULT_EDUCATION),
   media: safeStorageGet(STORAGE_KEYS.media, DEFAULT_MEDIA_ASSETS),
   siteSettings: safeStorageGet(STORAGE_KEYS.settings, DEFAULT_SITE_SETTINGS),

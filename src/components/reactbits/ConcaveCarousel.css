@@ -1,8 +1,10 @@
 /* ============================================================================
-   REACT BITS PRO: CONCAVE CAROUSEL
-   3D Concave cylindrical gallery wall with inward curvature, smooth physics,
-   edge dimming, floor reflection, keyboard & touch navigation.
-   Luxury obsidian & metallic silver styling for Ayush Prakash Portfolio.
+   REACT BITS PRO: LAYERED SPECIALIZED EXPERTISE CAROUSEL
+   Layered 3D carousel inspired by Orion-9 OS telemetry presentation.
+   - Prominent central card with 100% opacity, crisp detail & crimson ambient glow.
+   - Flanking background cards sitting behind with subtle blur & reduced opacity.
+   - Zero exposed side-card strips at outer viewport boundaries.
+   - 4.5s automatic continuous loop with pause on hover/interaction.
    ============================================================================ */
 
 .concave-carousel {
@@ -13,7 +15,7 @@
   user-select: none;
   touch-action: pan-y;
   cursor: grab;
-  padding: 30px 0 50px 0;
+  padding: 16px 0 36px 0;
   perspective: 1200px;
 }
 
@@ -24,7 +26,7 @@
 .concave-carousel__stage {
   position: relative;
   width: 100%;
-  height: 520px;
+  height: 500px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -35,80 +37,108 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: min(540px, 86vw);
+  width: 520px;
   height: 440px;
   margin-top: -220px;
-  margin-left: -270px;
+  margin-left: -260px;
   border-radius: 20px;
-  background: rgba(14, 16, 20, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: rgba(12, 14, 18, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   will-change: transform, opacity, filter;
   transform-style: preserve-3d;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-@media (max-width: 640px) {
+.concave-carousel__panel--active {
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.9),
+    0 0 35px rgba(140, 21, 36, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 1024px) {
   .concave-carousel__panel {
-    width: min(340px, 88vw);
-    height: 460px;
-    margin-top: -230px;
-    margin-left: -170px;
+    width: min(460px, 84vw);
+    height: 440px;
+    margin-top: -220px;
+    margin-left: calc(-1 * min(460px, 84vw) / 2);
   }
   .concave-carousel__stage {
-    height: 500px;
+    height: 480px;
   }
 }
 
-.concave-carousel__panel--active {
-  border-color: rgba(255, 255, 255, 0.32);
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.9), 0 0 30px rgba(217, 221, 227, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+@media (max-width: 640px) {
+  .concave-carousel {
+    padding: 10px 0 24px 0;
+  }
+  .concave-carousel__panel {
+    width: min(340px, 88vw);
+    height: 450px;
+    margin-top: -225px;
+    margin-left: calc(-1 * min(340px, 88vw) / 2);
+  }
+  .concave-carousel__stage {
+    height: 470px;
+  }
 }
 
-/* Floor reflection below panels */
+/* Floor reflection below central active panel */
 .concave-carousel__reflection {
   position: absolute;
-  bottom: -24px;
-  left: 10%;
-  right: 10%;
-  height: 40px;
-  background: radial-gradient(ellipse at center, rgba(217, 221, 227, 0.14) 0%, transparent 70%);
+  bottom: -20px;
+  left: 12%;
+  right: 12%;
+  height: 36px;
+  background: radial-gradient(ellipse at center, rgba(140, 21, 36, 0.22) 0%, rgba(255, 255, 255, 0.08) 40%, transparent 75%);
   filter: blur(12px);
   pointer-events: none;
   transform: rotateX(90deg) translateZ(-10px);
 }
 
-/* Left & Right discreet navigation arrows */
+/* Navigation controls & dot indicators */
 .concave-carousel__controls {
+  position: relative;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16px;
-  margin-top: 24px;
+  margin-top: 20px;
+  pointer-events: auto;
 }
 
 .concave-carousel__btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #D2D6DC;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
 }
 
 .concave-carousel__btn:hover {
   color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.28);
-  transform: scale(1.05);
+  background: rgba(140, 21, 36, 0.3);
+  border-color: rgba(220, 80, 95, 0.45);
+  box-shadow: 0 0 16px rgba(140, 21, 36, 0.3);
+  transform: scale(1.06);
+}
+
+.concave-carousel__btn:focus-visible {
+  outline: 2px solid rgba(220, 80, 95, 0.6);
+  outline-offset: 2px;
 }
 
 .concave-carousel__btn:active {
@@ -125,16 +155,35 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.22);
   cursor: pointer;
   border: none;
   padding: 0;
-  transition: all 0.25s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.concave-carousel__dot:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.concave-carousel__dot:focus-visible {
+  outline: 2px solid rgba(220, 80, 95, 0.6);
+  outline-offset: 2px;
 }
 
 .concave-carousel__dot--active {
   width: 24px;
   border-radius: 4px;
-  background: #FFFFFF;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  background: linear-gradient(90deg, #FFFFFF 0%, #D85060 100%);
+  box-shadow: 0 0 10px rgba(220, 80, 95, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .concave-carousel__panel,
+  .concave-carousel__btn,
+  .concave-carousel__dot {
+    transition: none !important;
+    animation: none !important;
+  }
 }

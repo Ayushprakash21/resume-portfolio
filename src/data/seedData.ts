@@ -351,6 +351,13 @@ export const DEFAULT_SKILLS: SkillRecord[] = [
   { id: 'sk-10', name: 'D1 & Relational Data Modeling', category: 'Full-Stack & Cloud Architecture', description: 'Distributed SQLite, schema migrations, and transactional integrity.', displayOrder: 10 },
   { id: 'sk-11', name: 'React 19 & TypeScript', category: 'Full-Stack & Cloud Architecture', description: 'Strict typing, state machines, and performant component lifecycles.', displayOrder: 11 },
   { id: 'sk-12', name: 'Three.js & Spatial Interactive Web', category: 'Full-Stack & Cloud Architecture', description: 'Custom geometries, camera projection, lighting, and 3D storytelling.', displayOrder: 12 },
+
+  // Core Competencies
+  { id: 'sk-13', name: 'Order Management', category: 'Core Competencies', description: 'End-to-end purchase lifecycle tracking and cross-tier milestone validation.', displayOrder: 13 },
+  { id: 'sk-14', name: 'Order-to-Delivery Operations', category: 'Core Competencies', description: 'Real-time transit pipeline coordination and SLA adherence management.', displayOrder: 14 },
+  { id: 'sk-15', name: 'Fulfillment Coordination', category: 'Core Competencies', description: 'Multimodal inventory dispatching, hub routing, and batch synchronization.', displayOrder: 15 },
+  { id: 'sk-16', name: 'Dispatch and Inventory Tracking', category: 'Core Competencies', description: 'Automated warehouse reconciliation, buffer monitoring, and stock alerts.', displayOrder: 16 },
+  { id: 'sk-17', name: 'SLA and Turnaround Monitoring', category: 'Core Competencies', description: 'Performance metric auditing, exception logging, and incident escalation protocols.', displayOrder: 17 },
 ];
 
 export const DEFAULT_EDUCATION: EducationRecord[] = [

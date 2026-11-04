@@ -46,7 +46,8 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
     <section
       id="capabilities"
       style={{
-        padding: 'clamp(56px, 6vw, 84px) 0',
+        padding: 'clamp(64px, 7vw, 96px) 0',
+        scrollMarginTop: '80px',
         backgroundColor: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-subtle)',
         position: 'relative',
@@ -111,18 +112,17 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
         </p>
 
         {/* ========================================================
-            OFFICIAL REACT BITS PRO: CONCAVE CAROUSEL
-            Inward curved 3D cylindrical gallery wall for capabilities
+            LAYERED 3D SPECIALIZED EXPERTISE CAROUSEL
+            Inspired by Orion-9 telemetry layered composition
             ======================================================== */}
         <ConcaveCarousel
           items={capabilityGroups}
           startIndex={0}
-          curvature={0.65}
+          curvature={0.5}
           tilt={0}
-          gap={24}
-          dim={0.34}
-          reflection={0.10}
-          autoplay="off"
+          reflection={0.08}
+          autoplay="step"
+          interval={4.5}
           renderItem={(group, index, isActive) => {
             return (
               <div
@@ -131,11 +131,21 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
                   flexDirection: 'column',
                   height: '100%',
                   width: '100%',
-                  background: 'linear-gradient(145deg, rgba(16, 18, 24, 0.94) 0%, rgba(9, 10, 14, 0.98) 100%)',
+                  background: isActive
+                    ? 'linear-gradient(145deg, rgba(16, 18, 24, 0.96) 0%, rgba(9, 10, 14, 0.98) 100%)'
+                    : 'linear-gradient(145deg, rgba(13, 15, 20, 0.92) 0%, rgba(8, 9, 12, 0.96) 100%)',
                   padding: 'clamp(24px, 3.2vw, 32px)',
                   boxSizing: 'border-box',
                   position: 'relative',
                   overflow: 'hidden',
+                  borderRadius: '20px',
+                  border: isActive
+                    ? '1px solid rgba(255, 255, 255, 0.18)'
+                    : '1px solid rgba(255, 255, 255, 0.08)',
+                  boxShadow: isActive
+                    ? '0 24px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(140, 21, 36, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
+                    : '0 16px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
+                  transition: 'border-color 0.4s ease, box-shadow 0.4s ease',
                 }}
               >
                 {/* Card Top Row: Domain Pill & Counter */}
