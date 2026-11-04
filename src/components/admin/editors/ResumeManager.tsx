@@ -25,6 +25,7 @@ import {
   ArrowRight,
   RefreshCw,
   Info,
+  Linkedin,
 } from 'lucide-react';
 import {
   ResumeRecord,
@@ -34,7 +35,10 @@ import {
   ResumeAuditEntry,
   ExtractedResumeData,
 } from '../../../types/cms';
+import { LinkedInParsedRecord, LinkedInImportReport, LinkedInImportAudit } from '../../../types/linkedin';
 import { cmsService } from '../../../services/cmsService';
+import { storageClient } from '../../../services/storage/storageClient';
+import { linkedinParserService } from '../../../services/linkedinParserService';
 import {
   validateResumeFile,
   extractRawTextFromResume,
@@ -93,6 +97,26 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
   const [editingValue, setEditingValue] = useState<string>('');
   const [isApplyingChanges, setIsApplyingChanges] = useState(false);
 
+  // Recovery & display-name state
+  const [pendingMetadata, setPendingMetadata] = useState<ResumeRecord | null>(null);
+  const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
+  const [editingDisplayNameValue, setEditingDisplayNameValue] = useState(
+    form.displayName || form.originalName || form.fileName
+  );
+
+  // LinkedIn Import state
+  const [isProcessingLinkedIn, setIsProcessingLinkedIn] = useState(false);
+  const [linkedInProgress, setLinkedInProgress] = useState<{ step: string; percent: number } | null>(null);
+  const [linkedInReport, setLinkedInReport] = useState<LinkedInImportReport | null>(null);
+  const [showLinkedInModal, setShowLinkedInModal] = useState(false);
+  const [linkedInActiveTab, setLinkedInActiveTab] = useState<
+    'overview' | 'experience' | 'education' | 'certifications' | 'skills' | 'projects' | 'other' | 'warnings'
+  >('overview');
+  const [isPublishingLinkedIn, setIsPublishingLinkedIn] = useState(false);
+  const [linkedInAuditLog, setLinkedInAuditLog] = useState<LinkedInImportAudit[]>(() =>
+    cmsService.getLinkedInAuditHistory()
+  );
+
   // Subscribe to reactive CMS updates
   useEffect(() => {
     const unsubscribe = cmsService.subscribe(() => {
@@ -100,6 +124,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
       setAuditLog(cmsService.getResumeAuditHistory());
       setGenSettings(cmsService.getResumeGeneratorSettings());
       setForm(cmsService.getResumeRecord());
+      setLinkedInAuditLog(cmsService.getLinkedInAuditHistory());
     });
     return () => unsubscribe();
   }, []);
@@ -111,10 +136,12 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Step 1: Validate file
+    setPendingMetadata(null);
+
+    // Step 1: Validate file with binary header signature
     setProcessingStatus('validating');
-    setStatusMessage(`Validating ${file.name}...`);
-    const validation = validateResumeFile(file);
+    setStatusMessage(`Validating ${file.name} format, size, and binary signature...`);
+    const validation = await validateResumeFile(file);
     if (!validation.isValid) {
       setProcessingStatus('failed');
       setStatusMessage(validation.error || 'Validation failed');
@@ -123,27 +150,31 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
     }
 
     setIsUploading(true);
-    setUploadProgress(25);
+    setUploadProgress(10);
+
+    let uploadedRecord: ResumeRecord | null = null;
 
     try {
-      // Step 2: Upload to storage
-      setStatusMessage(`Uploading ${file.name} to storage...`);
-      setUploadProgress(45);
-      const uploadedRecord = await cmsService.uploadResumeFile(file, form.buttonText);
-      setForm(uploadedRecord);
-      onUpdate(uploadedRecord);
+      // Step 2: Upload to Cloudflare R2 with genuine real-time progress
+      setStatusMessage(`Uploading ${file.name} to Cloudflare R2 storage...`);
+      uploadedRecord = await cmsService.uploadResumeFile(file, form.buttonText, (p) => {
+        setUploadProgress(Math.min(65, Math.round(10 + p * 0.55)));
+      });
+
+      setUploadProgress(70);
+      setStatusMessage('Verifying document in Cloudflare R2...');
 
       // Step 3: Extract textual information
       setProcessingStatus('extracting');
       setStatusMessage('Extracting structured profile, experience, skills, and certifications...');
-      setUploadProgress(70);
+      setUploadProgress(82);
 
       const rawText = await extractRawTextFromResume(file);
       const extracted = extractResumeInformation(rawText);
       setActiveExtractedData(extracted);
 
       // Step 4: Compare with existing CMS data
-      setUploadProgress(85);
+      setUploadProgress(90);
       const currentCmsSnapshot = {
         profile: cmsService.getProfile(),
         about: cmsService.getAboutSettings(),
@@ -159,10 +190,14 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
 
       // Step 5: Create a new Version Record
       const newVersionNumber = versions.length > 0 ? Math.max(...versions.map((v) => v.versionNumber)) + 1 : 1;
+      const cleanBaseName = file.name.replace(/\.[^/.]+$/, '');
       const newVersionRecord: ResumeVersionRecord = {
         id: `res-v${Date.now()}`,
         versionNumber: newVersionNumber,
         fileName: file.name,
+        originalName: file.name,
+        displayName: cleanBaseName,
+        generatedDownloadName: file.name,
         fileUrl: uploadedRecord.fileUrl,
         fileType: validation.fileType || 'pdf',
         fileSizeBytes: file.size,
@@ -174,27 +209,180 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
         isPublicEnabled: form.isPublicEnabled,
         buttonText: form.buttonText,
         versionName: `Resume v${newVersionNumber} (${file.name})`,
+        storageProvider: uploadedRecord.storageProvider || 'cloudflare-r2',
+        objectKey: uploadedRecord.objectKey,
         extractedData: extracted,
         diffItems: diff,
       };
 
-      await cmsService.addResumeVersion(newVersionRecord);
+      try {
+        await cmsService.addResumeVersion(newVersionRecord);
+      } catch (verErr: any) {
+        console.warn('Version persistence notice:', verErr);
+      }
+
+      setForm(uploadedRecord);
+      onUpdate(uploadedRecord);
       setCurrentReviewVersion(newVersionRecord);
 
       setUploadProgress(100);
       setProcessingStatus('awaiting_review');
       setStatusMessage(`Successfully extracted ${diff.length} fields. Ready for review.`);
-      showNotification(`Extracted ${diff.length} fields from "${file.name}". Ready for review.`, 'success');
+      showNotification(`Uploaded & extracted ${diff.length} fields from "${file.name}".`, 'success');
 
       // Switch to review tab automatically
       setActiveTab('review');
     } catch (err: any) {
+      console.error('[ResumeManager] Upload or persistence error:', err);
       setProcessingStatus('failed');
-      setStatusMessage('Extraction failed: ' + (err.message || 'Error'));
-      showNotification('Extraction error: ' + (err.message || 'Error'), 'error');
+      setStatusMessage('Operation failed: ' + (err.message || 'Error'));
+
+      if (uploadedRecord && uploadedRecord.objectKey) {
+        // Uploaded to R2 successfully but Firestore persistence failed -> offer retry
+        setPendingMetadata(uploadedRecord);
+        showNotification(
+          `Resume stored in Cloudflare R2, but database synchronization failed. Click 'Retry Metadata Persistence' below.`,
+          'error'
+        );
+      } else {
+        showNotification('Upload error: ' + (err.message || 'Failed'), 'error');
+      }
     } finally {
       setIsUploading(false);
-      setTimeout(() => setUploadProgress(0), 1000);
+      setTimeout(() => setUploadProgress(0), 1200);
+    }
+  };
+
+  // Retry Firestore metadata persistence without re-uploading file
+  const handleRetryMetadataPersistence = async () => {
+    if (!pendingMetadata) return;
+    setIsUploading(true);
+    setStatusMessage('Retrying metadata persistence for uploaded resume...');
+    try {
+      const persisted = await cmsService.retryResumeMetadataPersistence(pendingMetadata);
+      setForm(persisted);
+      onUpdate(persisted);
+      setPendingMetadata(null);
+      setProcessingStatus('idle');
+      showNotification('Resume metadata synchronized successfully!', 'success');
+    } catch (err: any) {
+      showNotification('Metadata persistence retry failed: ' + err.message, 'error');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Update display title
+  const handleSaveDisplayName = async () => {
+    if (!editingDisplayNameValue.trim()) return;
+    try {
+      const updated = await cmsService.updateResumeDisplayName(editingDisplayNameValue.trim());
+      setForm(updated);
+      onUpdate(updated);
+      setIsEditingDisplayName(false);
+      showNotification(`Resume display title updated to "${updated.displayName}".`, 'success');
+    } catch (err: any) {
+      showNotification('Failed to update display title: ' + err.message, 'error');
+    }
+  };
+
+  // ==========================================
+  // LINKEDIN DATA EXPORT IMPORTER HANDLERS
+  // ==========================================
+  const handleLinkedInFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsProcessingLinkedIn(true);
+    setLinkedInProgress({ step: 'Uploading archive to secure Cloudflare R2...', percent: 25 });
+
+    let r2ObjectKey: string | undefined;
+
+    try {
+      // 1. Upload archive to Cloudflare R2 private documents
+      try {
+        const meta = await storageClient.uploadFile(file, {
+          category: 'documents',
+          visibility: 'private',
+          onProgress: (p) => {
+            setLinkedInProgress({
+              step: `Uploading ${file.name} to Cloudflare R2 (${p}%)...`,
+              percent: Math.min(65, Math.round(25 + p * 0.4)),
+            });
+          },
+        });
+        r2ObjectKey = meta.objectKey;
+      } catch (uploadErr) {
+        console.warn('[LinkedIn] R2 archive upload warning, proceeding with parser:', uploadErr);
+      }
+
+      // 2. Decompress and parse LinkedIn export
+      setLinkedInProgress({ step: 'Validating archive & parsing CSV records...', percent: 80 });
+      const report = await linkedinParserService.parseLinkedInExport(file);
+      report.r2ObjectKey = r2ObjectKey;
+
+      setLinkedInProgress({ step: 'Complete!', percent: 100 });
+      setLinkedInReport(report);
+      setShowLinkedInModal(true);
+      showNotification(
+        `Discovered ${report.recordsExtracted} records across ${report.filesRecognized.length} files from "${file.name}". Ready for review.`,
+        'success'
+      );
+    } catch (err: any) {
+      console.error('[LinkedIn] Importer error:', err);
+      showNotification('LinkedIn export error: ' + (err.message || 'Failed to process export'), 'error');
+    } finally {
+      setIsProcessingLinkedIn(false);
+      setTimeout(() => setLinkedInProgress(null), 1000);
+      e.target.value = ''; // Reset file input
+    }
+  };
+
+  const handleSetLinkedInItemStatus = (id: string, status: 'approved' | 'rejected') => {
+    if (!linkedInReport) return;
+    const updated = linkedInReport.records.map((r) => (r.id === id ? { ...r, status } : r));
+    setLinkedInReport({ ...linkedInReport, records: updated });
+  };
+
+  const handleBulkApproveLinkedIn = () => {
+    if (!linkedInReport) return;
+    const updated = linkedInReport.records.map((r) =>
+      r.suggestedAction !== 'skip' ? { ...r, status: 'approved' as const } : r
+    );
+    setLinkedInReport({ ...linkedInReport, records: updated });
+    showNotification('Approved all non-duplicate records.', 'info');
+  };
+
+  const handlePublishApprovedLinkedIn = async () => {
+    if (!linkedInReport) return;
+    const approvedItems = linkedInReport.records.filter((r) => r.status === 'approved');
+    if (approvedItems.length === 0) {
+      showNotification('No records approved yet. Please approve at least one record to publish.', 'info');
+      return;
+    }
+
+    setIsPublishingLinkedIn(true);
+    try {
+      const auditSummary = {
+        fileName: linkedInReport.archiveName,
+        fileSizeBytes: 0,
+        sourceType: (linkedInReport.archiveName.endsWith('.zip') ? 'zip' : 'csv') as 'zip' | 'csv',
+        uploadedBy: 'Ayush Prakash (Admin)',
+        r2ObjectKey: linkedInReport.r2ObjectKey,
+        recordsFound: linkedInReport.recordsExtracted,
+        recordsRejected: linkedInReport.records.filter((r) => r.status === 'rejected').length,
+        status: 'completed' as const,
+        details: `Published ${approvedItems.length} records into portfolio CMS.`,
+      };
+
+      const result = await cmsService.publishApprovedLinkedInRecords(approvedItems, auditSummary);
+      showNotification(`Successfully published ${result.publishedCount} records to portfolio CMS!`, 'success');
+      setShowLinkedInModal(false);
+      setLinkedInReport(null);
+    } catch (err: any) {
+      showNotification('Publishing failed: ' + err.message, 'error');
+    } finally {
+      setIsPublishingLinkedIn(false);
     }
   };
 
@@ -683,6 +871,57 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
         </div>
       )}
 
+      {/* Recovery Banner for pending metadata */}
+      {pendingMetadata && (
+        <div
+          style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.12)',
+            border: '1px solid rgba(239, 68, 68, 0.4)',
+            borderRadius: '8px',
+            padding: '16px 20px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <AlertTriangle size={24} color="#EF4444" />
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#FCA5A5' }}>
+                Database Metadata Synchronization Pending
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'rgba(255, 255, 255, 0.75)', marginTop: '2px' }}>
+                Your resume file was safely stored in Cloudflare R2 (<code style={{ color: '#93C5FD' }}>{pendingMetadata.objectKey}</code>), but saving metadata to Firestore was interrupted. You can retry database persistence without re-uploading the file.
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleRetryMetadataPersistence}
+            disabled={isUploading}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              backgroundColor: '#EF4444',
+              color: '#FFFFFF',
+              border: 'none',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            <RefreshCw size={13} className={isUploading ? 'animate-spin' : ''} />
+            Retry Metadata Persistence
+          </button>
+        </div>
+      )}
+
       {/* TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -721,18 +960,93 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
                   <FileText size={24} />
                 </div>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <h3
-                      style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '18px',
-                        fontWeight: 600,
-                        color: '#F4F3EE',
-                        margin: 0,
-                      }}
-                    >
-                      {form.fileName}
-                    </h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    {isEditingDisplayName ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <input
+                          type="text"
+                          value={editingDisplayNameValue}
+                          onChange={(e) => setEditingDisplayNameValue(e.target.value)}
+                          placeholder="Enter display title"
+                          style={{
+                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                            border: '1px solid rgba(255, 255, 255, 0.25)',
+                            borderRadius: '4px',
+                            padding: '4px 8px',
+                            color: '#FFFFFF',
+                            fontSize: '14px',
+                            fontWeight: 600,
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSaveDisplayName}
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            backgroundColor: '#4ADE80',
+                            color: '#000000',
+                            border: 'none',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <Save size={12} style={{ marginRight: '4px', display: 'inline' }} /> Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingDisplayNameValue(form.displayName || form.originalName || form.fileName);
+                            setIsEditingDisplayName(false);
+                          }}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            color: '#D9DDE3',
+                            border: 'none',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <h3
+                          style={{
+                            fontFamily: 'var(--font-display)',
+                            fontSize: '18px',
+                            fontWeight: 600,
+                            color: '#F4F3EE',
+                            margin: 0,
+                          }}
+                        >
+                          {form.displayName || form.fileName}
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingDisplayNameValue(form.displayName || form.originalName || form.fileName);
+                            setIsEditingDisplayName(true);
+                          }}
+                          title="Edit resume display title"
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'rgba(255, 255, 255, 0.6)',
+                            cursor: 'pointer',
+                            padding: '2px 4px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                      </>
+                    )}
                     <span
                       style={{
                         padding: '2px 8px',
@@ -747,6 +1061,11 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
                       &bull; Currently Active
                     </span>
                   </div>
+                  {form.originalName && form.originalName !== form.displayName && (
+                    <div style={{ fontSize: '11.5px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
+                      Source file: {form.originalName}
+                    </div>
+                  )}
                   <div style={{ display: 'flex', gap: '12px', marginTop: '4px', fontSize: '12px', color: '#889196' }}>
                     <span>Size: {(form.fileSizeBytes / 1024).toFixed(1)} KB</span>
                     <span>&bull;</span>
@@ -823,6 +1142,195 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
                 />
               </label>
             </div>
+          </div>
+
+          {/* LinkedIn Data Export Card */}
+          <div
+            style={{
+              backgroundColor: 'rgba(18, 18, 22, 0.72)',
+              border: '1px solid rgba(10, 102, 194, 0.25)',
+              borderRadius: '8px',
+              padding: '24px',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div
+                  style={{
+                    width: '46px',
+                    height: '46px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(10, 102, 194, 0.15)',
+                    border: '1px solid rgba(10, 102, 194, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#0A66C2',
+                  }}
+                >
+                  <Linkedin size={24} />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 600, color: '#F4F3EE', margin: 0 }}>
+                      LinkedIn Data Privacy Export Importer
+                    </h3>
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(10, 102, 194, 0.2)',
+                        border: '1px solid rgba(10, 102, 194, 0.4)',
+                        color: '#60A5FA',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Production Importer
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '12.5px', color: '#A7B0A9', margin: '4px 0 0' }}>
+                    Upload complete LinkedIn archive (.zip) or standalone CSVs (Positions, Education, Certifications, Skills, Projects).
+                  </p>
+                </div>
+              </div>
+
+              {linkedInReport && (
+                <button
+                  type="button"
+                  onClick={() => setShowLinkedInModal(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    backgroundColor: 'rgba(10, 102, 194, 0.25)',
+                    border: '1px solid rgba(10, 102, 194, 0.5)',
+                    color: '#93C5FD',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Eye size={13} /> View Pending Review ({linkedInReport.recordsExtracted})
+                </button>
+              )}
+            </div>
+
+            {/* LinkedIn Upload Progress */}
+            {isProcessingLinkedIn && linkedInProgress && (
+              <div
+                style={{
+                  backgroundColor: 'rgba(10, 102, 194, 0.1)',
+                  border: '1px solid rgba(10, 102, 194, 0.3)',
+                  borderRadius: '6px',
+                  padding: '12px 16px',
+                  marginBottom: '16px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#93C5FD', marginBottom: '6px' }}>
+                  <span>{linkedInProgress.step}</span>
+                  <span>{linkedInProgress.percent}%</span>
+                </div>
+                <div style={{ width: '100%', height: '5px', backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      width: `${linkedInProgress.percent}%`,
+                      height: '100%',
+                      backgroundColor: '#0A66C2',
+                      transition: 'width 0.3s ease',
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* LinkedIn Drop Area */}
+            <div
+              style={{
+                border: '2px dashed rgba(10, 102, 194, 0.35)',
+                borderRadius: '8px',
+                padding: '28px 20px',
+                textAlign: 'center',
+                backgroundColor: 'rgba(10, 102, 194, 0.04)',
+              }}
+            >
+              <Upload size={28} color="#60A5FA" style={{ margin: '0 auto 10px' }} />
+              <div style={{ fontSize: '14.5px', fontWeight: 600, color: '#FFFFFF', marginBottom: '4px' }}>
+                Drop LinkedIn Export Archive (.zip) or Individual CSV Files
+              </div>
+              <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)', margin: '0 0 14px' }}>
+                Supports official LinkedIn data dumps &bull; Decompression bomb &amp; traversal protected &bull; Max 50 MB
+              </p>
+              <label
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '9px 20px',
+                  borderRadius: '6px',
+                  backgroundColor: '#0A66C2',
+                  color: '#FFFFFF',
+                  fontSize: '12.5px',
+                  fontWeight: 600,
+                  cursor: isProcessingLinkedIn ? 'not-allowed' : 'pointer',
+                  opacity: isProcessingLinkedIn ? 0.6 : 1,
+                }}
+              >
+                <Upload size={14} />
+                Select LinkedIn Export Archive or CSV
+                <input
+                  type="file"
+                  accept=".zip,.csv,application/zip,text/csv"
+                  style={{ display: 'none' }}
+                  onChange={handleLinkedInFileUpload}
+                  disabled={isProcessingLinkedIn}
+                />
+              </label>
+            </div>
+
+            {/* Recent LinkedIn Import Audit Log */}
+            {linkedInAuditLog.length > 0 && (
+              <div style={{ marginTop: '20px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '16px' }}>
+                <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.7)', marginBottom: '10px' }}>
+                  Recent LinkedIn Import Runs ({linkedInAuditLog.length})
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {linkedInAuditLog.slice(0, 3).map((audit) => (
+                    <div
+                      key={audit.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 14px',
+                        backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                      }}
+                    >
+                      <div>
+                        <span style={{ fontWeight: 600, color: '#FFFFFF' }}>{audit.fileName}</span>
+                        <span style={{ color: 'rgba(255, 255, 255, 0.5)', marginLeft: '8px' }}>({audit.sourceType.toUpperCase()})</span>
+                        <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '11px', marginTop: '2px' }}>
+                          {audit.details || `Imported ${audit.recordsApproved} approved records`}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ color: '#4ADE80', fontWeight: 600 }}>+{audit.recordsApproved} approved</span>
+                        <div style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '11px', marginTop: '2px' }}>
+                          {new Date(audit.timestamp).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Governance Form */}
@@ -2034,6 +2542,439 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
               title="Resume Preview"
               style={{ width: '100%', height: '100%', border: 'none' }}
             />
+          </div>
+        </div>
+      )}
+
+      {/* ATS Generator Modal */}
+      {/* LinkedIn Export Review Workspace Modal */}
+      {showLinkedInModal && linkedInReport && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#121216',
+              border: '1px solid rgba(10, 102, 194, 0.35)',
+              borderRadius: '12px',
+              maxWidth: '1000px',
+              width: '100%',
+              height: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: '16px 24px',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                backgroundColor: 'rgba(10, 102, 194, 0.08)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(10, 102, 194, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#0A66C2',
+                  }}
+                >
+                  <Linkedin size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 600, color: '#FFFFFF' }}>
+                    LinkedIn Data Export Review Workspace
+                  </h3>
+                  <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)', marginTop: '2px' }}>
+                    Archive: <span style={{ color: '#93C5FD' }}>{linkedInReport.archiveName}</span> &bull; {linkedInReport.recordsExtracted} records discovered across {linkedInReport.filesRecognized.length} files
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={handleBulkApproveLinkedIn}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                    border: '1px solid rgba(34, 197, 94, 0.3)',
+                    color: '#4ADE80',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Approve Non-Duplicates
+                </button>
+                <button
+                  onClick={() => setShowLinkedInModal(false)}
+                  style={{ background: 'none', border: 'none', color: '#A7B0A9', cursor: 'pointer', padding: '6px' }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Sub-navigation tabs */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '4px',
+                padding: '10px 24px',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                overflowX: 'auto',
+              }}
+            >
+              {[
+                { id: 'overview', label: 'Summary', count: linkedInReport.recordsExtracted },
+                { id: 'experience', label: 'Experience', count: linkedInReport.records.filter((r) => r.category === 'experience').length },
+                { id: 'education', label: 'Education', count: linkedInReport.records.filter((r) => r.category === 'education').length },
+                { id: 'certifications', label: 'Certifications', count: linkedInReport.records.filter((r) => r.category === 'certifications').length },
+                { id: 'skills', label: 'Skills', count: linkedInReport.records.filter((r) => r.category === 'skills').length },
+                { id: 'projects', label: 'Projects', count: linkedInReport.records.filter((r) => r.category === 'projects').length },
+                { id: 'warnings', label: 'Notes & Warnings', count: linkedInReport.warnings.length },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setLinkedInActiveTab(tab.id as any)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: linkedInActiveTab === tab.id ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
+                    color: linkedInActiveTab === tab.id ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <span>{tab.label}</span>
+                  <span
+                    style={{
+                      fontSize: '10.5px',
+                      padding: '1px 6px',
+                      borderRadius: '10px',
+                      backgroundColor: linkedInActiveTab === tab.id ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+                      color: '#FFFFFF',
+                    }}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+              {linkedInActiveTab === 'overview' && (
+                <div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '24px' }}>
+                    <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.04)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', padding: '16px' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Total Discovered</div>
+                      <div style={{ fontSize: '24px', fontWeight: 700, color: '#FFFFFF', marginTop: '4px' }}>{linkedInReport.recordsExtracted}</div>
+                    </div>
+                    <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)', borderRadius: '8px', padding: '16px' }}>
+                      <div style={{ fontSize: '11px', color: '#4ADE80', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Approved for Publishing</div>
+                      <div style={{ fontSize: '24px', fontWeight: 700, color: '#4ADE80', marginTop: '4px' }}>
+                        {linkedInReport.records.filter((r) => r.status === 'approved').length}
+                      </div>
+                    </div>
+                    <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', padding: '16px' }}>
+                      <div style={{ fontSize: '11px', color: '#F87171', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Rejected / Excluded</div>
+                      <div style={{ fontSize: '24px', fontWeight: 700, color: '#F87171', marginTop: '4px' }}>
+                        {linkedInReport.records.filter((r) => r.status === 'rejected').length}
+                      </div>
+                    </div>
+                    <div style={{ backgroundColor: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.2)', borderRadius: '8px', padding: '16px' }}>
+                      <div style={{ fontSize: '11px', color: '#FBBF24', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Existing CMS Matches</div>
+                      <div style={{ fontSize: '24px', fontWeight: 700, color: '#FBBF24', marginTop: '4px' }}>
+                        {linkedInReport.records.filter((r) => r.existingMatch != null).length}
+                      </div>
+                    </div>
+                  </div>
+
+                  <h4 style={{ fontSize: '14px', color: '#FFFFFF', margin: '0 0 12px' }}>Recognized Files in Archive</h4>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>
+                    {linkedInReport.filesRecognized.map((f) => (
+                      <span
+                        key={f}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: '4px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          fontSize: '12px',
+                          color: '#D9DDE3',
+                        }}
+                      >
+                        ✓ {f}
+                      </span>
+                    ))}
+                  </div>
+
+                  {linkedInReport.warnings.length > 0 && (
+                    <div>
+                      <h4 style={{ fontSize: '14px', color: '#FBBF24', margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <AlertTriangle size={15} /> Extraction Diagnostics &amp; Warnings
+                      </h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {linkedInReport.warnings.map((w, idx) => (
+                          <div
+                            key={idx}
+                            style={{
+                              padding: '10px 14px',
+                              borderRadius: '6px',
+                              backgroundColor: 'rgba(234, 179, 8, 0.08)',
+                              border: '1px solid rgba(234, 179, 8, 0.2)',
+                              fontSize: '12px',
+                              color: '#FDE68A',
+                            }}
+                          >
+                            {w}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {linkedInActiveTab === 'warnings' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {linkedInReport.warnings.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(255, 255, 255, 0.5)' }}>
+                      No warnings or unmapped headers detected in this export.
+                    </div>
+                  ) : (
+                    linkedInReport.warnings.map((w, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: '12px 16px',
+                          borderRadius: '6px',
+                          backgroundColor: 'rgba(234, 179, 8, 0.08)',
+                          border: '1px solid rgba(234, 179, 8, 0.2)',
+                          fontSize: '12.5px',
+                          color: '#FDE68A',
+                        }}
+                      >
+                        {w}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {['experience', 'education', 'certifications', 'skills', 'projects'].includes(linkedInActiveTab) && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {linkedInReport.records
+                    .filter((r) => r.category === linkedInActiveTab)
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        style={{
+                          backgroundColor: item.status === 'approved' ? 'rgba(34, 197, 94, 0.05)' : item.status === 'rejected' ? 'rgba(239, 68, 68, 0.04)' : 'rgba(255, 255, 255, 0.03)',
+                          border: `1px solid ${
+                            item.status === 'approved'
+                              ? 'rgba(34, 197, 94, 0.3)'
+                              : item.status === 'rejected'
+                              ? 'rgba(239, 68, 68, 0.2)'
+                              : 'rgba(255, 255, 255, 0.08)'
+                          }`,
+                          borderRadius: '8px',
+                          padding: '16px 20px',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          justifyContent: 'space-between',
+                          gap: '16px',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <div style={{ flex: 1, minWidth: '240px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                textTransform: 'uppercase',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                backgroundColor: item.suggestedAction === 'create' ? 'rgba(34, 197, 94, 0.15)' : item.suggestedAction === 'update' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(156, 163, 175, 0.15)',
+                                color: item.suggestedAction === 'create' ? '#4ADE80' : item.suggestedAction === 'update' ? '#60A5FA' : '#9CA3AF',
+                              }}
+                            >
+                              Action: {item.suggestedAction.toUpperCase()}
+                            </span>
+
+                            {item.existingMatch && (
+                              <span
+                                style={{
+                                  fontSize: '11px',
+                                  padding: '2px 6px',
+                                  borderRadius: '4px',
+                                  backgroundColor: 'rgba(234, 179, 8, 0.15)',
+                                  color: '#FBBF24',
+                                }}
+                              >
+                                Match: {item.existingMatch.jobTitle || item.existingMatch.employer || item.existingMatch.school || item.existingMatch.name || item.existingMatch.id}
+                              </span>
+                            )}
+
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                backgroundColor: item.status === 'approved' ? 'rgba(34, 197, 94, 0.2)' : item.status === 'rejected' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.1)',
+                                color: item.status === 'approved' ? '#4ADE80' : item.status === 'rejected' ? '#F87171' : '#FFFFFF',
+                              }}
+                            >
+                              Status: {item.status.toUpperCase()}
+                            </span>
+                          </div>
+
+                          <div style={{ fontSize: '15px', fontWeight: 600, color: '#FFFFFF' }}>
+                            {item.data.jobTitle || item.data.title || item.data.name || item.data.degree || 'Untitled'}
+                          </div>
+                          {(item.data.employer || item.data.company || item.data.school || item.data.authority) && (
+                            <div style={{ fontSize: '13px', color: '#93C5FD', marginTop: '2px' }}>
+                              {item.data.employer || item.data.company || item.data.school || item.data.authority}
+                            </div>
+                          )}
+                          {(item.data.startDate || item.data.startedOn || item.data.endDate || item.data.finishedOn) && (
+                            <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
+                              {item.data.startDate || item.data.startedOn || ''} &mdash; {item.data.isCurrent ? 'Present' : item.data.endDate || item.data.finishedOn || ''}
+                            </div>
+                          )}
+                          {(item.data.description || item.data.notes || item.data.summary) && (
+                            <div style={{ fontSize: '12.5px', color: 'rgba(255, 255, 255, 0.7)', marginTop: '8px', lineHeight: 1.5, maxHeight: '80px', overflowY: 'auto' }}>
+                              {item.data.description || item.data.notes || item.data.summary}
+                            </div>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleSetLinkedInItemStatus(item.id, 'approved')}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '4px',
+                              border: 'none',
+                              backgroundColor: item.status === 'approved' ? '#22C55E' : 'rgba(255, 255, 255, 0.08)',
+                              color: item.status === 'approved' ? '#000000' : 'rgba(255, 255, 255, 0.8)',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSetLinkedInItemStatus(item.id, 'rejected')}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '4px',
+                              border: 'none',
+                              backgroundColor: item.status === 'rejected' ? '#EF4444' : 'rgba(255, 255, 255, 0.08)',
+                              color: item.status === 'rejected' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.8)',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div
+              style={{
+                padding: '16px 24px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                backgroundColor: 'rgba(0, 0, 0, 0.25)',
+              }}
+            >
+              <div style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.6)' }}>
+                Approved: <strong style={{ color: '#4ADE80' }}>{linkedInReport.records.filter((r) => r.status === 'approved').length}</strong> of {linkedInReport.records.length} records
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowLinkedInModal(false)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    backgroundColor: 'transparent',
+                    color: '#FFFFFF',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePublishApprovedLinkedIn}
+                  disabled={isPublishingLinkedIn || linkedInReport.records.filter((r) => r.status === 'approved').length === 0}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 20px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: '#0A66C2',
+                    color: '#FFFFFF',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: linkedInReport.records.filter((r) => r.status === 'approved').length === 0 ? 'not-allowed' : 'pointer',
+                    opacity: linkedInReport.records.filter((r) => r.status === 'approved').length === 0 ? 0.5 : 1,
+                  }}
+                >
+                  <Save size={14} />
+                  {isPublishingLinkedIn
+                    ? 'Publishing to CMS...'
+                    : `Publish ${linkedInReport.records.filter((r) => r.status === 'approved').length} Approved to CMS`}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

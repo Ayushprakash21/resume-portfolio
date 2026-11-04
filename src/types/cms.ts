@@ -233,6 +233,11 @@ export interface ResumeRecord {
   notes?: string;
   storageProvider?: 'cloudflare-r2' | 'firebase-storage' | 'local-fallback';
   objectKey?: string;
+  originalName?: string;
+  displayName?: string;
+  fileId?: string;
+  versionId?: string;
+  generatedDownloadName?: string;
 }
 
 export interface SectionConfig {
@@ -497,4 +502,7 @@ export interface ResumeVersionRecord {
   publishedAt?: string;
   storageProvider?: 'cloudflare-r2' | 'firebase-storage' | 'local-fallback';
   objectKey?: string;
+  originalName?: string;
+  displayName?: string;
+  generatedDownloadName?: string;
 }

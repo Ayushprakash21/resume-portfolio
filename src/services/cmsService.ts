@@ -29,6 +29,7 @@ import {
   ResumeVersionRecord,
   ResumeAuditEntry,
 } from '../types/cms';
+import { LinkedInImportAudit, LinkedInParsedRecord } from '../types/linkedin';
 import {
   DEFAULT_PROFILE,
   DEFAULT_EXPERIENCES,
@@ -49,24 +50,9 @@ import {
   DEFAULT_OPEN_TO_WORK_SETTINGS,
 } from '../data/seedData';
 import { storageClient } from './storage/storageClient';
+import { sanitizeForFirestore } from '../utils/firestoreSerializer';
 
-/**
- * Strips undefined values to prevent Firestore unsupported field exceptions
- */
-export function sanitizeForFirestore<T>(data: T): T {
-  if (data === undefined) return null as any;
-  if (data === null || typeof data !== 'object') return data;
-  if (Array.isArray(data)) {
-    return data.map((item) => sanitizeForFirestore(item)) as any;
-  }
-  const clean: any = {};
-  for (const [key, value] of Object.entries(data)) {
-    if (value !== undefined) {
-      clean[key] = sanitizeForFirestore(value);
-    }
-  }
-  return clean;
-}
+export { sanitizeForFirestore };
 
 const STORAGE_KEYS = {
   profile: 'ayush_cms_profile_v1',
@@ -87,6 +73,7 @@ const STORAGE_KEYS = {
   resumeGenerator: 'ayush_cms_resume_generator_v1',
   resumeVersions: 'ayush_cms_resume_versions_v1',
   resumeAudit: 'ayush_cms_resume_audit_v1',
+  linkedinAudit: 'ayush_cms_linkedin_audit_v1',
 };
 
 function safeStorageGet<T>(key: string, fallback: T): T {
@@ -124,6 +111,7 @@ interface CmsStore {
   resumeGenerator: ResumeGeneratorSettings;
   resumeVersions: ResumeVersionRecord[];
   resumeAudit: ResumeAuditEntry[];
+  linkedinAudit: LinkedInImportAudit[];
   sections: SectionConfig[];
   appearance: AppearanceSettings;
   experiences: ExperienceRecord[];
@@ -150,6 +138,7 @@ const store: CmsStore = {
   resumeGenerator: safeStorageGet(STORAGE_KEYS.resumeGenerator, DEFAULT_RESUME_GENERATOR_SETTINGS),
   resumeVersions: safeStorageGet(STORAGE_KEYS.resumeVersions, DEFAULT_RESUME_VERSIONS),
   resumeAudit: safeStorageGet(STORAGE_KEYS.resumeAudit, []),
+  linkedinAudit: safeStorageGet(STORAGE_KEYS.linkedinAudit, []),
   sections: safeStorageGet(STORAGE_KEYS.sections, DEFAULT_SECTIONS_CONFIG),
   appearance: safeStorageGet(STORAGE_KEYS.appearance, DEFAULT_APPEARANCE_SETTINGS),
   experiences: safeStorageGet(STORAGE_KEYS.experiences, DEFAULT_EXPERIENCES),
@@ -1208,7 +1197,7 @@ export const cmsService = {
 
     if (db) {
       try {
-        await setDoc(doc(db, 'settings', 'resumeVersions'), { list });
+        await setDoc(doc(db, 'settings', 'resumeVersions'), sanitizeForFirestore({ list }));
       } catch (err) {
         console.warn('[CMS Firestore] ResumeVersions write warning:', err);
       }
@@ -1223,7 +1212,7 @@ export const cmsService = {
 
     if (db) {
       try {
-        await setDoc(doc(db, 'settings', 'resumeVersions'), { list });
+        await setDoc(doc(db, 'settings', 'resumeVersions'), sanitizeForFirestore({ list }));
       } catch (err) {
         console.warn('[CMS Firestore] ResumeVersions write warning:', err);
       }
@@ -1246,7 +1235,7 @@ export const cmsService = {
 
     if (db) {
       try {
-        await setDoc(doc(db, 'settings', 'resumeVersions'), { list });
+        await setDoc(doc(db, 'settings', 'resumeVersions'), sanitizeForFirestore({ list }));
       } catch (err) {
         console.warn('[CMS Firestore] ResumeVersions write warning:', err);
       }
@@ -1257,12 +1246,15 @@ export const cmsService = {
       ...store.resume,
       id: target.id,
       fileName: target.fileName,
+      displayName: target.displayName || target.fileName,
       fileUrl: target.fileUrl,
       fileSizeBytes: target.fileSizeBytes,
       uploadedAt: target.uploadedAt,
       isActive: true,
       buttonText: target.buttonText || store.resume.buttonText,
       versionName: target.versionName,
+      objectKey: target.objectKey,
+      storageProvider: target.storageProvider || 'cloudflare-r2',
     };
     await this.publishResumeRecord(updatedRecord);
 
@@ -1293,7 +1285,7 @@ export const cmsService = {
 
     if (db) {
       try {
-        await setDoc(doc(db, 'settings', 'resumeAudit'), { list });
+        await setDoc(doc(db, 'settings', 'resumeAudit'), sanitizeForFirestore({ list }));
       } catch (err) {
         console.warn('[CMS Firestore] ResumeAudit write warning:', err);
       }
@@ -1301,12 +1293,147 @@ export const cmsService = {
     notifyListeners();
   },
 
-  async uploadResumeFile(file: File, buttonText?: string): Promise<ResumeRecord> {
+  getLinkedInAuditHistory(): LinkedInImportAudit[] {
+    return store.linkedinAudit || [];
+  },
+
+  async addLinkedInAuditEntry(entry: LinkedInImportAudit): Promise<void> {
+    const list = [entry, ...(store.linkedinAudit || [])].slice(0, 50);
+    store.linkedinAudit = list;
+    safeStorageSet(STORAGE_KEYS.linkedinAudit, list);
+
+    if (db) {
+      try {
+        await setDoc(doc(db, 'settings', 'linkedinAudit'), sanitizeForFirestore({ list }));
+      } catch (err) {
+        console.warn('[CMS Firestore] LinkedInAudit write warning:', err);
+      }
+    }
+    notifyListeners();
+  },
+
+  async publishApprovedLinkedInRecords(
+    approvedItems: LinkedInParsedRecord[],
+    auditSummary: Omit<LinkedInImportAudit, 'id' | 'timestamp' | 'recordsApproved'>
+  ): Promise<{ publishedCount: number }> {
+    let publishedCount = 0;
+
+    for (let i = 0; i < approvedItems.length; i++) {
+      const item = approvedItems[i];
+      const data = item.editedData || item.data;
+
+      if (item.category === 'experience') {
+        const newExp: ExperienceRecord = {
+          id: `exp-li-${Date.now()}-${i}`,
+          employer: data.employer || 'Enterprise Company',
+          jobTitle: data.jobTitle || 'Professional Role',
+          employmentType: 'Full-time',
+          location: data.location || '',
+          locationType: 'Hybrid',
+          startDate: data.startDate || '',
+          endDate: data.endDate || 'Present',
+          isCurrent: data.isCurrent ?? true,
+          description: data.description || '',
+          responsibilities: data.description ? [data.description] : [],
+          skillsUsed: [],
+          displayOrder: store.experiences.length + 1,
+          status: 'published',
+        };
+        await this.addExperience(newExp);
+        publishedCount++;
+      } else if (item.category === 'education') {
+        const newEdu: EducationRecord = {
+          id: `edu-li-${Date.now()}-${i}`,
+          institution: data.institution || 'Academic Institution',
+          degree: data.degree || 'Degree',
+          fieldOfStudy: data.fieldOfStudy || data.degree || 'General',
+          startYear: data.startYear || '2020',
+          endYear: data.endYear || '2024',
+          description: data.description || '',
+          highlights: data.description ? [data.description] : [],
+          displayOrder: store.education.length + 1,
+        };
+        await this.addEducation(newEdu);
+        publishedCount++;
+      } else if (item.category === 'certifications') {
+        const newCert: CertificationRecord = {
+          id: `cert-li-${Date.now()}-${i}`,
+          title: data.title || 'Professional Certification',
+          issuer: data.issuer || 'Certifying Body',
+          completionDate: data.completionDate || '2024',
+          expiryDate: data.expiryDate || '',
+          credentialId: data.credentialId || '',
+          verificationUrl: data.verificationUrl || '',
+          category: 'Professional Credentials',
+          highlightTag: 'VERIFIED CREDENTIAL',
+          status: 'published',
+          displayOrder: store.certifications.length + 1,
+        };
+        await this.addCertification(newCert);
+        publishedCount++;
+      } else if (item.category === 'skills') {
+        const newSkill: SkillRecord = {
+          id: `sk-li-${Date.now()}-${i}`,
+          name: data.name,
+          category: data.category || 'Professional Skills',
+          displayOrder: store.skills.length + 1,
+        };
+        await this.addSkill(newSkill);
+        publishedCount++;
+      } else if (item.category === 'projects') {
+        const newProj: ProjectRecord = {
+          id: `proj-li-${Date.now()}-${i}`,
+          name: data.name || 'Project',
+          category: 'Software & Systems',
+          subtitle: data.description ? data.description.slice(0, 60) : '',
+          description: data.description || '',
+          projectUrl: data.projectUrl || '',
+          screenshots: [],
+          technologyStack: [],
+          features: [],
+          developmentStatus: 'Completed',
+          featured: false,
+          displayOrder: store.projects.length + 1,
+          status: 'published',
+        };
+        await this.addProject(newProj);
+        publishedCount++;
+      } else if (item.category === 'profile') {
+        const prof = this.getProfile();
+        await this.publishProfile({
+          ...prof,
+          headline: data.headline || prof.headline,
+          bio: data.bio || prof.bio,
+          location: data.location || prof.location,
+        });
+        publishedCount++;
+      }
+    }
+
+    // Record audit entry
+    await this.addLinkedInAuditEntry({
+      ...auditSummary,
+      id: `li-audit-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      recordsApproved: publishedCount,
+      status: 'completed',
+    });
+
+    notifyListeners();
+    return { publishedCount };
+  },
+
+  async uploadResumeFile(
+    file: File,
+    buttonText?: string,
+    onProgress?: (percent: number) => void
+  ): Promise<ResumeRecord> {
     let meta: any = null;
     try {
       meta = await storageClient.uploadFile(file, {
         category: 'resumes',
         visibility: 'private',
+        onProgress,
       });
     } catch (err) {
       console.warn('[CMS Storage] R2 upload error, falling back:', err);
@@ -1322,10 +1449,14 @@ export const cmsService = {
       }));
 
     const current = this.getResumeRecord();
+    const cleanBaseName = file.name.replace(/\.[^/.]+$/, '');
     const updated: ResumeRecord = {
       ...current,
       id: 'resume-' + Date.now(),
       fileName: file.name,
+      originalName: file.name,
+      displayName: current.displayName || cleanBaseName,
+      generatedDownloadName: file.name,
       fileUrl,
       fileSizeBytes: meta?.sizeBytes || file.size,
       uploadedAt: new Date().toISOString().split('T')[0],
@@ -1333,6 +1464,7 @@ export const cmsService = {
       buttonText: buttonText || current.buttonText,
       storageProvider: meta?.storageProvider || 'cloudflare-r2',
       objectKey: meta?.objectKey,
+      fileId: meta?.fileId || `file_${Date.now()}`,
     };
 
     await this.publishResumeRecord(updated);
@@ -1349,6 +1481,40 @@ export const cmsService = {
     });
 
     return updated;
+  },
+
+  /**
+   * Updates resume display name and download filename without mutating stored object key
+   */
+  async updateResumeDisplayName(displayName: string): Promise<ResumeRecord> {
+    const current = this.getResumeRecord();
+    const clean = displayName.trim() || current.originalName || current.fileName;
+    const downloadName = clean.toLowerCase().endsWith('.pdf') ? clean : `${clean}.pdf`;
+    const updated: ResumeRecord = {
+      ...current,
+      displayName: clean,
+      generatedDownloadName: downloadName,
+    };
+    await this.publishResumeRecord(updated);
+    return updated;
+  },
+
+  /**
+   * Idempotent retry of metadata persistence when file is already in Cloudflare R2
+   */
+  async retryResumeMetadataPersistence(record: ResumeRecord): Promise<ResumeRecord> {
+    await this.publishResumeRecord(record);
+    await this.addMediaAsset({
+      name: record.originalName || record.fileName,
+      url: record.fileUrl,
+      type: 'application/pdf',
+      sizeBytes: record.fileSizeBytes,
+      category: 'resume',
+      storageProvider: record.storageProvider || 'cloudflare-r2',
+      objectKey: record.objectKey,
+      visibility: 'private',
+    });
+    return record;
   },
 
   // ================= SECTIONS CONFIG (SECTION MANAGER) =================

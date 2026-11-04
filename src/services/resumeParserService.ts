@@ -19,9 +19,9 @@ export interface FileValidationResult {
 }
 
 /**
- * Validates the uploaded resume file format, size, and header integrity.
+ * Validates the uploaded resume file format, size, MIME type, and binary header integrity.
  */
-export function validateResumeFile(file: File): FileValidationResult {
+export async function validateResumeFile(file: File): Promise<FileValidationResult> {
   if (!file) {
     return { isValid: false, error: 'No file was provided.' };
   }
@@ -54,6 +54,44 @@ export function validateResumeFile(file: File): FileValidationResult {
       isValid: false,
       error: 'Unsupported file format. Please upload a verified PDF (.pdf), Word (.docx), or Legacy Word (.doc) document.',
     };
+  }
+
+  // Binary file signature verification (magic numbers)
+  try {
+    const slice = file.slice(0, 8);
+    const buffer = await slice.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+
+    if (fileType === 'pdf') {
+      // PDF must begin with %PDF (0x25, 0x50, 0x44, 0x46)
+      const isPdf = bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46;
+      if (!isPdf) {
+        return {
+          isValid: false,
+          error: 'File signature mismatch: File claims to be a PDF, but does not contain a valid %PDF header.',
+        };
+      }
+    } else if (fileType === 'docx') {
+      // DOCX is a zip archive starting with PK\x03\x04 (0x50, 0x4B, 0x03, 0x04)
+      const isDocx = bytes[0] === 0x50 && bytes[1] === 0x4B && bytes[2] === 0x03 && bytes[3] === 0x04;
+      if (!isDocx) {
+        return {
+          isValid: false,
+          error: 'File signature mismatch: File claims to be a DOCX document, but does not contain a valid ZIP/DOCX header.',
+        };
+      }
+    } else if (fileType === 'doc') {
+      // DOC (OLE CFBF): 0xD0, 0xCF, 0x11, 0xE0
+      const isDoc = bytes[0] === 0xd0 && bytes[1] === 0xcf && bytes[2] === 0x11 && bytes[3] === 0xe0;
+      if (!isDoc) {
+        return {
+          isValid: false,
+          error: 'File signature mismatch: File claims to be a legacy DOC file, but does not contain a valid OLE header.',
+        };
+      }
+    }
+  } catch (sigErr: any) {
+    console.warn('[Validation] File signature verification warning:', sigErr);
   }
 
   return {
