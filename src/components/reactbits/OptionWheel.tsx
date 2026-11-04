@@ -4,11 +4,12 @@ import './OptionWheel.css';
 export type OptionWheelSide = 'left' | 'right' | 'center';
 
 export interface OptionWheelItemObject {
-  id: string;
+  id?: string;
   label: string;
   targetId?: string;
   badge?: string;
   description?: string;
+  [key: string]: any;
 }
 
 export type OptionWheelItemInput = string | OptionWheelItemObject;
@@ -84,18 +85,18 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
   defaultSelected = 0,
   onChange,
   onSelect,
-  textColor = '#8A8F98',
-  activeColor = '#FFFFFF',
-  side = 'center',
-  fontSize = 1.0,
-  spacing = 1.4,
-  curve = 0.5,
-  tilt = 5.0,
-  blur = 1.0,
-  fade = 0.28,
+  textColor = '#a6a6a6',
+  activeColor = '#ffffff',
+  side = 'right',
+  fontSize = 1.55,
+  spacing = 1.65,
+  curve = 1,
+  tilt = 6,
+  blur = 1.5,
+  fade = 0.25,
   minOpacity = 0.08,
-  smoothing = 160,
-  inset = 24,
+  smoothing = 200,
+  inset = 12,
   loop = false,
   draggable = true,
   soundUrl = '',
@@ -103,11 +104,12 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
   className = '',
   style,
   height = '100%',
-  label = 'Portfolio Section Navigation',
+  label = 'Portfolio Navigation Wheel',
 }) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const initialIdx = Math.max(0, Math.min(defaultSelected, (items?.length || 1) - 1));
+  const validItems = items && items.length > 0 ? items : [];
+  const initialIdx = validItems.length > 0 ? Math.max(0, Math.min(defaultSelected, validItems.length - 1)) : 0;
   const posRef = useRef(initialIdx);
   const targetRef = useRef(initialIdx);
   const rafRef = useRef<number | null>(null);
@@ -131,8 +133,6 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
 
   onChangeRef.current = onChange;
   onSelectRef.current = onSelect;
-
-  const validItems = items && items.length > 0 ? items : [];
 
   cfgRef.current = {
     count: validItems.length,
@@ -223,7 +223,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     rafRef.current = requestAnimationFrame(runFrame);
   }, [runFrame]);
 
-  // Optional tick on selection change
+  // Optional tick sound on selection change
   const playTick = useCallback(() => {
     const { soundUrl, soundVolume } = cfgRef.current;
     if (!soundUrl) return;
@@ -331,8 +331,16 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     [applyTarget]
   );
 
-  const handlePointerEnd = useCallback(() => {
-    if (!dragRef.current) return;
+  const handlePointerEnd = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current;
+    if (!drag) return;
+    if (drag.id && rootRef.current?.hasPointerCapture?.(drag.id)) {
+      try {
+        rootRef.current.releasePointerCapture(drag.id);
+      } catch {
+        // Pointer capture cleanup safe
+      }
+    }
     dragRef.current = null;
     setIsDragging(false);
     if (dragMovedRef.current) {
@@ -353,6 +361,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
       }
       applyTarget(cur + d, true);
       const chosen = cfg.items[index];
+      onChangeRef.current?.(index, chosen);
       onSelectRef.current?.(chosen, index);
     },
     [applyTarget]
@@ -388,6 +397,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         const chosen = cfg.items[selectedIndex];
+        onChangeRef.current?.(selectedIndex, chosen);
         onSelectRef.current?.(chosen, selectedIndex);
       }
     },
@@ -402,6 +412,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
+      if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current);
       audioRef.current?.pause();
     };
   }, []);
@@ -433,11 +444,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
       onPointerCancel={handlePointerEnd}
       onKeyDown={handleKeyDown}
     >
-      {/* 3D Vignette Shading */}
-      <div className="option-wheel__vignette-top" />
-      <div className="option-wheel__vignette-bottom" />
-
-      {/* Center Target Indicator Brackets */}
+      {/* Center Target Slot Marker */}
       <div className="option-wheel__slot-indicator" />
 
       {/* Curved 3D Option Elements */}

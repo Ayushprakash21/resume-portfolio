@@ -1,14 +1,14 @@
 /* ============================================================================
-   REACT BITS: OPTION WHEEL (Official Implementation)
+   REACT BITS: OPTION WHEEL (Official Implementation Baseline)
    Curved option picker that spins with scroll, drag or arrow keys, tilting items away.
    Metallic silver & dark luxury aesthetic for Ayush Prakash Portfolio.
    ============================================================================ */
 
 .option-wheel {
-  --ow-text-color: #8A8F98;
-  --ow-active-color: #FFFFFF;
-  --ow-font-size: 1.75rem;
-  --ow-inset: 32px;
+  --ow-text-color: #a6a6a6;
+  --ow-active-color: #ffffff;
+  --ow-font-size: 1.55rem;
+  --ow-inset: 12px;
 
   box-sizing: border-box;
   position: relative;
@@ -21,15 +21,13 @@
   touch-action: none;
   outline: none;
   border-radius: 16px;
-  background: radial-gradient(circle at center, rgba(20, 22, 28, 0.7) 0%, rgba(9, 9, 11, 0.95) 100%);
-  border: 1px solid rgba(217, 221, 227, 0.12);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 20px 40px rgba(0, 0, 0, 0.6);
+  background: transparent;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .option-wheel:focus-visible {
   outline: 2px solid rgba(217, 221, 227, 0.5);
-  outline-offset: 2px;
+  outline-offset: 4px;
 }
 
 .option-wheel *,
@@ -42,14 +40,14 @@
   cursor: grabbing;
 }
 
-/* Vignette top and bottom shadows to emphasize 3D cylindrical barrel curvature */
+/* Subtle top and bottom vignette gradient to emphasize 3D cylindrical barrel curvature */
 .option-wheel__vignette-top {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 70px;
-  background: linear-gradient(to bottom, rgba(9, 9, 11, 0.95) 0%, rgba(9, 9, 11, 0) 100%);
+  height: 60px;
+  background: linear-gradient(to bottom, rgba(5, 5, 8, 0.8) 0%, transparent 100%);
   pointer-events: none;
   z-index: 2;
 }
@@ -59,8 +57,8 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 70px;
-  background: linear-gradient(to top, rgba(9, 9, 11, 0.95) 0%, rgba(9, 9, 11, 0) 100%);
+  height: 60px;
+  background: linear-gradient(to top, rgba(5, 5, 8, 0.8) 0%, transparent 100%);
   pointer-events: none;
   z-index: 2;
 }
@@ -75,37 +73,36 @@
   transform: translateY(-50%);
   pointer-events: none;
   z-index: 1;
-  border-top: 1px solid rgba(217, 221, 227, 0.25);
-  border-bottom: 1px solid rgba(217, 221, 227, 0.25);
-  background: linear-gradient(90deg, rgba(217, 221, 227, 0.03) 0%, rgba(217, 221, 227, 0.08) 50%, rgba(217, 221, 227, 0.03) 100%);
-  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.4), 0 0 20px rgba(217, 221, 227, 0.05);
+  border-top: 1px solid rgba(217, 221, 227, 0.18);
+  border-bottom: 1px solid rgba(217, 221, 227, 0.18);
+  background: linear-gradient(90deg, transparent 0%, rgba(217, 221, 227, 0.04) 50%, transparent 100%);
 }
 
 /* Left & right precision bracket notches */
 .option-wheel__slot-indicator::before {
   content: '';
   position: absolute;
-  left: 14px;
+  left: 8px;
   top: 50%;
-  width: 6px;
-  height: 18px;
+  width: 5px;
+  height: 16px;
   transform: translateY(-50%);
-  border-left: 2px solid #D9DDE3;
-  border-top: 2px solid #D9DDE3;
-  border-bottom: 2px solid #D9DDE3;
+  border-left: 2px solid rgba(217, 221, 227, 0.5);
+  border-top: 2px solid rgba(217, 221, 227, 0.5);
+  border-bottom: 2px solid rgba(217, 221, 227, 0.5);
 }
 
 .option-wheel__slot-indicator::after {
   content: '';
   position: absolute;
-  right: 14px;
+  right: 8px;
   top: 50%;
-  width: 6px;
-  height: 18px;
+  width: 5px;
+  height: 16px;
   transform: translateY(-50%);
-  border-right: 2px solid #D9DDE3;
-  border-top: 2px solid #D9DDE3;
-  border-bottom: 2px solid #D9DDE3;
+  border-right: 2px solid rgba(217, 221, 227, 0.5);
+  border-top: 2px solid rgba(217, 221, 227, 0.5);
+  border-bottom: 2px solid rgba(217, 221, 227, 0.5);
 }
 
 /* Each option is absolutely centered, then offset along the curve by the
@@ -126,39 +123,42 @@
   z-index: 3;
   /* --ow-p goes 0 -> 1 as an option approaches the middle of the wheel */
   color: color-mix(in srgb, var(--ow-active-color) calc(var(--ow-p, 0) * 100%), var(--ow-text-color));
-  transition: letter-spacing 0.2s ease, text-shadow 0.2s ease;
+  transition: letter-spacing 0.2s ease, text-shadow 0.2s ease, font-weight 0.15s ease;
 }
 
 .option-wheel--right .option-wheel__item {
   left: auto;
   right: var(--ow-inset);
   transform-origin: right center;
+  text-align: right;
 }
 
 .option-wheel--center .option-wheel__item {
   left: 50%;
   transform-origin: center center;
+  text-align: center;
 }
 
 .option-wheel__item--selected {
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.04em;
-  text-shadow: 0 0 16px rgba(255, 255, 255, 0.4), 0 0 32px rgba(217, 221, 227, 0.2);
+  text-shadow: 0 0 16px rgba(255, 255, 255, 0.45), 0 0 32px rgba(217, 221, 227, 0.25);
 }
 
 /* ============================================================================
-   GLOBAL FLOATING PORTFOLIO NAVIGATION: .floating-portfolio-nav
+   GLOBAL FLOATING PORTFOLIO NAVIGATION: .floating-portfolio-navigation
    Pure, standalone vertical 3D OptionWheel floating in far-right viewport.
    Zero outer card, zero outer border, zero panel backgrounds.
    ============================================================================ */
 
+.floating-portfolio-navigation,
 .floating-portfolio-nav {
   position: fixed;
+  right: 3.5vw;
   top: 50%;
   transform: translateY(-50%);
-  right: 3vw;
-  width: clamp(220px, 16vw, 260px);
-  height: clamp(380px, 44vh, 420px);
+  width: 250px;
+  height: 420px;
   z-index: 40;
   pointer-events: auto;
   user-select: none;
@@ -180,39 +180,55 @@
 }
 
 .option-wheel--floating-nav .option-wheel__vignette-top {
-  height: 70px;
+  height: 60px;
   background: linear-gradient(to bottom, rgba(5, 5, 8, 0.75) 0%, transparent 100%);
 }
 
 .option-wheel--floating-nav .option-wheel__vignette-bottom {
-  height: 70px;
+  height: 60px;
   background: linear-gradient(to top, rgba(5, 5, 8, 0.75) 0%, transparent 100%);
 }
 
 .option-wheel--floating-nav .option-wheel__slot-indicator {
   height: 52px;
-  border-top: 1px solid rgba(217, 221, 227, 0.22);
-  border-bottom: 1px solid rgba(217, 221, 227, 0.22);
+  border-top: 1px solid rgba(217, 221, 227, 0.2);
+  border-bottom: 1px solid rgba(217, 221, 227, 0.2);
   background: linear-gradient(90deg, transparent 0%, rgba(217, 221, 227, 0.04) 50%, transparent 100%);
   box-shadow: none;
 }
 
 .option-wheel--floating-nav .option-wheel__item {
-  font-size: 1.15rem;
-  letter-spacing: 0.05em;
+  font-size: 1.55rem;
+  letter-spacing: 0.04em;
   font-weight: 400;
-  color: #7E8590;
-  text-transform: uppercase;
+  color: #a6a6a6;
+  text-transform: none;
 }
 
 .option-wheel--floating-nav .option-wheel__item--selected {
   font-weight: 700;
-  color: #FFFFFF;
-  letter-spacing: 0.07em;
+  color: #ffffff;
+  letter-spacing: 0.06em;
   text-shadow: 0 0 16px rgba(255, 255, 255, 0.65), 0 0 28px rgba(217, 221, 227, 0.35);
 }
 
-@media (max-width: 960px) {
+/* Tablet adjustments (769px to 1024px) */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .floating-portfolio-navigation,
+  .floating-portfolio-nav {
+    right: 2vw;
+    width: 220px;
+    height: 380px;
+  }
+
+  .option-wheel--floating-nav .option-wheel__item {
+    font-size: 1.35rem;
+  }
+}
+
+/* Mobile: Hide desktop floating reel so it doesn't clip; mobile drawer handles navigation */
+@media (max-width: 768px) {
+  .floating-portfolio-navigation,
   .floating-portfolio-nav {
     display: none !important;
   }

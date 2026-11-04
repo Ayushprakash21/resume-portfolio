@@ -250,10 +250,12 @@ export const NavbarRedesigned: React.FC<NavbarRedesignedProps> = ({
                 </div>
 
                 <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {DEFAULT_NAV_WHEEL_ITEMS.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleNavigate(item.targetId || item.id)}
+                  {DEFAULT_NAV_WHEEL_ITEMS.map((item) => {
+                    const target = item.targetId || item.id || '';
+                    return (
+                      <button
+                        key={item.id || item.label}
+                        onClick={() => handleNavigate(target)}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -288,7 +290,8 @@ export const NavbarRedesigned: React.FC<NavbarRedesignedProps> = ({
                         </span>
                       )}
                     </button>
-                  ))}
+                  );
+                })}
                 </nav>
               </div>
 

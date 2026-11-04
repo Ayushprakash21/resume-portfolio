@@ -10,15 +10,19 @@ if (!fs.existsSync(SCREENSHOT_DIR)) {
 
 async function capture() {
   console.log('--- Starting Preview Server for Global Floating OptionWheel Proof ---');
-  const server = spawn('npx', ['vite', 'preview', '--port', '4173'], {
-    shell: true,
+  const server = spawn('node', ['./node_modules/vite/bin/vite.js', 'preview', '--port', '4173', '--strictPort'], {
     stdio: 'pipe',
   });
 
   server.stdout.on('data', (d) => process.stdout.write(d.toString()));
   server.stderr.on('data', (d) => process.stderr.write(d.toString()));
 
-  await new Promise((res) => setTimeout(res, 2500));
+  await new Promise((res) => {
+    server.stdout.on('data', (d) => {
+      if (d.toString().includes('Local:')) res();
+    });
+    setTimeout(res, 4000);
+  });
 
   const browser = await chromium.launch({ headless: true });
 

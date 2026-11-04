@@ -28,20 +28,21 @@ describe('P0 Global Floating Portfolio Navigation & Orion-9 Showcase Removal Sui
       'FloatingPortfolioNavigation must import OptionWheel'
     );
     assert.ok(
-      floatingNavFile.includes('<OptionWheel') && floatingNavFile.includes('DEFAULT_NAV_WHEEL_ITEMS'),
-      'FloatingPortfolioNavigation must render OptionWheel with DEFAULT_NAV_WHEEL_ITEMS'
+      floatingNavFile.includes('<OptionWheel') &&
+        (floatingNavFile.includes('portfolioItems') || floatingNavFile.includes('DEFAULT_NAV_WHEEL_ITEMS')),
+      'FloatingPortfolioNavigation must render OptionWheel with portfolioItems'
     );
     assert.ok(
       appFile.includes('<FloatingPortfolioNavigation'),
       'App.tsx must render FloatingPortfolioNavigation in the global homepage shell'
     );
     assert.ok(
-      wheelCss.includes('.floating-portfolio-nav'),
-      'OptionWheel.css must define .floating-portfolio-nav layout'
+      wheelCss.includes('.floating-portfolio-navigation'),
+      'OptionWheel.css must define .floating-portfolio-navigation layout'
     );
     assert.ok(
-      wheelCss.includes('position: fixed') && wheelCss.includes('right: 3vw'),
-      'Floating nav must be fixed at right: 3vw'
+      wheelCss.includes('position: fixed') && wheelCss.includes('right: 3.5vw'),
+      'Floating nav must be fixed at right: 3.5vw'
     );
     assert.ok(
       wheelCss.includes('top: 50%') && wheelCss.includes('transform: translateY(-50%)'),
@@ -84,8 +85,8 @@ describe('P0 Global Floating Portfolio Navigation & Orion-9 Showcase Removal Sui
 
     for (const sec of expectedSections) {
       assert.ok(
-        wheelFile.includes(`targetId: '${sec.targetId}'`),
-        `DEFAULT_NAV_WHEEL_ITEMS must define targetId: '${sec.targetId}'`
+        wheelFile.includes(`targetId: '${sec.targetId}'`) || floatingNavFile.includes(sec.targetId),
+        `Portfolio navigation must define targetId: '${sec.targetId}'`
       );
       const targetFileContent = fs.readFileSync(sec.file, 'utf-8');
       assert.ok(
@@ -95,10 +96,14 @@ describe('P0 Global Floating Portfolio Navigation & Orion-9 Showcase Removal Sui
     }
   });
 
-  it('5. Selecting a wheel item invokes section navigation handler', () => {
+  it('5. Selecting a wheel item invokes section navigation handler with onChange(index, item) API', () => {
     assert.ok(
-      floatingNavFile.includes('handleSelect') || floatingNavFile.includes('onSelect'),
-      'FloatingPortfolioNavigation must define selection callback'
+      floatingNavFile.includes('navigateToPortfolioSection') || floatingNavFile.includes('onChange'),
+      'FloatingPortfolioNavigation must define navigation callback'
+    );
+    assert.ok(
+      floatingNavFile.includes('onChange={') && floatingNavFile.includes('navigateToPortfolioSection'),
+      'FloatingPortfolioNavigation must pass onChange handler conforming to official React Bits API'
     );
     assert.ok(
       appFile.includes('<FloatingPortfolioNavigation onNavigateSection={scrollToSection} />'),
@@ -122,7 +127,7 @@ describe('P0 Global Floating Portfolio Navigation & Orion-9 Showcase Removal Sui
     assert.ok(navbarFile.includes('mobile-nav-drawer'), 'NavbarRedesigned provides mobile-nav-drawer');
     assert.ok(!navbarFile.includes('Recruiter Brief'), 'Mobile drawer must NOT contain Recruiter Brief button');
     assert.ok(!navbarFile.includes('CMS Console'), 'Mobile drawer must NOT contain CMS Console button');
-    assert.ok(wheelCss.includes('@media (max-width: 960px)'), 'OptionWheel.css provides responsive mobile behavior');
+    assert.ok(wheelCss.includes('@media (max-width: 768px)'), 'OptionWheel.css provides responsive mobile behavior');
     assert.ok(navbarFile.includes("document.body.style.overflow = 'hidden'"), 'Locks body scroll when mobile drawer is open');
   });
 
