@@ -651,4 +651,120 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(css.includes('bottom: clamp('), 'CSS positions signature in bottom-right area');
     assert.ok(css.includes('right: clamp(') || css.includes('right: 16px'), 'CSS positions signature with right alignment');
   });
+
+  // Test 35: Cloudflare R2 Central Storage Architecture
+  await t.test('35. Cloudflare R2 Central Storage Architecture: Worker endpoints, zero-egress bucket binding, authenticated access, and migration resilience', async () => {
+    // 1. Verify wrangler.jsonc R2 bucket binding
+    const wranglerConfig = fs.readFileSync('wrangler.jsonc', 'utf-8');
+    assert.ok(wranglerConfig.includes('portfolio-assets'), 'wrangler.jsonc configures portfolio-assets R2 bucket');
+    assert.ok(wranglerConfig.includes('PORTFOLIO_ASSETS'), 'wrangler.jsonc binds PORTFOLIO_ASSETS');
+
+    // 2. Verify Storage Types and Client
+    assert.ok(fs.existsSync('src/services/storage/storageTypes.ts'), 'storageTypes.ts exists');
+    assert.ok(fs.existsSync('src/services/storage/storageClient.ts'), 'storageClient.ts exists');
+    assert.ok(fs.existsSync('src/services/storage/storageMigration.ts'), 'storageMigration.ts exists');
+    assert.ok(fs.existsSync('src/components/admin/editors/StorageManager.tsx'), 'StorageManager.tsx exists');
+
+    // 3. Verify Server-Side Worker Storage API
+    const workerModule = await import('../src/worker/index.ts');
+    const worker = workerModule.default;
+
+    const mockStorage = new Map();
+    const mockR2 = {
+      async put(key, body, options) {
+        mockStorage.set(key, { body, options });
+        return { key, size: 1024, httpEtag: 'mock-etag' };
+      },
+      async get(key) {
+        const item = mockStorage.get(key);
+        if (!item) return null;
+        return {
+          key,
+          size: 1024,
+          httpEtag: 'mock-etag',
+          body: new ReadableStream({
+            start(controller) {
+              controller.enqueue(new TextEncoder().encode('mock-file-content'));
+              controller.close();
+            },
+          }),
+          httpMetadata: { contentType: item.options?.httpMetadata?.contentType || 'application/pdf' },
+          customMetadata: item.options?.customMetadata || {},
+        };
+      },
+      async delete(key) {
+        mockStorage.delete(key);
+      },
+      async list() {
+        return {
+          objects: Array.from(mockStorage.entries()).map(([k]) => ({
+            key: k,
+            size: 1024,
+            uploaded: new Date().toISOString(),
+          })),
+          truncated: false,
+        };
+      },
+    };
+
+    const mockEnv = {
+      ASSETS: { fetch: async () => new Response('assets') },
+      PORTFOLIO_ASSETS: mockR2,
+      ADMIN_PASSWORD: 'admin',
+    };
+
+    // A. Status Endpoint
+    const statusReq = new Request('https://portfolio.test/api/storage/status', { method: 'GET' });
+    const statusRes = await worker.fetch(statusReq, mockEnv);
+    assert.strictEqual(statusRes.status, 200, 'Status endpoint returns HTTP 200');
+    const statusData = await statusRes.json();
+    assert.strictEqual(statusData.connected, true, 'R2 bucket is connected');
+    assert.strictEqual(statusData.bucket, 'portfolio-assets', 'Bucket name is portfolio-assets');
+
+    // B. Unauthenticated Upload Rejected
+    const unauthUploadReq = new Request('https://portfolio.test/api/storage/upload', {
+      method: 'POST',
+      body: new FormData(),
+    });
+    const unauthUploadRes = await worker.fetch(unauthUploadReq, mockEnv);
+    assert.strictEqual(unauthUploadRes.status, 401, 'Unauthenticated upload must be rejected with HTTP 401');
+
+    // C. Authenticated Upload Allowed
+    const authFormData = new FormData();
+    authFormData.append('file', new File(['resume-content'], 'master_resume.pdf', { type: 'application/pdf' }));
+    authFormData.append('category', 'resumes');
+    authFormData.append('visibility', 'private');
+
+    const authUploadReq = new Request('https://portfolio.test/api/storage/upload', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer dev-authenticated-session' },
+      body: authFormData,
+    });
+    const authUploadRes = await worker.fetch(authUploadReq, mockEnv);
+    assert.strictEqual(authUploadRes.status, 200, 'Authenticated upload succeeds with HTTP 200');
+    const authUploadData = await authUploadRes.json();
+    assert.strictEqual(authUploadData.success, true, 'Upload returned success: true');
+    assert.ok(authUploadData.file.objectKey.startsWith('private/resumes/'), 'Resume objectKey uses private/resumes prefix');
+    assert.strictEqual(authUploadData.file.storageProvider, 'cloudflare-r2', 'Provider is cloudflare-r2');
+
+    // D. Public Delivery of Private File is Forbidden
+    const publicPrivateReq = new Request(`https://portfolio.test/api/storage/files/${authUploadData.file.objectKey}`, {
+      method: 'GET',
+    });
+    const publicPrivateRes = await worker.fetch(publicPrivateReq, mockEnv);
+    assert.strictEqual(publicPrivateRes.status, 403, 'Public delivery of private file must return HTTP 403 Forbidden');
+
+    // E. Secure Delivery of Private File Allowed for Admin
+    const secureReq = new Request(`https://portfolio.test/api/storage/secure/${authUploadData.file.objectKey}`, {
+      method: 'GET',
+      headers: { Authorization: 'Bearer dev-authenticated-session' },
+    });
+    const secureRes = await worker.fetch(secureReq, mockEnv);
+    assert.strictEqual(secureRes.status, 200, 'Secure delivery of private file succeeds for admin');
+
+    // F. Admin Console Integration
+    const adminConsole = fs.readFileSync('src/components/admin/AdminConsole.tsx', 'utf-8');
+    assert.ok(adminConsole.includes('StorageManager'), 'AdminConsole mounts StorageManager');
+    assert.ok(adminConsole.includes('Cloudflare R2 Storage') || adminConsole.includes('R2 Storage'), 'AdminConsole navigation includes R2 storage');
+  });
 });

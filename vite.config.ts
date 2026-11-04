@@ -112,8 +112,161 @@ function adminAuthDevPlugin(): Plugin {
   };
 }
 
+function storageDevPlugin(): Plugin {
+  // In-memory dev storage map for local dev server
+  const devStorage = new Map<string, { buffer: Buffer; contentType: string; metadata: any }>();
+
+  return {
+    name: 'storage-dev',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url?.startsWith('/api/storage/')) {
+          return next();
+        }
+
+        const url = new URL(req.url, 'http://localhost:3000');
+        const pathname = url.pathname;
+
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+        if (req.method === 'OPTIONS') {
+          res.statusCode = 204;
+          return res.end();
+        }
+
+        // Status
+        if (pathname === '/api/storage/status') {
+          res.setHeader('Content-Type', 'application/json');
+          res.statusCode = 200;
+          return res.end(
+            JSON.stringify({
+              provider: 'cloudflare-r2',
+              bucket: 'portfolio-assets',
+              connected: true,
+              fileCount: devStorage.size,
+              totalSizeBytes: Array.from(devStorage.values()).reduce((sum, v) => sum + v.buffer.length, 0),
+              categories: { resumes: 0, profile: 0, projects: 0, media: devStorage.size },
+              lastChecked: new Date().toISOString(),
+              message: 'Connected to Cloudflare R2 (portfolio-assets)',
+            })
+          );
+        }
+
+        // Upload
+        if (pathname === '/api/storage/upload' && req.method === 'POST') {
+          const chunks: Buffer[] = [];
+          req.on('data', (c) => chunks.push(c));
+          req.on('end', () => {
+            const buffer = Buffer.concat(chunks);
+            const contentType = req.headers['content-type'] || '';
+
+            // Handle multipart or raw stream
+            const randomSuffix = Math.random().toString(36).substring(2, 7);
+            const cleanFileName = `uploaded_${Date.now()}_${randomSuffix}`;
+            const objectKey = `public/media/${Date.now()}_${randomSuffix}_${cleanFileName}`;
+
+            devStorage.set(objectKey, {
+              buffer,
+              contentType: contentType.includes('multipart') ? 'application/octet-stream' : contentType,
+              metadata: {
+                originalName: cleanFileName,
+                uploadedAt: new Date().toISOString(),
+              },
+            });
+
+            res.setHeader('Content-Type', 'application/json');
+            res.statusCode = 200;
+            return res.end(
+              JSON.stringify({
+                success: true,
+                file: {
+                  fileId: `r2_${Date.now()}_${randomSuffix}`,
+                  storageProvider: 'cloudflare-r2',
+                  objectKey,
+                  publicUrl: `/api/storage/files/${objectKey}`,
+                  secureUrl: `/api/storage/secure/${objectKey}`,
+                  originalName: cleanFileName,
+                  displayName: cleanFileName,
+                  mimeType: 'application/octet-stream',
+                  sizeBytes: buffer.length,
+                  visibility: 'public',
+                  uploadedBy: 'ayush@admin',
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  category: 'media',
+                  status: 'active',
+                  migrationStatus: 'verified',
+                },
+              })
+            );
+          });
+          return;
+        }
+
+        // Public file delivery
+        if (pathname.startsWith('/api/storage/files/')) {
+          const key = decodeURIComponent(pathname.slice('/api/storage/files/'.length));
+          if (key.startsWith('private/')) {
+            res.statusCode = 403;
+            return res.end('Access Denied: Private document');
+          }
+
+          const file = devStorage.get(key);
+          if (file) {
+            res.setHeader('Content-Type', file.contentType);
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+            res.statusCode = 200;
+            return res.end(file.buffer);
+          }
+          res.statusCode = 404;
+          return res.end('File not found');
+        }
+
+        // Secure file delivery
+        if (pathname.startsWith('/api/storage/secure/')) {
+          const key = decodeURIComponent(pathname.slice('/api/storage/secure/'.length));
+          const file = devStorage.get(key);
+          if (file) {
+            res.setHeader('Content-Type', file.contentType);
+            res.setHeader('Cache-Control', 'private, no-cache');
+            res.statusCode = 200;
+            return res.end(file.buffer);
+          }
+          res.statusCode = 404;
+          return res.end('Secure file not found');
+        }
+
+        // Delete
+        if (pathname === '/api/storage/delete' && req.method === 'POST') {
+          let body = '';
+          req.on('data', (c) => (body += c));
+          req.on('end', () => {
+            try {
+              const data = JSON.parse(body || '{}');
+              if (data.objectKey) {
+                devStorage.delete(data.objectKey);
+              }
+              res.setHeader('Content-Type', 'application/json');
+              res.statusCode = 200;
+              return res.end(JSON.stringify({ success: true, deletedKey: data.objectKey }));
+            } catch {
+              res.statusCode = 400;
+              return res.end(JSON.stringify({ success: false, error: 'Malformed JSON' }));
+            }
+          });
+          return;
+        }
+
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), adminAuthDevPlugin()],
+  plugins: [react(), adminAuthDevPlugin(), storageDevPlugin()],
   server: {
     port: 3000,
     host: true,

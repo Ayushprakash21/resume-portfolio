@@ -48,6 +48,25 @@ import {
   DEFAULT_APPEARANCE_SETTINGS,
   DEFAULT_OPEN_TO_WORK_SETTINGS,
 } from '../data/seedData';
+import { storageClient } from './storage/storageClient';
+
+/**
+ * Strips undefined values to prevent Firestore unsupported field exceptions
+ */
+export function sanitizeForFirestore<T>(data: T): T {
+  if (data === undefined) return null as any;
+  if (data === null || typeof data !== 'object') return data;
+  if (Array.isArray(data)) {
+    return data.map((item) => sanitizeForFirestore(item)) as any;
+  }
+  const clean: any = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      clean[key] = sanitizeForFirestore(value);
+    }
+  }
+  return clean;
+}
 
 const STORAGE_KEYS = {
   profile: 'ayush_cms_profile_v1',
@@ -525,11 +544,11 @@ export const cmsService = {
       status: 'published',
       publishedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      draft: undefined,
+      draft: null as any,
     };
 
     if (db) {
-      await setDoc(doc(db, 'profile', 'main'), payload);
+      await setDoc(doc(db, 'profile', 'main'), sanitizeForFirestore(payload));
     }
 
     store.profile = payload;
@@ -1109,11 +1128,11 @@ export const cmsService = {
 
   async publishResumeRecord(resume: ResumeRecord): Promise<void> {
     if (db) {
-      await setDoc(doc(db, 'resume', 'primary'), {
+      await setDoc(doc(db, 'resume', 'primary'), sanitizeForFirestore({
         ...resume,
         draft: null,
         updatedAt: new Date().toISOString(),
-      });
+      }));
     }
 
     store.resume = resume;
@@ -1135,7 +1154,7 @@ export const cmsService = {
     if (db) {
       await setDoc(
         doc(db, 'resume', 'primary'),
-        { draft, updatedAt: new Date().toISOString() },
+        sanitizeForFirestore({ draft, updatedAt: new Date().toISOString() }),
         { merge: true }
       );
     }
@@ -1283,26 +1302,24 @@ export const cmsService = {
   },
 
   async uploadResumeFile(file: File, buttonText?: string): Promise<ResumeRecord> {
-    let fileUrl = '';
+    let meta: any = null;
     try {
-      const { storage } = await import('./firebase');
-      if (storage) {
-        const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-        const storageRef = ref(storage, `resumes/${Date.now()}_${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        fileUrl = await getDownloadURL(snapshot.ref);
-      }
+      meta = await storageClient.uploadFile(file, {
+        category: 'resumes',
+        visibility: 'private',
+      });
     } catch (err) {
-      console.warn('[CMS Storage] Upload to Firebase Storage fallback:', err);
+      console.warn('[CMS Storage] R2 upload error, falling back:', err);
     }
 
-    if (!fileUrl) {
-      fileUrl = await new Promise((resolve) => {
+    const fileUrl =
+      meta?.secureUrl ||
+      meta?.publicUrl ||
+      (await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
         reader.readAsDataURL(file);
-      });
-    }
+      }));
 
     const current = this.getResumeRecord();
     const updated: ResumeRecord = {
@@ -1310,10 +1327,12 @@ export const cmsService = {
       id: 'resume-' + Date.now(),
       fileName: file.name,
       fileUrl,
-      fileSizeBytes: file.size,
+      fileSizeBytes: meta?.sizeBytes || file.size,
       uploadedAt: new Date().toISOString().split('T')[0],
       isActive: true,
       buttonText: buttonText || current.buttonText,
+      storageProvider: meta?.storageProvider || 'cloudflare-r2',
+      objectKey: meta?.objectKey,
     };
 
     await this.publishResumeRecord(updated);
@@ -1321,9 +1340,12 @@ export const cmsService = {
     await this.addMediaAsset({
       name: file.name,
       url: fileUrl,
-      type: 'application/pdf',
+      type: file.type || 'application/pdf',
       sizeBytes: file.size,
       category: 'resume',
+      storageProvider: meta?.storageProvider || 'cloudflare-r2',
+      objectKey: meta?.objectKey,
+      visibility: 'private',
     });
 
     return updated;
@@ -1472,7 +1494,7 @@ export const cmsService = {
 
     if (db) {
       try {
-        await setDoc(doc(db, 'mediaAssets', newAsset.id), newAsset);
+        await setDoc(doc(db, 'mediaAssets', newAsset.id), sanitizeForFirestore(newAsset));
       } catch (err) {
         console.warn('[CMS Firestore] MediaAsset metadata write warning:', err);
       }
@@ -1485,6 +1507,13 @@ export const cmsService = {
   },
 
   async deleteMediaAsset(id: string): Promise<void> {
+    const asset = store.media.find((a) => a.id === id);
+    if (asset?.objectKey) {
+      await storageClient.deleteFile(asset.objectKey).catch((err) => {
+        console.warn('[CMS Storage] R2 delete warning:', err);
+      });
+    }
+
     if (db) {
       try {
         await deleteDoc(doc(db, 'mediaAssets', id));
@@ -1504,35 +1533,46 @@ export const cmsService = {
     caption?: string,
     altText?: string
   ): Promise<MediaAsset> {
-    let fileUrl = '';
+    const targetCat =
+      category === 'resume'
+        ? 'resumes'
+        : category === 'photo'
+        ? 'profile'
+        : category === 'logo' || category === 'screenshot'
+        ? 'projects'
+        : 'media';
+    const visibility = category === 'resume' ? 'private' : 'public';
+
+    let meta: any = null;
     try {
-      const { storage } = await import('./firebase');
-      if (storage) {
-        const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
-        const storageRef = ref(storage, `media/${category}/${Date.now()}_${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        fileUrl = await getDownloadURL(snapshot.ref);
-      }
+      meta = await storageClient.uploadFile(file, {
+        category: targetCat,
+        visibility,
+      });
     } catch (err) {
-      console.warn('[CMS Storage] Media file upload notice:', err);
+      console.warn('[CMS Storage] R2 media upload error, falling back:', err);
     }
 
-    if (!fileUrl) {
-      fileUrl = await new Promise((resolve) => {
+    const fileUrl =
+      meta?.publicUrl ||
+      meta?.secureUrl ||
+      (await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
         reader.readAsDataURL(file);
-      });
-    }
+      }));
 
     const asset = await this.addMediaAsset({
       name: file.name,
       url: fileUrl,
       type: file.type || 'application/octet-stream',
-      sizeBytes: file.size,
+      sizeBytes: meta?.sizeBytes || file.size,
       category,
       caption: caption || file.name,
       altText: altText || file.name,
+      storageProvider: meta?.storageProvider || 'cloudflare-r2',
+      objectKey: meta?.objectKey,
+      visibility,
     });
 
     return asset;

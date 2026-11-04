@@ -231,6 +231,8 @@ export interface ResumeRecord {
   buttonText: string;
   versionName?: string;
   notes?: string;
+  storageProvider?: 'cloudflare-r2' | 'firebase-storage' | 'local-fallback';
+  objectKey?: string;
 }
 
 export interface SectionConfig {
@@ -303,6 +305,9 @@ export interface MediaAsset {
   dimensions?: string;
   usageCount?: number;
   usedIn?: string[];
+  storageProvider?: 'cloudflare-r2' | 'firebase-storage' | 'local-fallback';
+  objectKey?: string;
+  visibility?: 'public' | 'private';
 }
 
 export interface PreferredLocation {
@@ -490,4 +495,6 @@ export interface ResumeVersionRecord {
   diffItems?: ResumeDiffItem[];
   auditLog?: ResumeAuditEntry[];
   publishedAt?: string;
+  storageProvider?: 'cloudflare-r2' | 'firebase-storage' | 'local-fallback';
+  objectKey?: string;
 }

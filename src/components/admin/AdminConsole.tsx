@@ -27,6 +27,7 @@ import {
   Globe,
   Menu,
   X,
+  Cloud,
 } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { cmsService } from '../../services/cmsService';
@@ -60,6 +61,7 @@ import { ResumeManager } from './editors/ResumeManager';
 import { MediaLibraryManager } from './editors/MediaLibraryManager';
 import { WebsiteSectionsManager } from './editors/WebsiteSectionsManager';
 import { SettingsManager } from './editors/SettingsManager';
+import { StorageManager } from './editors/StorageManager';
 import { ApMonogram } from '../brand/ApMonogram';
 
 interface AdminConsoleProps {
@@ -79,6 +81,7 @@ export type AdminSectionId =
   | 'skills'
   | 'resume'
   | 'media'
+  | 'storage'
   | 'sections'
   | 'settings';
 
@@ -219,6 +222,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
     { id: 'skills', label: 'Skills', icon: Cpu },
     { id: 'resume', label: 'Resume Management', icon: FileText },
     { id: 'media', label: 'Media Library', icon: ImageIcon },
+    { id: 'storage', label: 'Cloudflare R2 Storage', icon: Cloud },
     { id: 'sections', label: 'Website Sections', icon: ListOrdered },
     {
       id: 'settings',
@@ -1302,7 +1306,12 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
           />
         )}
 
-        {/* ---------------- 11. WEBSITE SECTIONS ---------------- */}
+        {/* ---------------- 11. CLOUDFLARE R2 STORAGE ARCHITECTURE ---------------- */}
+        {activeSection === 'storage' && (
+          <StorageManager onNotify={showNotification} />
+        )}
+
+        {/* ---------------- 12. WEBSITE SECTIONS ---------------- */}
         {activeSection === 'sections' && (
           <WebsiteSectionsManager
             sections={sections}
