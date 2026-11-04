@@ -46,7 +46,7 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
     <section
       id="opentowork"
       style={{
-        padding: 'clamp(56px, 6vw, 84px) 0',
+        padding: 'clamp(48px, 5vw, 64px) 0 20px 0',
         backgroundColor: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-subtle)',
         position: 'relative',
@@ -146,7 +146,7 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
         </div>
 
         {/* Section Headline */}
-        <div style={{ maxWidth: '960px', marginBottom: '40px' }}>
+        <div style={{ maxWidth: '960px', marginBottom: '32px' }}>
           <h2
             style={{
               fontFamily: 'var(--font-display)',
@@ -155,7 +155,7 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
               lineHeight: 1.12,
               letterSpacing: '-0.02em',
               color: '#FFFFFF',
-              marginBottom: '20px',
+              marginBottom: '16px',
             }}
           >
             {headline}
@@ -173,183 +173,220 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
           </p>
         </div>
 
-        {/* Main 2-Column Luxury Glass Layout */}
-        <div className="open-to-work-grid" style={{ marginBottom: '40px' }}>
-          {/* Card 1: Target Disciplines & Job Categories */}
-          <BorderGlow borderRadius="20px" glowRadius={350} glowIntensity={0.32}>
-            <div className="glass-card" style={{ padding: 'clamp(20px, 4vw, 36px)', height: '100%' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-              <div
-                style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '10px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--accent-silver)',
-                }}
-              >
-                <Briefcase size={18} />
-              </div>
-              <h3
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '18px',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                Target Roles &amp; Disciplines
-              </h3>
-            </div>
-
-            <p
+        {/* Main 2-Column Luxury Glass Layout - Content-driven height, no empty regions */}
+        <div
+          className="open-to-work-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 460px), 1fr))',
+            gap: '24px',
+            alignItems: 'start',
+            marginBottom: '32px',
+          }}
+        >
+          {/* Card 1: Target Disciplines & Job Categories (Content-driven auto height) */}
+          <BorderGlow borderRadius="20px" glowRadius={350} glowIntensity={0.32} style={{ height: 'auto', minHeight: 0 }}>
+            <div
+              className="glass-card"
               style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: '13px',
-                color: 'var(--text-muted)',
-                marginBottom: '24px',
-                lineHeight: 1.5,
+                padding: 'clamp(20px, 4vw, 32px)',
+                height: 'auto',
+                minHeight: 0,
+                boxSizing: 'border-box',
               }}
             >
-              Directing strategic operations, building high-throughput logistics backbones, and deploying production AI systems.
-            </p>
-
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-              {preferredJobCategories.map((cat, idx) => (
-                <span
-                  key={idx}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
+                <div
                   style={{
-                    display: 'inline-flex',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 14px',
-                    borderRadius: '8px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                    border: '1px solid rgba(255, 255, 255, 0.09)',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                    color: 'var(--text-primary)',
-                    letterSpacing: '0.01em',
+                    justifyContent: 'center',
+                    color: 'var(--accent-silver)',
                   }}
                 >
-                  <Sparkles size={11} color="var(--accent-champagne)" style={{ opacity: 0.8 }} />
-                  {cat}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Card 2: Employment Types & Work Arrangements */}
-          <div className="glass-card" style={{ padding: 'clamp(20px, 4vw, 36px)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-              <div
-                style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '10px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--accent-silver)',
-                }}
-              >
-                <CheckCircle2 size={18} />
+                  <Briefcase size={18} />
+                </div>
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '18px',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)',
+                    letterSpacing: '-0.01em',
+                    margin: 0,
+                  }}
+                >
+                  Target Roles &amp; Disciplines
+                </h3>
               </div>
-              <h3
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '18px',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                Engagement Preferences
-              </h3>
-            </div>
 
-            <div style={{ marginBottom: '26px' }}>
-              <div
+              <p
                 style={{
                   fontFamily: 'var(--font-body)',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
+                  fontSize: '13px',
                   color: 'var(--text-muted)',
-                  marginBottom: '12px',
+                  marginBottom: '20px',
+                  lineHeight: 1.5,
                 }}
               >
-                Employment Types
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {employmentPreferences.map((type, idx) => (
+                Directing strategic operations, building high-throughput logistics backbones, and deploying production AI systems.
+              </p>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                {preferredJobCategories.map((cat, idx) => (
                   <span
                     key={idx}
                     style={{
-                      padding: '6px 13px',
-                      borderRadius: '9999px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.09)',
                       fontFamily: 'var(--font-body)',
                       fontSize: '12px',
+                      fontWeight: 500,
                       color: 'var(--text-primary)',
+                      letterSpacing: '0.01em',
                     }}
                   >
-                    {type}
+                    <Sparkles size={11} color="var(--accent-champagne)" style={{ opacity: 0.8 }} />
+                    {cat}
                   </span>
                 ))}
               </div>
             </div>
+          </BorderGlow>
 
-            <div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  color: 'var(--text-muted)',
-                  marginBottom: '12px',
-                }}
-              >
-                Work Arrangements
+          {/* Card 2: Employment Types & Work Arrangements (Content-driven auto height) */}
+          <BorderGlow borderRadius="20px" glowRadius={350} glowIntensity={0.32} style={{ height: 'auto', minHeight: 0 }}>
+            <div
+              className="glass-card"
+              style={{
+                padding: 'clamp(20px, 4vw, 32px)',
+                height: 'auto',
+                minHeight: 0,
+                boxSizing: 'border-box',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--accent-silver)',
+                  }}
+                >
+                  <CheckCircle2 size={18} />
+                </div>
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '18px',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)',
+                    letterSpacing: '-0.01em',
+                    margin: 0,
+                  }}
+                >
+                  Engagement Preferences
+                </h3>
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {workArrangements.map((mode, idx) => (
-                  <span
-                    key={idx}
-                    style={{
-                      padding: '6px 13px',
-                      borderRadius: '9999px',
-                      backgroundColor: 'rgba(229, 224, 216, 0.08)',
-                      border: '1px solid rgba(229, 224, 216, 0.2)',
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '12px',
-                      color: 'var(--accent-champagne)',
-                    }}
-                  >
-                    {mode}
-                  </span>
-                ))}
+
+              <div style={{ marginBottom: '22px' }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: 'var(--text-muted)',
+                    marginBottom: '10px',
+                  }}
+                >
+                  Employment Types
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {employmentPreferences.map((type, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        padding: '6px 13px',
+                        borderRadius: '9999px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        fontFamily: 'var(--font-body)',
+                        fontSize: '12px',
+                        color: 'var(--text-primary)',
+                      }}
+                    >
+                      {type}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: 'var(--text-muted)',
+                    marginBottom: '10px',
+                  }}
+                >
+                  Work Arrangements
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {workArrangements.map((mode, idx) => (
+                    <span
+                      key={idx}
+                      style={{
+                        padding: '6px 13px',
+                        borderRadius: '9999px',
+                        backgroundColor: 'rgba(229, 224, 216, 0.08)',
+                        border: '1px solid rgba(229, 224, 216, 0.2)',
+                        fontFamily: 'var(--font-body)',
+                        fontSize: '12px',
+                        color: 'var(--accent-champagne)',
+                      }}
+                    >
+                      {mode}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
           </BorderGlow>
         </div>
 
         {/* Global Locations Card with Border Glow */}
-        <BorderGlow borderRadius="20px" glowRadius={450} glowIntensity={0.28} style={{ marginBottom: '44px' }}>
-          <div className="glass-panel" style={{ padding: 'clamp(20px, 4vw, 36px)', height: '100%' }}>
+        <BorderGlow borderRadius="20px" glowRadius={450} glowIntensity={0.28} style={{ marginBottom: '28px', height: 'auto', minHeight: 0 }}>
+          <div
+            className="glass-panel"
+            style={{
+              padding: 'clamp(20px, 4vw, 32px)',
+              height: 'auto',
+              minHeight: 0,
+              boxSizing: 'border-box',
+            }}
+          >
             <div
               style={{
                 display: 'flex',
@@ -527,7 +564,8 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
             gap: '20px',
-            padding: '28px 0',
+            padding: '12px 0 0 0',
+            margin: 0,
           }}
         >
           {/* Primary CTA */}

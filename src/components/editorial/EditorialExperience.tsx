@@ -11,7 +11,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
     <section
       id="experience"
       style={{
-        padding: 'clamp(56px, 6vw, 84px) 0',
+        padding: '48px 0 clamp(48px, 5vw, 64px) 0',
         backgroundColor: 'var(--bg-section)',
         borderBottom: '1px solid var(--border-subtle)',
       }}

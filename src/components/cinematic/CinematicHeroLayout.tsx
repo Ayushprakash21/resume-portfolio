@@ -188,13 +188,13 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           </div>
 
           {/* Prominent AP Identity Treatment (Hero Brand Signature) */}
-          <div className="hero-brand-signature">
+          <div className="hero-brand-signature" style={{ marginBottom: '14px' }}>
             <ApMonogram width={62} withGlow={true} />
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
               <span
                 style={{
                   fontFamily: 'var(--font-display)',
-                  fontSize: '14px',
+                  fontSize: '13px',
                   fontWeight: 700,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
@@ -208,7 +208,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
               <span
                 style={{
                   fontFamily: 'var(--font-serif)',
-                  fontSize: '12px',
+                  fontSize: '11.5px',
                   fontStyle: 'italic',
                   color: 'var(--accent-silver)',
                   letterSpacing: '0.02em',
@@ -219,35 +219,87 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             </div>
           </div>
 
+          {/* OVERSIZED EDITORIAL HERO FOUNDER NAME: AYUSH / PRAKASH (VOID WALKER REFERENCE INSPIRATION) */}
           <div
+            className="hero-founder-name"
             style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(1.9rem, 5.8vw, 5.2rem)',
-              lineHeight: 1.0,
-              fontWeight: 600,
-              letterSpacing: '-0.02em',
-              color: 'var(--text-primary)',
+              display: 'flex',
+              flexDirection: 'column',
+              lineHeight: 0.88,
+              letterSpacing: '-0.035em',
               textTransform: 'uppercase',
+              fontFamily: 'var(--font-display, Orenza, sans-serif)',
+              fontWeight: 800,
+              fontSize: 'clamp(48px, 8.4vw, 132px)',
+              margin: '0 0 14px 0',
+              userSelect: 'none',
               overflowWrap: 'break-word',
               wordBreak: 'break-word',
             }}
           >
-            {heading}
+            <span
+              style={{
+                color: '#F8FAFC',
+                textShadow: '0 4px 28px rgba(0, 0, 0, 0.95)',
+                display: 'block',
+                lineHeight: 0.90,
+              }}
+            >
+              AYUSH
+            </span>
+            <span
+              style={{
+                background: 'linear-gradient(180deg, #FFFFFF 0%, #B8BCC6 50%, #7A808C 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                display: 'block',
+                lineHeight: 0.90,
+                filter: 'drop-shadow(0 4px 24px rgba(0, 0, 0, 0.85))',
+              }}
+            >
+              PRAKASH
+            </span>
           </div>
+
+          {/* Main Supporting Tagline */}
           <div
             style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: 'clamp(1.8rem, 5.2vw, 4.6rem)',
-              lineHeight: 1.15,
-              fontWeight: 400,
-              fontStyle: 'italic',
-              color: 'var(--text-primary)',
-              letterSpacing: '0.005em',
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: '12px',
+              flexWrap: 'wrap',
               marginTop: '4px',
-              overflowWrap: 'break-word',
             }}
           >
-            {subHeading}
+            <div
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(1.1rem, 2.4vw, 2.0rem)',
+                lineHeight: 1.1,
+                fontWeight: 600,
+                letterSpacing: '-0.01em',
+                color: 'var(--text-primary)',
+                textTransform: 'uppercase',
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
+              }}
+            >
+              {heading}
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-serif)',
+                fontSize: 'clamp(1.1rem, 2.2vw, 1.85rem)',
+                lineHeight: 1.15,
+                fontWeight: 400,
+                fontStyle: 'italic',
+                color: 'var(--accent-silver)',
+                letterSpacing: '0.005em',
+                overflowWrap: 'break-word',
+              }}
+            >
+              {subHeading}
+            </div>
           </div>
         </div>
 
