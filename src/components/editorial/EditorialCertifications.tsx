@@ -14,37 +14,48 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
     <section
       id="certifications"
       style={{
-        padding: 'clamp(64px, 9vw, 120px) 0',
+        padding: 'clamp(56px, 6vw, 84px) 0',
         backgroundColor: 'var(--bg-section)',
         borderBottom: '1px solid var(--border-subtle)',
       }}
     >
-      <div className="container" style={{ maxWidth: '1160px' }}>
+      <div
+        className="container"
+        style={{
+          maxWidth: 'min(94%, 1280px)',
+          margin: '0 auto',
+          padding: '0 clamp(16px, 3vw, 32px)',
+        }}
+      >
         {/* Editorial Eyebrow */}
-        <div style={{ marginBottom: '24px' }}>
+        <div style={{ marginBottom: '18px' }}>
           <span
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: '11px',
-              color: 'var(--text-muted)',
-              letterSpacing: '0.12em',
+              fontSize: 'clamp(12px, 0.95vw, 13.5px)',
+              color: '#D4D7DC',
+              letterSpacing: '0.14em',
               textTransform: 'uppercase',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
-            Accreditations &bull; Verified Credentials
+            ACCREDITATIONS &bull; VERIFIED CREDENTIALS
           </span>
         </div>
 
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(1.9rem, 4.2vw, 3.6rem)',
-            fontWeight: 500,
-            lineHeight: 1.15,
+            fontSize: 'clamp(32px, 4.4vw, 56px)',
+            fontWeight: 600,
+            lineHeight: 1.12,
             letterSpacing: '-0.02em',
-            color: 'var(--text-primary)',
+            color: '#FFFFFF',
             maxWidth: '920px',
-            marginBottom: '48px',
+            marginBottom: '36px',
             overflowWrap: 'break-word',
           }}
         >

@@ -84,7 +84,6 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
 
   const navItems = [
     { label: nav.work || 'Work', id: 'projects' },
-    { label: 'Orion-9', id: 'orion-9' },
     { label: nav.experience || 'Experience', id: 'experience' },
     { label: nav.about || 'About', id: 'about' },
     { label: 'Open to Work', id: 'opentowork' },
@@ -124,7 +123,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
       />
 
       {/* Spacer to prevent overlap when hero is at top */}
-      <div style={{ height: '60px' }} />
+      <div style={{ flex: 1, minHeight: '40px' }} />
 
       {/* ========================================================
           ILLUMINATED AYUSH PRAKASH SIGNATURE (HERO NEGATIVE SPACE)
@@ -132,44 +131,8 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
       <HeroSignature reducedMotion={reducedMotion} />
 
       {/* ========================================================
-          LEFT INTRODUCTION (PROTECTED BY LOCAL GLASS BACKDROP)
-          ======================================================== */}
-      <div
-        className="hero-intro-panel"
-        style={{
-          position: 'relative',
-          zIndex: 20,
-          pointerEvents: 'auto',
-          marginTop: '16px',
-          background: 'linear-gradient(135deg, rgba(5, 5, 5, 0.85), rgba(9, 9, 12, 0.52))',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid rgba(255, 255, 255, 0.10)',
-          borderRadius: '14px',
-          padding: '16px 20px',
-          maxWidth: 'min(100%, 430px)',
-          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-        }}
-      >
-        <p
-          className="hero-intro"
-          style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: 'clamp(14px, 1.15vw, 17px)',
-            lineHeight: 1.65,
-            fontWeight: 400,
-            color: '#F5F5F5',
-            letterSpacing: '0.01em',
-            margin: 0,
-            textShadow: '0 2px 12px rgba(0, 0, 0, 0.95)',
-          }}
-        >
-          {intro}
-        </p>
-      </div>
-
-      {/* ========================================================
           BOTTOM ROW (AP BRANDED HERO PRESENTATION):
+          - HERO INTRO PANEL ANCHORED INTO TYPOGRAPHY COLUMN
           - AP MONOGRAM & AYUSH PRAKASH EMBLEM
           - BUSINESS. SYSTEMS.
           - Intelligence & Innovation.
@@ -184,11 +147,46 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           justifyContent: 'space-between',
           gap: '20px',
           width: '100%',
-          marginTop: '24px',
+          marginTop: 'auto',
         }}
       >
-        {/* BOTTOM LEFT: AP BRAND SIGNATURE + HEADLINE */}
-        <div style={{ maxWidth: '100%', minWidth: 0 }}>
+        {/* BOTTOM LEFT: HERO INTRO CARD + AP BRAND SIGNATURE + HEADLINE */}
+        <div style={{ maxWidth: 'min(100%, 780px)', minWidth: 0 }}>
+          {/* Refined Glass Intro Panel anchored directly into the left typography column */}
+          <div
+            className="hero-intro-panel"
+            style={{
+              position: 'relative',
+              zIndex: 20,
+              pointerEvents: 'auto',
+              marginBottom: '16px',
+              background: 'linear-gradient(135deg, rgba(5, 5, 5, 0.85), rgba(9, 9, 12, 0.52))',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid rgba(255, 255, 255, 0.10)',
+              borderRadius: '12px',
+              padding: '16px 20px',
+              maxWidth: 'min(100%, 430px)',
+              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+            }}
+          >
+            <p
+              className="hero-intro"
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: 'clamp(13px, 1.05vw, 15px)',
+                lineHeight: 1.6,
+                fontWeight: 400,
+                color: '#F5F5F5',
+                letterSpacing: '0.01em',
+                margin: 0,
+                textShadow: '0 2px 12px rgba(0, 0, 0, 0.95)',
+              }}
+            >
+              {intro}
+            </p>
+          </div>
+
           {/* Prominent AP Identity Treatment (Hero Brand Signature) */}
           <div className="hero-brand-signature">
             <ApMonogram width={62} withGlow={true} />

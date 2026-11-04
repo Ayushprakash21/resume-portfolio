@@ -184,9 +184,13 @@ export const App: React.FC = () => {
       case 'projects':
         return <EditorialProjects key="projects" projects={projects} onSelectProject={scrollToSection} />;
       case 'orion9':
-        return <EditorialOrion9 key="orion9" project={orionProject} />;
+      case 'orion-9':
+        // Standalone Orion-9 section removed per user specification; showcased inside Projects Concave Carousel
+        return null;
       case 'applyvise':
-        return <EditorialApplyVise key="applyvise" project={applywiseProject} />;
+      case 'applywise-ai':
+        // Standalone ApplyVise section removed; showcased inside Projects Concave Carousel
+        return null;
       case 'certifications':
         return <EditorialCertifications key="certifications" certifications={certifications} />;
       case 'education':
@@ -239,8 +243,7 @@ export const App: React.FC = () => {
               />
               <EditorialExperience experiences={experiences} />
               <EditorialCapabilities skills={skills} />
-              <EditorialOrion9 project={orionProject} />
-              <EditorialApplyVise project={applywiseProject} />
+              <EditorialProjects projects={projects} onSelectProject={scrollToSection} />
               <EditorialCertifications certifications={certifications} />
               <EditorialEducation education={education} />
               <EditorialContact profile={profile} />

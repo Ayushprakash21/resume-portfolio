@@ -19,49 +19,61 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
     <section
       id="capabilities"
       style={{
-        padding: 'clamp(64px, 9vw, 120px) 0',
+        padding: 'clamp(56px, 6vw, 84px) 0',
         backgroundColor: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-subtle)',
+        position: 'relative',
       }}
     >
-      <div className="container" style={{ maxWidth: '1160px' }}>
+      <div
+        className="container"
+        style={{
+          maxWidth: 'min(94%, 1280px)',
+          margin: '0 auto',
+          padding: '0 clamp(16px, 3vw, 32px)',
+        }}
+      >
         {/* Eyebrow */}
-        <div style={{ marginBottom: '24px' }}>
+        <div style={{ marginBottom: '18px' }}>
           <span
             style={{
               fontFamily: 'var(--font-body)',
-              fontSize: '11px',
-              color: 'var(--text-muted)',
-              letterSpacing: '0.12em',
+              fontSize: 'clamp(12px, 0.95vw, 13.5px)',
+              color: '#D4D7DC',
+              letterSpacing: '0.14em',
               textTransform: 'uppercase',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
-            Capabilities &bull; Core Disciplines
+            CAPABILITIES &bull; CORE DISCIPLINES
           </span>
         </div>
 
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(1.9rem, 4.2vw, 3.6rem)',
-            fontWeight: 500,
-            lineHeight: 1.15,
+            fontSize: 'clamp(32px, 4.4vw, 56px)',
+            fontWeight: 600,
+            lineHeight: 1.12,
             letterSpacing: '-0.02em',
-            color: 'var(--text-primary)',
+            color: '#FFFFFF',
             maxWidth: '920px',
-            marginBottom: '48px',
+            marginBottom: '36px',
             overflowWrap: 'break-word',
           }}
         >
           Specialized expertise spanning physical supply pipelines, enterprise software, and applied machine intelligence.
         </h2>
 
-        {/* 4-Quadrant Editorial Matrix */}
+        {/* 4-Quadrant Balanced Editorial Grid */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
-            gap: 'clamp(20px, 3vw, 32px)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: 'clamp(20px, 2.5vw, 28px)',
           }}
         >
           {Object.entries(categories).map(([categoryName, skillList]) => (
@@ -69,11 +81,17 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
               key={categoryName}
               className="glass-card"
               style={{
-                borderRadius: '14px',
-                padding: 'clamp(20px, 3.5vw, 32px)',
+                borderRadius: '16px',
+                padding: 'clamp(24px, 3vw, 32px)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '20px',
+                background: 'linear-gradient(135deg, rgba(16, 18, 24, 0.75) 0%, rgba(9, 10, 14, 0.88) 100%)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255, 255, 255, 0.09)',
+                boxShadow: '0 12px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07)',
+                transition: 'border-color 0.3s ease, transform 0.3s ease',
               }}
             >
               <div>
@@ -82,9 +100,10 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
                     fontFamily: 'var(--font-body)',
                     fontSize: '11px',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
+                    letterSpacing: '0.12em',
                     color: 'var(--accent-silver)',
                     marginBottom: '8px',
+                    fontWeight: 600,
                   }}
                 >
                   Domain
@@ -92,10 +111,11 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
                 <h3
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: '18px',
+                    fontSize: 'clamp(18px, 1.4vw, 21px)',
                     fontWeight: 600,
-                    color: 'var(--text-primary)',
+                    color: '#FFFFFF',
                     lineHeight: 1.3,
+                    margin: 0,
                   }}
                 >
                   {categoryName}
@@ -115,12 +135,14 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
                     key={sk.id}
                     style={{
                       fontFamily: 'var(--font-body)',
-                      fontSize: '13px',
+                      fontSize: '12.5px',
                       color: 'var(--text-secondary)',
                       padding: '6px 12px',
-                      borderRadius: '4px',
-                      backgroundColor: 'rgba(244, 243, 238, 0.04)',
-                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '6px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      lineHeight: 1.4,
+                      transition: 'all 0.2s ease',
                     }}
                   >
                     {sk.name}

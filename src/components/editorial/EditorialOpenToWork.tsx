@@ -46,7 +46,7 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
     <section
       id="opentowork"
       style={{
-        padding: 'clamp(64px, 9vw, 120px) 0',
+        padding: 'clamp(56px, 6vw, 84px) 0',
         backgroundColor: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-subtle)',
         position: 'relative',
@@ -66,7 +66,16 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
         }}
       />
 
-      <div className="container" style={{ maxWidth: '1160px', position: 'relative', zIndex: 2 }}>
+      <div
+        className="container"
+        style={{
+          maxWidth: 'min(94%, 1280px)',
+          margin: '0 auto',
+          padding: '0 clamp(16px, 3vw, 32px)',
+          position: 'relative',
+          zIndex: 2,
+        }}
+      >
         {/* Top Header Row with Status Badge */}
         <div
           style={{
@@ -75,7 +84,7 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '16px',
-            marginBottom: '32px',
+            marginBottom: '24px',
           }}
         >
           {/* Eyebrow Label */}
@@ -83,13 +92,17 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
             <span
               style={{
                 fontFamily: 'var(--font-body)',
-                fontSize: '11px',
-                color: 'var(--text-muted)',
+                fontSize: 'clamp(12px, 0.95vw, 13.5px)',
+                color: '#D4D7DC',
                 letterSpacing: '0.14em',
                 textTransform: 'uppercase',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
               }}
             >
-              {sectionHeading}
+              {sectionHeading || 'OPEN TO OPPORTUNITIES'}
             </span>
           </div>
 
@@ -133,16 +146,16 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
         </div>
 
         {/* Section Headline */}
-        <div style={{ maxWidth: '960px', marginBottom: '60px' }}>
+        <div style={{ maxWidth: '960px', marginBottom: '40px' }}>
           <h2
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(2.4rem, 4.8vw, 4.2rem)',
-              fontWeight: 500,
-              lineHeight: 1.1,
+              fontSize: 'clamp(32px, 4.4vw, 56px)',
+              fontWeight: 600,
+              lineHeight: 1.12,
               letterSpacing: '-0.02em',
-              color: 'var(--text-primary)',
-              marginBottom: '24px',
+              color: '#FFFFFF',
+              marginBottom: '20px',
             }}
           >
             {headline}
