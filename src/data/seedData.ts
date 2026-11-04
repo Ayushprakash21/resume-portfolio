@@ -1,4 +1,4 @@
-import {
+import type {
   ProfileData,
   ExperienceRecord,
   ProjectRecord,
@@ -17,7 +17,7 @@ import {
   PreferredLocation,
   ResumeGeneratorSettings,
   ResumeVersionRecord,
-} from '../types/cms';
+} from '../types/cms.ts';
 
 export const DEFAULT_PROFILE: ProfileData = {
   firstName: 'Ayush',

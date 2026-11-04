@@ -1,4 +1,4 @@
-import {
+import type {
   ProfileData,
   AboutSectionSettings,
   ExperienceRecord,
@@ -9,7 +9,7 @@ import {
   ExtractedResumeData,
   ResumeDiffItem,
   ResumeAuditEntry,
-} from '../types/cms';
+} from '../types/cms.ts';
 
 export interface FileValidationResult {
   isValid: boolean;
@@ -57,41 +57,43 @@ export async function validateResumeFile(file: File): Promise<FileValidationResu
   }
 
   // Binary file signature verification (magic numbers)
-  try {
-    const slice = file.slice(0, 8);
-    const buffer = await slice.arrayBuffer();
-    const bytes = new Uint8Array(buffer);
+  if (typeof file.slice === 'function') {
+    try {
+      const slice = file.slice(0, 8);
+      const buffer = await slice.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
 
-    if (fileType === 'pdf') {
-      // PDF must begin with %PDF (0x25, 0x50, 0x44, 0x46)
-      const isPdf = bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46;
-      if (!isPdf) {
-        return {
-          isValid: false,
-          error: 'File signature mismatch: File claims to be a PDF, but does not contain a valid %PDF header.',
-        };
+      if (fileType === 'pdf') {
+        // PDF must begin with %PDF (0x25, 0x50, 0x44, 0x46)
+        const isPdf = bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46;
+        if (!isPdf) {
+          return {
+            isValid: false,
+            error: 'File signature mismatch: File claims to be a PDF, but does not contain a valid %PDF header.',
+          };
+        }
+      } else if (fileType === 'docx') {
+        // DOCX is a zip archive starting with PK\x03\x04 (0x50, 0x4B, 0x03, 0x04)
+        const isDocx = bytes[0] === 0x50 && bytes[1] === 0x4B && bytes[2] === 0x03 && bytes[3] === 0x04;
+        if (!isDocx) {
+          return {
+            isValid: false,
+            error: 'File signature mismatch: File claims to be a DOCX document, but does not contain a valid ZIP/DOCX header.',
+          };
+        }
+      } else if (fileType === 'doc') {
+        // DOC (OLE CFBF): 0xD0, 0xCF, 0x11, 0xE0
+        const isDoc = bytes[0] === 0xd0 && bytes[1] === 0xcf && bytes[2] === 0x11 && bytes[3] === 0xe0;
+        if (!isDoc) {
+          return {
+            isValid: false,
+            error: 'File signature mismatch: File claims to be a legacy DOC file, but does not contain a valid OLE header.',
+          };
+        }
       }
-    } else if (fileType === 'docx') {
-      // DOCX is a zip archive starting with PK\x03\x04 (0x50, 0x4B, 0x03, 0x04)
-      const isDocx = bytes[0] === 0x50 && bytes[1] === 0x4B && bytes[2] === 0x03 && bytes[3] === 0x04;
-      if (!isDocx) {
-        return {
-          isValid: false,
-          error: 'File signature mismatch: File claims to be a DOCX document, but does not contain a valid ZIP/DOCX header.',
-        };
-      }
-    } else if (fileType === 'doc') {
-      // DOC (OLE CFBF): 0xD0, 0xCF, 0x11, 0xE0
-      const isDoc = bytes[0] === 0xd0 && bytes[1] === 0xcf && bytes[2] === 0x11 && bytes[3] === 0xe0;
-      if (!isDoc) {
-        return {
-          isValid: false,
-          error: 'File signature mismatch: File claims to be a legacy DOC file, but does not contain a valid OLE header.',
-        };
-      }
+    } catch (sigErr: any) {
+      console.warn('[Validation] File signature verification warning:', sigErr);
     }
-  } catch (sigErr: any) {
-    console.warn('[Validation] File signature verification warning:', sigErr);
   }
 
   return {
@@ -139,10 +141,20 @@ export function extractTextFromPdfFallback(arrayBuffer: ArrayBuffer): string {
   return cleanMatches ? cleanMatches.join(' ') : rawDecoded.slice(0, 5000);
 }
 
+export interface RawTextExtractionResult {
+  text: string;
+  pageCount?: number;
+  isScanned?: boolean;
+  requiresOcr?: boolean;
+  wordCount?: number;
+  error?: string;
+}
+
 /**
- * Extracts raw textual content from PDF, DOCX, or DOC.
+ * Extracts raw textual content and metadata from PDF, DOCX, or DOC.
+ * Reliably detects image-only/scanned documents that require OCR.
  */
-export async function extractRawTextFromResume(file: File): Promise<string> {
+export async function extractResumeTextAndMetadata(file: File): Promise<RawTextExtractionResult> {
   const arrayBuffer = await file.arrayBuffer();
   const name = file.name.toLowerCase();
 
@@ -150,10 +162,15 @@ export async function extractRawTextFromResume(file: File): Promise<string> {
     try {
       const mammoth = await import('mammoth');
       const result = await mammoth.extractRawText({ arrayBuffer });
-      if (result.value && result.value.trim().length > 0) {
-        return result.value;
-      }
-    } catch (err) {
+      const text = (result.value || '').trim();
+      return {
+        text,
+        pageCount: 1,
+        isScanned: false,
+        requiresOcr: false,
+        wordCount: text.split(/\s+/).filter(Boolean).length,
+      };
+    } catch (err: any) {
       console.warn('[ResumeParser] Mammoth extraction warning:', err);
     }
   } else if (name.endsWith('.pdf')) {
@@ -173,26 +190,80 @@ export async function extractRawTextFromResume(file: File): Promise<string> {
           .join(' ');
         fullText += `\n[Page ${pageNum}]\n` + pageText + '\n';
       }
-      if (fullText.trim().length > 50) {
-        return fullText.trim();
+      const trimmedText = fullText.trim();
+      const pageCount = pdf.numPages || 1;
+
+      // Scanned PDF detection: if page count > 0 but total text (excluding page tags) < 40 chars
+      const pureText = trimmedText.replace(/\[Page \d+\]/g, '').trim();
+      if (pageCount > 0 && pureText.length < 40) {
+        return {
+          text: trimmedText,
+          pageCount,
+          isScanned: true,
+          requiresOcr: true,
+          wordCount: 0,
+          error: 'SCANNED_PDF_NO_TEXT: Scanned or image-only PDF detected. Direct text extraction yielded insufficient selectable characters; Optical Character Recognition (OCR) is required.',
+        };
       }
-    } catch (err) {
+
+      return {
+        text: trimmedText,
+        pageCount,
+        isScanned: false,
+        requiresOcr: false,
+        wordCount: trimmedText.split(/\s+/).filter(Boolean).length,
+      };
+    } catch (err: any) {
       console.warn('[ResumeParser] pdfjs extraction fallback notice:', err);
-      return extractTextFromPdfFallback(arrayBuffer);
+      const fallbackText = extractTextFromPdfFallback(arrayBuffer).trim();
+      return {
+        text: fallbackText,
+        pageCount: 1,
+        isScanned: fallbackText.length < 40,
+        requiresOcr: fallbackText.length < 40,
+        wordCount: fallbackText.split(/\s+/).filter(Boolean).length,
+      };
     }
   } else if (name.endsWith('.doc')) {
-    // DOC legacy binary fallback text reader
-    const fallbackText = extractTextFromPdfFallback(arrayBuffer);
-    if (fallbackText.trim().length > 50) {
-      return fallbackText;
+    const fallbackText = extractTextFromPdfFallback(arrayBuffer).trim();
+    if (fallbackText.length > 50) {
+      return {
+        text: fallbackText,
+        pageCount: 1,
+        isScanned: false,
+        requiresOcr: false,
+        wordCount: fallbackText.split(/\s+/).filter(Boolean).length,
+      };
     }
-    throw new Error(
-      'Legacy binary .doc file format could not be parsed with high confidence. Please save as modern .docx or .pdf.'
-    );
+    return {
+      text: fallbackText,
+      pageCount: 1,
+      isScanned: true,
+      requiresOcr: true,
+      error: 'Legacy binary .doc file format could not be parsed with high confidence. Please save as modern .docx or .pdf.',
+    };
   }
 
   // Fallback
-  return extractTextFromPdfFallback(arrayBuffer);
+  const fallback = extractTextFromPdfFallback(arrayBuffer).trim();
+  return {
+    text: fallback,
+    pageCount: 1,
+    isScanned: fallback.length < 40,
+    requiresOcr: fallback.length < 40,
+    wordCount: fallback.split(/\s+/).filter(Boolean).length,
+  };
+}
+
+/**
+ * Extracts raw textual content from PDF, DOCX, or DOC.
+ */
+export async function extractRawTextFromResume(file: File): Promise<string> {
+  const result = await extractResumeTextAndMetadata(file);
+  if (result.requiresOcr && !result.text) {
+    throw new Error(result.error || 'Scanned PDF requires OCR to extract text.');
+  }
+  return result.text;
 }
 
 /**
@@ -522,12 +593,102 @@ export function extractResumeInformation(rawText: string): ExtractedResumeData {
           completionDate: dateMatch ? dateMatch[0] : '2025',
           confidence: 0.86,
           source: 'Certifications Section',
+          evidence: line,
         });
       }
     });
   }
 
+  // 14. Projects Parsing
+  const projHeaderRegex = /(?:PROJECTS|KEY PROJECTS|NOTABLE PROJECTS|PORTFOLIO PROJECTS)[:\s\n]+/i;
+  const projIndex = text.search(projHeaderRegex);
+  if (projIndex !== -1) {
+    const afterProj = text.slice(projIndex).replace(projHeaderRegex, '');
+    const nextSectionIndex = afterProj.search(/(?:EDUCATION|CERTIFICATIONS|SKILLS|EXPERIENCE)/i);
+    const projText = nextSectionIndex !== -1 ? afterProj.slice(0, nextSectionIndex) : afterProj.slice(0, 800);
+    const projLines = projText.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
+
+    let currentProj: any = null;
+    projLines.forEach((line) => {
+      if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
+        const bullet = line.replace(/^[•\-*]\s*/, '').trim();
+        if (currentProj) {
+          currentProj.features.push(bullet);
+          if (!currentProj.description) {
+            currentProj.description = bullet;
+          } else {
+            currentProj.description += ' ' + bullet;
+          }
+        }
+      } else if (line.length > 3 && line.length < 80 && !line.includes('@')) {
+        if (currentProj) result.projects.push(currentProj);
+        const techMatch = line.match(/(?:Tech|Stack|Technologies|Built with)[:\s-]*([^)]+)/i);
+        let name = line;
+        let technologies: string[] = [];
+        if (techMatch) {
+          name = line.slice(0, techMatch.index).replace(/[|•–—(]/g, '').trim();
+          technologies = techMatch[1].split(/[,|/]+/).map((t) => t.trim()).filter(Boolean);
+        }
+        currentProj = {
+          name: name.replace(/[|•–—]/g, '').trim(),
+          subtitle: '',
+          description: '',
+          technologies,
+          features: [],
+          confidence: 0.88,
+          source: 'Projects Section',
+          evidence: line,
+        };
+      }
+    });
+    if (currentProj) result.projects.push(currentProj);
+  }
+
   return result;
+}
+
+/**
+ * Intelligent Extraction Engine with Cloudflare AI Worker Integration & Deterministic Local Fallback.
+ */
+export async function extractResumeWithAiOrFallback(
+  rawText: string,
+  fileInfo?: { fileName?: string; objectKey?: string }
+): Promise<ExtractedResumeData> {
+  // 1. Try calling backend Cloudflare Worker AI extraction endpoint
+  try {
+    const res = await fetch('/api/admin/resume/extract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: rawText.slice(0, 15000),
+        fileName: fileInfo?.fileName,
+        objectKey: fileInfo?.objectKey,
+      }),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.extractedData && !json.fallbackToLocal) {
+        return {
+          ...json.extractedData,
+          rawText,
+          metadata: {
+            ...(json.extractedData.metadata || {}),
+            detectedEngine: 'ai-worker',
+          },
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('[ResumeParser] AI extraction endpoint unavailable, using deterministic engine:', err);
+  }
+
+  // 2. Seamless local deterministic fallback
+  const deterministic = extractResumeInformation(rawText);
+  deterministic.metadata = {
+    ...(deterministic.metadata || {}),
+    detectedEngine: 'deterministic-client',
+  };
+  return deterministic;
 }
 
 /**
@@ -728,7 +889,9 @@ export function generateResumeDiff(
           status: 'pending',
           confidence: exp.confidence,
           source: exp.source,
+          evidence: exp.evidence,
           recordId: matchedExisting.id,
+          structuredRecord: exp,
         });
       }
       // Compare dates
@@ -747,7 +910,9 @@ export function generateResumeDiff(
           status: 'pending',
           confidence: exp.confidence,
           source: exp.source,
+          evidence: exp.evidence,
           recordId: matchedExisting.id,
+          structuredRecord: exp,
         });
       }
     } else {
@@ -764,6 +929,8 @@ export function generateResumeDiff(
         status: 'pending',
         confidence: exp.confidence,
         source: exp.source,
+        evidence: exp.evidence,
+        structuredRecord: exp,
       });
     }
   });
@@ -786,6 +953,8 @@ export function generateResumeDiff(
         status: 'pending',
         confidence: cert.confidence,
         source: cert.source,
+        evidence: cert.evidence,
+        structuredRecord: cert,
       });
     } else {
       diffItems.push({
@@ -801,6 +970,7 @@ export function generateResumeDiff(
         confidence: cert.confidence,
         source: cert.source,
         recordId: matchedCert.id,
+        structuredRecord: cert,
       });
     }
   });
@@ -825,6 +995,8 @@ export function generateResumeDiff(
         status: 'pending',
         confidence: edu.confidence,
         source: edu.source,
+        evidence: edu.evidence,
+        structuredRecord: edu,
       });
     } else {
       diffItems.push({
@@ -840,6 +1012,47 @@ export function generateResumeDiff(
         confidence: edu.confidence,
         source: edu.source,
         recordId: matchedEdu.id,
+        structuredRecord: edu,
+      });
+    }
+  });
+
+  // 7. Projects comparison
+  extracted.projects?.forEach((proj, idx) => {
+    const matchedProj = current.projects?.find(
+      (p) => p.name.toLowerCase().trim() === proj.name.toLowerCase().trim()
+    );
+    if (!matchedProj) {
+      diffItems.push({
+        id: `diff-proj-new-${idx}`,
+        section: 'projects',
+        field: 'new_project',
+        label: `New Project: ${proj.name}`,
+        category: 'new',
+        existingValue: null,
+        extractedValue: `${proj.name}${proj.technologies?.length ? ` [${proj.technologies.join(', ')}]` : ''}`,
+        currentReviewValue: `${proj.name}${proj.technologies?.length ? ` [${proj.technologies.join(', ')}]` : ''}`,
+        status: 'pending',
+        confidence: proj.confidence,
+        source: proj.source,
+        evidence: proj.evidence,
+        structuredRecord: proj,
+      });
+    } else {
+      diffItems.push({
+        id: `diff-proj-${idx}`,
+        section: 'projects',
+        field: 'project',
+        label: `Project: ${proj.name}`,
+        category: 'unchanged',
+        existingValue: matchedProj.name,
+        extractedValue: proj.name,
+        currentReviewValue: proj.name,
+        status: 'approved',
+        confidence: proj.confidence,
+        source: proj.source,
+        recordId: matchedProj.id,
+        structuredRecord: proj,
       });
     }
   });
@@ -866,7 +1079,7 @@ export async function applyApprovedDiffItems(
   let profileModified = false;
   const updatedProfile: ProfileData = { ...profile };
 
-  const about = cmsService.getAboutSettings();
+  const about = cmsService.getAboutSettings ? cmsService.getAboutSettings() : { summary: '' };
   let aboutModified = false;
   const updatedAbout: AboutSectionSettings = { ...about };
 
@@ -911,6 +1124,11 @@ export async function applyApprovedDiffItems(
         profileModified = true;
         updatedCount++;
         auditDetails.push(`Profile: GitHub -> "${valToApply}"`);
+      } else if (item.field === 'portfolioUrl') {
+        updatedProfile.portfolioUrl = valToApply;
+        profileModified = true;
+        updatedCount++;
+        auditDetails.push(`Profile: Portfolio -> "${valToApply}"`);
       }
     } else if (item.section === 'summary') {
       updatedAbout.summary = valToApply;
@@ -918,26 +1136,151 @@ export async function applyApprovedDiffItems(
       updatedCount++;
       auditDetails.push(`About: Summary -> "${valToApply.slice(0, 40)}..."`);
     } else if (item.section === 'skills' && item.category === 'new') {
-      const currentSkills = cmsService.getSkills();
+      const currentSkills = cmsService.getSkills ? cmsService.getSkills() : [];
       const newSkill: SkillRecord = {
         id: `skill-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         name: valToApply,
-        category: 'Core Competencies',
+        category: item.structuredRecord?.category || 'Core Competencies',
         displayOrder: currentSkills.length + 1,
         associatedWith: ['profile', 'experience'],
         updatedAt: new Date().toISOString(),
       };
-      await cmsService.addSkill(newSkill);
-      updatedCount++;
-      auditDetails.push(`Skill: Added "${valToApply}"`);
+      if (typeof cmsService.addSkill === 'function') {
+        await cmsService.addSkill(newSkill);
+        updatedCount++;
+        auditDetails.push(`Skill: Added "${valToApply}"`);
+      }
+    } else if (item.section === 'experience') {
+      if (item.field === 'new_experience' && item.structuredRecord) {
+        const expData = item.structuredRecord;
+        const currentExps = cmsService.getExperiences ? cmsService.getExperiences(false) : [];
+        const newExp: ExperienceRecord = {
+          id: `exp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          employer: expData.employer || 'Enterprise Company',
+          jobTitle: expData.jobTitle || 'Specialist',
+          employmentType: (expData.employmentType as any) || 'Full-time',
+          location: expData.location || '',
+          locationType: 'Hybrid',
+          startDate: expData.startDate || '',
+          endDate: expData.endDate || 'Present',
+          isCurrent: expData.isCurrent ?? true,
+          description: expData.description || (Array.isArray(expData.responsibilities) ? expData.responsibilities.join('. ') : ''),
+          responsibilities: expData.responsibilities || [],
+          achievements: expData.achievements || [],
+          skillsUsed: expData.skillsUsed || [],
+          displayOrder: currentExps.length + 1,
+          status: 'published',
+        };
+        if (typeof cmsService.addExperience === 'function') {
+          await cmsService.addExperience(newExp);
+          updatedCount++;
+          auditDetails.push(`Experience: Added "${newExp.jobTitle} at ${newExp.employer}"`);
+        }
+      } else if (item.recordId && typeof cmsService.updateExperience === 'function') {
+        if (item.field === 'jobTitle') {
+          await cmsService.updateExperience(item.recordId, { jobTitle: valToApply });
+          updatedCount++;
+          auditDetails.push(`Experience (${item.recordId}): Job Title -> "${valToApply}"`);
+        } else if (item.field === 'dates') {
+          const dates = valToApply.split(/[-–to]/).map((s: string) => s.trim());
+          await cmsService.updateExperience(item.recordId, {
+            startDate: dates[0] || '',
+            endDate: dates[1] || 'Present',
+            isCurrent: /present|current/i.test(dates[1] || ''),
+          });
+          updatedCount++;
+          auditDetails.push(`Experience (${item.recordId}): Dates -> "${valToApply}"`);
+        }
+      }
+    } else if (item.section === 'education') {
+      if (item.field === 'new_education' && item.structuredRecord) {
+        const eduData = item.structuredRecord;
+        const currentEdus = cmsService.getEducation ? cmsService.getEducation() : [];
+        const newEdu: EducationRecord = {
+          id: `edu-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          institution: eduData.institution || 'Academic Institution',
+          degree: eduData.degree || 'Degree',
+          fieldOfStudy: eduData.fieldOfStudy || 'General',
+          startYear: eduData.startYear || '2020',
+          endYear: eduData.endYear || '2024',
+          description: '',
+          highlights: [],
+          displayOrder: currentEdus.length + 1,
+        };
+        if (typeof cmsService.addEducation === 'function') {
+          await cmsService.addEducation(newEdu);
+          updatedCount++;
+          auditDetails.push(`Education: Added "${newEdu.degree} at ${newEdu.institution}"`);
+        }
+      } else if (item.recordId && typeof cmsService.updateEducation === 'function') {
+        await cmsService.updateEducation(item.recordId, { [item.field]: valToApply });
+        updatedCount++;
+        auditDetails.push(`Education (${item.recordId}): Updated ${item.field}`);
+      }
+    } else if (item.section === 'certifications') {
+      if (item.field === 'new_certification' && item.structuredRecord) {
+        const certData = item.structuredRecord;
+        const currentCerts = cmsService.getCertifications ? cmsService.getCertifications(false) : [];
+        const newCert: CertificationRecord = {
+          id: `cert-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          title: certData.title || 'Certification',
+          issuer: certData.issuer || 'Certifying Body',
+          completionDate: certData.completionDate || '2025',
+          expiryDate: certData.expiryDate || '',
+          credentialId: certData.credentialId || '',
+          verificationUrl: certData.verificationUrl || '',
+          category: 'Verified Accreditations',
+          highlightTag: 'VERIFIED CREDENTIAL',
+          status: 'published',
+          displayOrder: currentCerts.length + 1,
+        };
+        if (typeof cmsService.addCertification === 'function') {
+          await cmsService.addCertification(newCert);
+          updatedCount++;
+          auditDetails.push(`Certification: Added "${newCert.title}"`);
+        }
+      } else if (item.recordId && typeof cmsService.updateCertification === 'function') {
+        await cmsService.updateCertification(item.recordId, { [item.field]: valToApply });
+        updatedCount++;
+        auditDetails.push(`Certification (${item.recordId}): Updated ${item.field}`);
+      }
+    } else if (item.section === 'projects') {
+      if (item.field === 'new_project' && item.structuredRecord) {
+        const projData = item.structuredRecord;
+        const currentProjs = cmsService.getProjects ? cmsService.getProjects(false) : [];
+        const newProj: ProjectRecord = {
+          id: `proj-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          name: projData.name || 'Project',
+          subtitle: projData.subtitle || '',
+          description: projData.description || (Array.isArray(projData.features) ? projData.features.join('. ') : ''),
+          category: 'Software & Systems',
+          technologyStack: projData.technologies || [],
+          features: projData.features || [],
+          projectUrl: projData.projectUrl || '',
+          screenshots: [],
+          developmentStatus: 'Completed',
+          featured: false,
+          displayOrder: currentProjs.length + 1,
+          status: 'published',
+        };
+        if (typeof cmsService.addProject === 'function') {
+          await cmsService.addProject(newProj);
+          updatedCount++;
+          auditDetails.push(`Project: Added "${newProj.name}"`);
+        }
+      } else if (item.recordId && typeof cmsService.updateProject === 'function') {
+        await cmsService.updateProject(item.recordId, { [item.field]: valToApply });
+        updatedCount++;
+        auditDetails.push(`Project (${item.recordId}): Updated ${item.field}`);
+      }
     }
   }
 
   // Publish modified profile & about
-  if (profileModified) {
+  if (profileModified && typeof cmsService.publishProfile === 'function') {
     await cmsService.publishProfile(updatedProfile);
   }
-  if (aboutModified) {
+  if (aboutModified && typeof cmsService.publishAboutSettings === 'function') {
     await cmsService.publishAboutSettings(updatedAbout);
   }
 

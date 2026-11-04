@@ -34,6 +34,7 @@ import {
   ResumeDiffItem,
   ResumeAuditEntry,
   ExtractedResumeData,
+  ExtractionJob,
 } from '../../../types/cms';
 import { LinkedInParsedRecord, LinkedInImportReport, LinkedInImportAudit } from '../../../types/linkedin';
 import { cmsService } from '../../../services/cmsService';
@@ -42,7 +43,9 @@ import { linkedinParserService } from '../../../services/linkedinParserService';
 import {
   validateResumeFile,
   extractRawTextFromResume,
+  extractResumeTextAndMetadata,
   extractResumeInformation,
+  extractResumeWithAiOrFallback,
   generateResumeDiff,
   applyApprovedDiffItems,
 } from '../../../services/resumeParserService';
@@ -83,7 +86,18 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [processingStatus, setProcessingStatus] = useState<
-    'idle' | 'validating' | 'extracting' | 'awaiting_review' | 'approved' | 'published' | 'failed'
+    | 'idle'
+    | 'selected'
+    | 'validating'
+    | 'uploading'
+    | 'uploaded'
+    | 'extracting_text'
+    | 'extracting_fields'
+    | 'validating_fields'
+    | 'review_required'
+    | 'approved'
+    | 'published'
+    | 'failed'
   >('idle');
   const [statusMessage, setStatusMessage] = useState<string>('');
 
@@ -92,6 +106,9 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
   const [activeExtractedData, setActiveExtractedData] = useState<ExtractedResumeData | null>(null);
   const [currentReviewVersion, setCurrentReviewVersion] = useState<ResumeVersionRecord | null>(null);
   const [diffFilter, setDiffFilter] = useState<'all' | 'new' | 'changed' | 'unchanged'>('all');
+  const [reviewSectionTab, setReviewSectionTab] = useState<
+    'all' | 'profile' | 'summary' | 'experience' | 'education' | 'certifications' | 'projects' | 'skills' | 'raw_evidence'
+  >('all');
   const [sectionFilter, setSectionFilter] = useState<string>('all');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<string>('');
@@ -117,6 +134,18 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
     cmsService.getLinkedInAuditHistory()
   );
 
+  // Restore active review draft or extraction job if one was pending
+  useEffect(() => {
+    const activeJob = cmsService.getActiveExtractionJob();
+    if (activeJob && activeJob.diffItems && activeJob.diffItems.length > 0) {
+      setCurrentDiffItems(activeJob.diffItems);
+      if (activeJob.extractedData) {
+        setActiveExtractedData(activeJob.extractedData);
+      }
+      setProcessingStatus('review_required');
+    }
+  }, []);
+
   // Subscribe to reactive CMS updates
   useEffect(() => {
     const unsubscribe = cmsService.subscribe(() => {
@@ -137,10 +166,12 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
     if (!file) return;
 
     setPendingMetadata(null);
+    setProcessingStatus('selected');
 
     // Step 1: Validate file with binary header signature
     setProcessingStatus('validating');
     setStatusMessage(`Validating ${file.name} format, size, and binary signature...`);
+    setUploadProgress(15);
     const validation = await validateResumeFile(file);
     if (!validation.isValid) {
       setProcessingStatus('failed');
@@ -150,31 +181,60 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
     }
 
     setIsUploading(true);
-    setUploadProgress(10);
+    setUploadProgress(20);
 
     let uploadedRecord: ResumeRecord | null = null;
 
     try {
       // Step 2: Upload to Cloudflare R2 with genuine real-time progress
+      setProcessingStatus('uploading');
       setStatusMessage(`Uploading ${file.name} to Cloudflare R2 storage...`);
       uploadedRecord = await cmsService.uploadResumeFile(file, form.buttonText, (p) => {
-        setUploadProgress(Math.min(65, Math.round(10 + p * 0.55)));
+        // Genuine 20% to 70% progress during network transmission
+        setUploadProgress(Math.min(70, Math.round(20 + p * 0.50)));
       });
 
-      setUploadProgress(70);
-      setStatusMessage('Verifying document in Cloudflare R2...');
+      setUploadProgress(72);
+      setProcessingStatus('uploaded');
+      setStatusMessage('Document verified in Cloudflare R2.');
 
-      // Step 3: Extract textual information
-      setProcessingStatus('extracting');
-      setStatusMessage('Extracting structured profile, experience, skills, and certifications...');
-      setUploadProgress(82);
+      // Step 3: Extract textual information and check for scanned PDF
+      setProcessingStatus('extracting_text');
+      setStatusMessage('Extracting raw text from document...');
+      setUploadProgress(80);
 
-      const rawText = await extractRawTextFromResume(file);
-      const extracted = extractResumeInformation(rawText);
+      const textResult = await extractResumeTextAndMetadata(file);
+
+      // Scanned PDF detection guard
+      if (textResult.requiresOcr && (!textResult.text || textResult.text.length < 40)) {
+        setProcessingStatus('failed');
+        setStatusMessage(
+          'SCANNED_PDF_NO_TEXT: Scanned or image-only PDF detected. Direct text extraction yielded insufficient selectable characters; Optical Character Recognition (OCR) is required.'
+        );
+        showNotification(
+          'SCANNED_PDF_NO_TEXT: Scanned or image-only PDF detected. Direct text extraction yielded insufficient selectable characters; Optical Character Recognition (OCR) is required.',
+          'error'
+        );
+        setIsUploading(false);
+        return;
+      }
+
+      // Step 4: Extract structured entities (with server AI or deterministic client engine)
+      setProcessingStatus('extracting_fields');
+      setStatusMessage('Extracting structured profile, experience, skills, education, and certifications...');
+      setUploadProgress(88);
+
+      const extracted = await extractResumeWithAiOrFallback(textResult.text, {
+        fileName: file.name,
+        objectKey: uploadedRecord.objectKey,
+      });
       setActiveExtractedData(extracted);
 
-      // Step 4: Compare with existing CMS data
-      setUploadProgress(90);
+      // Step 5: Compare with existing CMS data and validate fields
+      setProcessingStatus('validating_fields');
+      setStatusMessage('Comparing extracted entities against live CMS...');
+      setUploadProgress(95);
+
       const currentCmsSnapshot = {
         profile: cmsService.getProfile(),
         about: cmsService.getAboutSettings(),
@@ -188,7 +248,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
       const diff = generateResumeDiff(extracted, currentCmsSnapshot);
       setCurrentDiffItems(diff);
 
-      // Step 5: Create a new Version Record
+      // Step 6: Create and save extraction job
       const newVersionNumber = versions.length > 0 ? Math.max(...versions.map((v) => v.versionNumber)) + 1 : 1;
       const cleanBaseName = file.name.replace(/\.[^/.]+$/, '');
       const newVersionRecord: ResumeVersionRecord = {
@@ -221,12 +281,33 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
         console.warn('Version persistence notice:', verErr);
       }
 
+      const job: ExtractionJob = {
+        jobId: `job-${Date.now()}`,
+        fileId: uploadedRecord.fileId || `file_${Date.now()}`,
+        originalFileName: file.name,
+        objectKey: uploadedRecord.objectKey || '',
+        status: 'review_required',
+        progressStage: 'Review Required',
+        progressPercent: 100,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        retryCount: 0,
+        parserVersion: '2.0.0',
+        extractionEngineVersion: extracted.metadata?.detectedEngine || 'ai-worker',
+        rawTextLength: textResult.text.length,
+        isScanned: textResult.isScanned,
+        requiresOcr: textResult.requiresOcr,
+        extractedData: extracted,
+        diffItems: diff,
+      };
+      await cmsService.saveExtractionJob(job);
+
       setForm(uploadedRecord);
       onUpdate(uploadedRecord);
       setCurrentReviewVersion(newVersionRecord);
 
       setUploadProgress(100);
-      setProcessingStatus('awaiting_review');
+      setProcessingStatus('review_required');
       setStatusMessage(`Successfully extracted ${diff.length} fields. Ready for review.`);
       showNotification(`Uploaded & extracted ${diff.length} fields from "${file.name}".`, 'success');
 
@@ -238,7 +319,6 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
       setStatusMessage('Operation failed: ' + (err.message || 'Error'));
 
       if (uploadedRecord && uploadedRecord.objectKey) {
-        // Uploaded to R2 successfully but Firestore persistence failed -> offer retry
         setPendingMetadata(uploadedRecord);
         showNotification(
           `Resume stored in Cloudflare R2, but database synchronization failed. Click 'Retry Metadata Persistence' below.`,
@@ -387,18 +467,46 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
   };
 
   // Re-run extraction on current active resume
-  const handleExtractCurrentResume = async () => {
+  const handleRerunExtraction = async () => {
     setIsUploading(true);
-    setProcessingStatus('extracting');
+    setProcessingStatus('extracting_text');
     setStatusMessage('Re-extracting information from active document...');
+    setUploadProgress(20);
     try {
-      const res = await fetch(form.fileUrl);
-      const blob = await res.blob();
-      const file = new File([blob], form.fileName, { type: blob.type || 'application/pdf' });
+      let rawText = activeExtractedData?.rawText || '';
 
-      const rawText = await extractRawTextFromResume(file);
-      const extracted = extractResumeInformation(rawText);
+      if (!rawText && form.fileUrl) {
+        setStatusMessage('Fetching document from storage...');
+        const res = await fetch(form.fileUrl);
+        const blob = await res.blob();
+        const file = new File([blob], form.fileName, { type: blob.type || 'application/pdf' });
+        const textResult = await extractResumeTextAndMetadata(file);
+
+        if (textResult.requiresOcr && (!textResult.text || textResult.text.length < 40)) {
+          setProcessingStatus('failed');
+          showNotification(
+            'SCANNED_PDF_NO_TEXT: Scanned or image-only PDF detected. OCR is required to extract text from this document.',
+            'error'
+          );
+          setIsUploading(false);
+          return;
+        }
+        rawText = textResult.text;
+      }
+
+      setProcessingStatus('extracting_fields');
+      setStatusMessage('Extracting structured profile, experience, skills, and certifications...');
+      setUploadProgress(75);
+
+      const extracted = await extractResumeWithAiOrFallback(rawText, {
+        fileName: form.fileName,
+        objectKey: form.objectKey,
+      });
       setActiveExtractedData(extracted);
+
+      setProcessingStatus('validating_fields');
+      setStatusMessage('Validating extracted fields against live CMS...');
+      setUploadProgress(95);
 
       const currentCmsSnapshot = {
         profile: cmsService.getProfile(),
@@ -412,9 +520,30 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
 
       const diff = generateResumeDiff(extracted, currentCmsSnapshot);
       setCurrentDiffItems(diff);
-      setProcessingStatus('awaiting_review');
+
+      const job: ExtractionJob = {
+        jobId: `job-${Date.now()}`,
+        fileId: form.fileId || `file_${Date.now()}`,
+        originalFileName: form.fileName,
+        objectKey: form.objectKey || '',
+        status: 'review_required',
+        progressStage: 'Review Required',
+        progressPercent: 100,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        retryCount: 0,
+        parserVersion: '2.0.0',
+        extractionEngineVersion: extracted.metadata?.detectedEngine || 'ai-worker',
+        rawTextLength: rawText.length,
+        extractedData: extracted,
+        diffItems: diff,
+      };
+      await cmsService.saveExtractionJob(job);
+
+      setUploadProgress(100);
+      setProcessingStatus('review_required');
       setStatusMessage(`Extracted ${diff.length} fields. Comparison ready.`);
-      showNotification(`Extracted ${diff.length} fields from current document.`, 'success');
+      showNotification(`Re-extracted ${diff.length} fields from document.`, 'success');
       setActiveTab('review');
     } catch (err: any) {
       setProcessingStatus('failed');
@@ -422,8 +551,10 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
       showNotification('Extraction failed: ' + (err.message || 'Error'), 'error');
     } finally {
       setIsUploading(false);
+      setTimeout(() => setUploadProgress(0), 1000);
     }
   };
+  const handleExtractCurrentResume = handleRerunExtraction;
 
   // ==========================================
   // 2. REVIEW & APPROVAL ACTIONS
@@ -476,6 +607,21 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
     showNotification('All pending items rejected.', 'info');
   };
 
+  const handleRevertItem = (id: string) => {
+    setCurrentDiffItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              currentReviewValue: item.extractedValue,
+              status: item.category === 'unchanged' ? 'approved' : 'pending',
+            }
+          : item
+      )
+    );
+    showNotification('Field reverted to extracted document value.', 'info');
+  };
+
   const handleSaveReviewDraft = async () => {
     if (currentReviewVersion) {
       const updatedVersion: ResumeVersionRecord = {
@@ -485,10 +631,25 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
       };
       await cmsService.updateResumeVersion(updatedVersion);
       setCurrentReviewVersion(updatedVersion);
-      showNotification('Review draft saved successfully. Unapproved items were not published.', 'success');
-    } else {
-      showNotification('Review draft saved in local session.', 'info');
     }
+    const job: ExtractionJob = {
+      jobId: `job-${Date.now()}`,
+      fileId: form.fileId || `file_${Date.now()}`,
+      originalFileName: form.fileName,
+      objectKey: form.objectKey || '',
+      status: 'review_required',
+      progressStage: 'Review Draft Saved',
+      progressPercent: 100,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      retryCount: 0,
+      parserVersion: '2.0.0',
+      extractionEngineVersion: activeExtractedData?.metadata?.detectedEngine || 'deterministic-client',
+      diffItems: currentDiffItems,
+      extractedData: activeExtractedData || undefined,
+    };
+    await cmsService.saveExtractionJob(job);
+    showNotification('Review draft saved successfully. Unapproved items were not published.', 'success');
   };
 
   const handlePublishApproved = async () => {
@@ -515,6 +676,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
         setCurrentReviewVersion(updatedVersion);
       }
 
+      await cmsService.clearExtractionJob();
       setProcessingStatus('published');
       showNotification(
         `Successfully published ${updatedCount} approved fields to CMS central database!`,
@@ -610,6 +772,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
 
   const filteredDiffItems = currentDiffItems.filter((item) => {
     if (diffFilter !== 'all' && item.category !== diffFilter) return false;
+    if (reviewSectionTab !== 'all' && reviewSectionTab !== 'raw_evidence' && item.section !== reviewSectionTab) return false;
     if (sectionFilter !== 'all' && item.section !== sectionFilter) return false;
     return true;
   });
@@ -1451,6 +1614,43 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <button
                 type="button"
+                onClick={handleRerunExtraction}
+                disabled={isUploading}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  color: '#93C5FD',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: isUploading ? 'not-allowed' : 'pointer',
+                }}
+              >
+                <RefreshCw size={12} className={isUploading ? 'animate-spin' : ''} />
+                Re-run Extraction
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveReviewDraft}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.18)',
+                  color: '#FFFFFF',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Save Review Draft
+              </button>
+              <button
+                type="button"
                 onClick={() => handleApproveAll('new')}
                 style={{
                   padding: '7px 12px',
@@ -1500,105 +1700,189 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
             </div>
           </div>
 
+          {/* 8 Structured Section Tabs */}
           <div
             style={{
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-              flexWrap: 'wrap',
+              gap: '6px',
+              overflowX: 'auto',
+              paddingBottom: '4px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
             }}
           >
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => setDiffFilter('all')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  backgroundColor: diffFilter === 'all' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)',
-                  color: diffFilter === 'all' ? '#000000' : '#FFFFFF',
-                }}
-              >
-                All Fields ({currentDiffItems.length})
-              </button>
-              <button
-                onClick={() => setDiffFilter('new')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: '1px solid rgba(34, 197, 94, 0.3)',
-                  backgroundColor: diffFilter === 'new' ? 'rgba(34, 197, 94, 0.25)' : 'rgba(34, 197, 94, 0.08)',
-                  color: '#4ADE80',
-                }}
-              >
-                New Information ({countNew})
-              </button>
-              <button
-                onClick={() => setDiffFilter('changed')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: '1px solid rgba(234, 179, 8, 0.3)',
-                  backgroundColor: diffFilter === 'changed' ? 'rgba(234, 179, 8, 0.25)' : 'rgba(234, 179, 8, 0.08)',
-                  color: '#FACC15',
-                }}
-              >
-                Changed Information ({countChanged})
-              </button>
-              <button
-                onClick={() => setDiffFilter('unchanged')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  backgroundColor: diffFilter === 'unchanged' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                  color: '#9CA3AF',
-                }}
-              >
-                Unchanged ({countUnchanged})
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>Section:</span>
-              <select
-                value={sectionFilter}
-                onChange={(e) => setSectionFilter(e.target.value)}
-                style={{
-                  backgroundColor: '#0C0D12',
-                  border: '1px solid rgba(255, 255, 255, 0.14)',
-                  borderRadius: '6px',
-                  color: '#FFFFFF',
-                  padding: '5px 10px',
-                  fontSize: '12px',
-                }}
-              >
-                <option value="all">All Sections</option>
-                <option value="profile">Profile &amp; Contact</option>
-                <option value="summary">Professional Summary</option>
-                <option value="experience">Work Experience</option>
-                <option value="skills">Skills</option>
-                <option value="projects">Projects</option>
-                <option value="education">Education</option>
-                <option value="certifications">Certifications</option>
-              </select>
-            </div>
+            {[
+              { id: 'all', label: 'All Sections', count: currentDiffItems.length },
+              { id: 'profile', label: '1. Personal Info', count: currentDiffItems.filter((i) => i.section === 'profile').length },
+              { id: 'summary', label: '2. Summary', count: currentDiffItems.filter((i) => i.section === 'summary').length },
+              { id: 'experience', label: '3. Work Experience', count: currentDiffItems.filter((i) => i.section === 'experience').length },
+              { id: 'education', label: '4. Education', count: currentDiffItems.filter((i) => i.section === 'education').length },
+              { id: 'certifications', label: '5. Certifications', count: currentDiffItems.filter((i) => i.section === 'certifications').length },
+              { id: 'projects', label: '6. Projects', count: currentDiffItems.filter((i) => i.section === 'projects').length },
+              { id: 'skills', label: '7. Skills', count: currentDiffItems.filter((i) => i.section === 'skills').length },
+              { id: 'raw_evidence', label: '8. Document Text & Evidence', count: null },
+            ].map((tab) => {
+              const isActive = reviewSectionTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setReviewSectionTab(tab.id as any)}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    border: 'none',
+                    backgroundColor: isActive ? 'rgba(255, 255, 255, 0.14)' : 'transparent',
+                    color: isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.6)',
+                    borderBottom: isActive ? '2px solid #3B82F6' : '2px solid transparent',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {tab.label}
+                  {tab.count !== null && (
+                    <span
+                      style={{
+                        marginLeft: '6px',
+                        padding: '1px 6px',
+                        borderRadius: '10px',
+                        fontSize: '10.5px',
+                        backgroundColor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+                        color: isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.5)',
+                      }}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
-          {filteredDiffItems.length === 0 ? (
+          {/* Category Filter Pills (when not viewing raw text) */}
+          {reviewSectionTab !== 'raw_evidence' && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setDiffFilter('all')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    backgroundColor: diffFilter === 'all' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.05)',
+                    color: diffFilter === 'all' ? '#000000' : '#FFFFFF',
+                  }}
+                >
+                  All ({currentDiffItems.length})
+                </button>
+                <button
+                  onClick={() => setDiffFilter('new')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    border: '1px solid rgba(34, 197, 94, 0.3)',
+                    backgroundColor: diffFilter === 'new' ? 'rgba(34, 197, 94, 0.25)' : 'rgba(34, 197, 94, 0.08)',
+                    color: '#4ADE80',
+                  }}
+                >
+                  New Information ({countNew})
+                </button>
+                <button
+                  onClick={() => setDiffFilter('changed')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    border: '1px solid rgba(234, 179, 8, 0.3)',
+                    backgroundColor: diffFilter === 'changed' ? 'rgba(234, 179, 8, 0.25)' : 'rgba(234, 179, 8, 0.08)',
+                    color: '#FACC15',
+                  }}
+                >
+                  Changed Information ({countChanged})
+                </button>
+                <button
+                  onClick={() => setDiffFilter('unchanged')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    backgroundColor: diffFilter === 'unchanged' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                    color: '#9CA3AF',
+                  }}
+                >
+                  Unchanged ({countUnchanged})
+                </button>
+              </div>
+
+              <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>
+                Showing {filteredDiffItems.length} items
+              </div>
+            </div>
+          )}
+
+          {/* TAB 8 CONTENT: RAW EVIDENCE & DOCUMENT TEXT VIEWER */}
+          {reviewSectionTab === 'raw_evidence' ? (
+            <div
+              style={{
+                backgroundColor: 'rgba(18, 18, 22, 0.75)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                padding: '20px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#FFFFFF', margin: 0 }}>
+                  Document Raw Text & Extraction Metadata
+                </h4>
+                <div style={{ display: 'flex', gap: '8px', fontSize: '11.5px', color: 'rgba(255, 255, 255, 0.6)' }}>
+                  <span>Engine: <strong style={{ color: '#93C5FD' }}>{activeExtractedData?.metadata?.detectedEngine || 'Deterministic'}</strong></span>
+                  <span>&bull;</span>
+                  <span>Length: <strong style={{ color: '#FFFFFF' }}>{activeExtractedData?.rawText?.length || 0} chars</strong></span>
+                  <span>&bull;</span>
+                  <span>Scanned: <strong style={{ color: activeExtractedData?.metadata?.isScanned ? '#F87171' : '#4ADE80' }}>{activeExtractedData?.metadata?.isScanned ? 'Yes (OCR Needed)' : 'No (Selectable Text)'}</strong></span>
+                </div>
+              </div>
+
+              <pre
+                style={{
+                  backgroundColor: '#090A0F',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '6px',
+                  padding: '16px',
+                  color: '#D1D5DB',
+                  fontSize: '12px',
+                  lineHeight: 1.6,
+                  fontFamily: 'monospace',
+                  whiteSpace: 'pre-wrap',
+                  maxHeight: '450px',
+                  overflowY: 'auto',
+                }}
+              >
+                {activeExtractedData?.rawText || 'No raw document text available for this session.'}
+              </pre>
+            </div>
+          ) : filteredDiffItems.length === 0 ? (
             <div
               style={{
                 backgroundColor: 'rgba(18, 18, 22, 0.5)',
@@ -1618,6 +1902,8 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
                 const isChanged = item.category === 'changed';
                 const isApproved = item.status === 'approved' || item.status === 'edited';
                 const isRejected = item.status === 'rejected';
+                const isHighConfidence = item.confidence >= 0.9;
+                const isMedConfidence = item.confidence >= 0.75 && item.confidence < 0.9;
                 const isLowConfidence = item.confidence < 0.75;
 
                 return (
@@ -1674,31 +1960,51 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
                         </span>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        {isLowConfidence && (
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              padding: '2px 7px',
-                              borderRadius: '4px',
-                              backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                              color: '#F87171',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <AlertTriangle size={11} /> Low Confidence
-                          </span>
-                        )}
-                        <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)' }}>
-                          Confidence: {(item.confidence * 100).toFixed(0)}%
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontWeight: 600,
+                            backgroundColor: isHighConfidence
+                              ? 'rgba(34, 197, 94, 0.15)'
+                              : isMedConfidence
+                              ? 'rgba(234, 179, 8, 0.15)'
+                              : 'rgba(239, 68, 68, 0.15)',
+                            color: isHighConfidence ? '#4ADE80' : isMedConfidence ? '#FACC15' : '#F87171',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          {isLowConfidence && <AlertTriangle size={11} />}
+                          {(item.confidence * 100).toFixed(0)}% Confidence
                         </span>
                         <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.4)' }}>
                           &bull; {item.source}
                         </span>
                       </div>
                     </div>
+
+                    {/* Source Evidence Snippet */}
+                    {(item.evidence || item.source) && (
+                      <div
+                        style={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                          borderLeft: '3px solid #3B82F6',
+                          borderRadius: '0 4px 4px 0',
+                          padding: '6px 12px',
+                          marginBottom: '12px',
+                          fontSize: '12px',
+                          color: 'rgba(255, 255, 255, 0.7)',
+                          fontStyle: 'italic',
+                        }}
+                      >
+                        <span style={{ fontWeight: 600, fontStyle: 'normal', color: '#93C5FD', marginRight: '6px' }}>Source Evidence:</span>
+                        &ldquo;{item.evidence || item.source}&rdquo;
+                      </div>
+                    )}
 
                     {item.conflictWarning && (
                       <div
@@ -1908,6 +2214,25 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
                         >
                           <Edit2 size={11} /> Edit
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRevertItem(item.id)}
+                          title="Revert to original extracted document value"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            fontSize: '11.5px',
+                            cursor: 'pointer',
+                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                            color: 'rgba(255, 255, 255, 0.75)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                          }}
+                        >
+                          <RotateCcw size={11} /> Revert
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -1936,7 +2261,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
           >
             <div>
               <div style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF' }}>
-                {countApproved} of {currentDiffItems.length} Fields Approved
+                {countApproved} of {currentDiffItems.length} Fields Approved ({countNew} New, {countChanged} Changed)
               </div>
               <div style={{ fontSize: '11.5px', color: 'rgba(255, 255, 255, 0.6)' }}>
                 Approved fields will be merged safely into existing Firestore models without replacing intact records.

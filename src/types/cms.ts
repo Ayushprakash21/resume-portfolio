@@ -389,10 +389,48 @@ export interface ResumeGeneratorSettings {
   updatedAt?: string;
 }
 
+export type ExtractionJobStatus =
+  | 'selected'
+  | 'validating'
+  | 'uploading'
+  | 'uploaded'
+  | 'queued'
+  | 'extracting_text'
+  | 'extracting_fields'
+  | 'validating_fields'
+  | 'review_required'
+  | 'approved'
+  | 'published'
+  | 'failed'
+  | 'cancelled';
+
+export interface ExtractionJob {
+  jobId: string;
+  fileId: string;
+  originalFileName: string;
+  objectKey: string;
+  status: ExtractionJobStatus;
+  progressStage: string;
+  progressPercent: number;
+  createdAt: string;
+  updatedAt: string;
+  retryCount: number;
+  errorCode?: string;
+  errorMessage?: string;
+  parserVersion: string;
+  extractionEngineVersion: string;
+  rawTextLength?: number;
+  isScanned?: boolean;
+  requiresOcr?: boolean;
+  extractedData?: ExtractedResumeData;
+  diffItems?: ResumeDiffItem[];
+}
+
 export interface ExtractedResumeField<T = string> {
   value: T;
   confidence: number;
   source: string;
+  evidence?: string;
 }
 
 export interface ExtractedResumeData {
@@ -405,13 +443,16 @@ export interface ExtractedResumeData {
     linkedinUrl?: ExtractedResumeField;
     githubUrl?: ExtractedResumeField;
     portfolioUrl?: ExtractedResumeField;
+    otherUrls?: ExtractedResumeField<string[]>;
   };
   summary?: ExtractedResumeField;
+  objective?: ExtractedResumeField;
   skills: {
     category: string;
     skills: string[];
     confidence: number;
     source: string;
+    evidence?: string;
   }[];
   experience: {
     id?: string;
@@ -426,8 +467,10 @@ export interface ExtractedResumeData {
     responsibilities: string[];
     achievements: string[];
     skillsUsed: string[];
+    technologies?: string[];
     confidence: number;
     source: string;
+    evidence?: string;
     conflictWarning?: string;
   }[];
   projects: {
@@ -435,37 +478,52 @@ export interface ExtractedResumeData {
     name: string;
     subtitle?: string;
     description: string;
+    role?: string;
     technologies: string[];
     features: string[];
+    achievements?: string[];
     projectUrl?: string;
+    organization?: string;
     startDate?: string;
     endDate?: string;
     confidence: number;
     source: string;
+    evidence?: string;
   }[];
   education: {
     id?: string;
     institution: string;
     degree: string;
     fieldOfStudy: string;
+    location?: string;
     startYear?: string;
     endYear?: string;
     grade?: string;
     confidence: number;
     source: string;
+    evidence?: string;
   }[];
   certifications: {
     id?: string;
     title: string;
     issuer: string;
+    issueDate?: string;
     completionDate: string;
     expiryDate?: string;
     credentialId?: string;
     verificationUrl?: string;
     confidence: number;
     source: string;
+    evidence?: string;
   }[];
   rawText?: string;
+  metadata?: {
+    pageCount?: number;
+    wordCount?: number;
+    isScanned?: boolean;
+    requiresOcr?: boolean;
+    detectedEngine?: 'ai-worker' | 'deterministic-client' | 'fallback';
+  };
 }
 
 export interface ResumeDiffItem {
@@ -480,8 +538,10 @@ export interface ResumeDiffItem {
   status: 'pending' | 'approved' | 'rejected' | 'edited';
   confidence: number;
   source: string;
+  evidence?: string;
   recordId?: string;
   conflictWarning?: string;
+  structuredRecord?: any;
 }
 
 export interface ResumeAuditEntry {

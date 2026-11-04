@@ -29,7 +29,8 @@ import {
   ResumeVersionRecord,
   ResumeAuditEntry,
   IssuerRecord,
-} from '../types/cms';
+  ExtractionJob,
+} from '../types/cms.ts';
 import { VERIFIED_ISSUERS_DIRECTORY } from './issuerService';
 import { LinkedInImportAudit, LinkedInParsedRecord } from '../types/linkedin';
 import {
@@ -77,6 +78,7 @@ const STORAGE_KEYS = {
   resumeAudit: 'ayush_cms_resume_audit_v1',
   linkedinAudit: 'ayush_cms_linkedin_audit_v1',
   issuers: 'ayush_cms_issuers_v1',
+  extractionJob: 'ayush_cms_extraction_job_v1',
 };
 
 function safeStorageGet<T>(key: string, fallback: T): T {
@@ -96,6 +98,15 @@ function safeStorageSet(key: string, value: any): void {
     window.localStorage.setItem(key, JSON.stringify(value));
   } catch {
     // quota exceeded or private mode
+  }
+}
+
+function safeStorageRemove(key: string): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // ignore
   }
 }
 
@@ -126,6 +137,7 @@ interface CmsStore {
   media: MediaAsset[];
   siteSettings: SiteSettings;
   messages: ContactMessage[];
+  extractionJob: ExtractionJob | null;
 }
 
 function initCertifications(): CertificationRecord[] {
@@ -207,6 +219,7 @@ const store: CmsStore = {
   media: safeStorageGet(STORAGE_KEYS.media, DEFAULT_MEDIA_ASSETS),
   siteSettings: safeStorageGet(STORAGE_KEYS.settings, DEFAULT_SITE_SETTINGS),
   messages: safeStorageGet(STORAGE_KEYS.messages, DEFAULT_CONTACT_MESSAGES),
+  extractionJob: safeStorageGet<ExtractionJob | null>(STORAGE_KEYS.extractionJob, null),
 };
 
 // Global reactive subscribers
@@ -538,6 +551,33 @@ function initFirestoreSync() {
     } catch {
       // ignore
     }
+
+    // 15. Active Extraction Job
+    try {
+      const unsubExtractionJob = onSnapshot(
+        doc(db, 'settings', 'extractionJob'),
+        (snap) => {
+          if (snap.exists()) {
+            const data = snap.data() as ExtractionJob;
+            store.extractionJob = data;
+            safeStorageSet(STORAGE_KEYS.extractionJob, data);
+            notifyListeners();
+          } else {
+            if (store.extractionJob) {
+              store.extractionJob = null;
+              safeStorageRemove(STORAGE_KEYS.extractionJob);
+              notifyListeners();
+            }
+          }
+        },
+        () => {
+          // ignore
+        }
+      );
+      activeUnsubscribers.push(unsubExtractionJob);
+    } catch {
+      // ignore
+    }
   } catch (err) {
     console.warn('[CMS Firestore] Initialization notice:', err);
   }
@@ -618,10 +658,10 @@ export const cmsService = {
     if (db) {
       await setDoc(
         doc(db, 'profile', 'main'),
-        {
+        sanitizeForFirestore({
           draft: draftPayload,
           updatedAt: new Date().toISOString(),
-        },
+        }),
         { merge: true }
       );
     }
@@ -637,7 +677,7 @@ export const cmsService = {
     if (db) {
       await setDoc(
         doc(db, 'profile', 'main'),
-        { draft: null, updatedAt: new Date().toISOString() },
+        sanitizeForFirestore({ draft: null, updatedAt: new Date().toISOString() }),
         { merge: true }
       );
     }
@@ -697,7 +737,7 @@ export const cmsService = {
     if (db) {
       await setDoc(
         doc(db, 'settings', 'about'),
-        { draft: draftPayload, updatedAt: new Date().toISOString() },
+        sanitizeForFirestore({ draft: draftPayload, updatedAt: new Date().toISOString() }),
         { merge: true }
       );
     }
@@ -710,7 +750,7 @@ export const cmsService = {
     if (db) {
       await setDoc(
         doc(db, 'settings', 'about'),
-        { draft: null, updatedAt: new Date().toISOString() },
+        sanitizeForFirestore({ draft: null, updatedAt: new Date().toISOString() }),
         { merge: true }
       );
     }
@@ -743,7 +783,7 @@ export const cmsService = {
     };
 
     if (db) {
-      await setDoc(doc(db, 'experiences', newRecord.id), newRecord);
+      await setDoc(doc(db, 'experiences', newRecord.id), sanitizeForFirestore(newRecord));
     }
 
     store.experiences.unshift(newRecord);
@@ -760,7 +800,7 @@ export const cmsService = {
     };
 
     if (db) {
-      await updateDoc(doc(db, 'experiences', id), payload as any);
+      await updateDoc(doc(db, 'experiences', id), sanitizeForFirestore(payload) as any);
     }
 
     const idx = store.experiences.findIndex((e) => e.id === id);
@@ -833,7 +873,7 @@ export const cmsService = {
     };
 
     if (db) {
-      await setDoc(doc(db, 'projects', newRecord.id), newRecord);
+      await setDoc(doc(db, 'projects', newRecord.id), sanitizeForFirestore(newRecord));
     }
 
     store.projects.push(newRecord);
@@ -850,7 +890,7 @@ export const cmsService = {
     };
 
     if (db) {
-      await updateDoc(doc(db, 'projects', id), payload as any);
+      await updateDoc(doc(db, 'projects', id), sanitizeForFirestore(payload) as any);
     }
 
     const idx = store.projects.findIndex((p) => p.id === id);
@@ -923,7 +963,7 @@ export const cmsService = {
     };
 
     if (db) {
-      await setDoc(doc(db, 'certifications', newRecord.id), newRecord);
+      await setDoc(doc(db, 'certifications', newRecord.id), sanitizeForFirestore(newRecord));
     }
 
     if (newRecord.issuer && newRecord.issuerLogo) {
@@ -953,7 +993,7 @@ export const cmsService = {
     };
 
     if (db) {
-      await updateDoc(doc(db, 'certifications', id), payload as any);
+      await updateDoc(doc(db, 'certifications', id), sanitizeForFirestore(payload) as any);
     }
 
     const idx = store.certifications.findIndex((c) => c.id === id);
@@ -1028,7 +1068,7 @@ export const cmsService = {
     };
 
     if (db) {
-      await setDoc(doc(db, 'issuers', record.id), record);
+      await setDoc(doc(db, 'issuers', record.id), sanitizeForFirestore(record));
     }
 
     const existingIdx = store.issuers.findIndex((iss) => iss.id === record.id || iss.issuerName.toLowerCase() === record.issuerName.toLowerCase());
@@ -1056,7 +1096,7 @@ export const cmsService = {
     };
 
     if (db) {
-      await setDoc(doc(db, 'skills', newRecord.id), newRecord);
+      await setDoc(doc(db, 'skills', newRecord.id), sanitizeForFirestore(newRecord));
     }
 
     store.skills.push(newRecord);
@@ -1072,7 +1112,7 @@ export const cmsService = {
     };
 
     if (db) {
-      await updateDoc(doc(db, 'skills', id), payload as any);
+      await updateDoc(doc(db, 'skills', id), sanitizeForFirestore(payload) as any);
     }
 
     const idx = store.skills.findIndex((s) => s.id === id);
@@ -1119,7 +1159,7 @@ export const cmsService = {
     };
 
     if (db) {
-      await setDoc(doc(db, 'education', newRecord.id), newRecord);
+      await setDoc(doc(db, 'education', newRecord.id), sanitizeForFirestore(newRecord));
     }
 
     store.education.push(newRecord);
@@ -1135,7 +1175,7 @@ export const cmsService = {
     };
 
     if (db) {
-      await updateDoc(doc(db, 'education', id), payload as any);
+      await updateDoc(doc(db, 'education', id), sanitizeForFirestore(payload) as any);
     }
 
     const idx = store.education.findIndex((e) => e.id === id);
@@ -1166,11 +1206,11 @@ export const cmsService = {
 
   async publishHomepageSettings(settings: HomepageSettings): Promise<void> {
     if (db) {
-      await setDoc(doc(db, 'settings', 'homepage'), {
+      await setDoc(doc(db, 'settings', 'homepage'), sanitizeForFirestore({
         ...settings,
         draft: null,
         updatedAt: new Date().toISOString(),
-      });
+      }));
     }
 
     store.homepage = settings;
@@ -1183,7 +1223,7 @@ export const cmsService = {
     if (db) {
       await setDoc(
         doc(db, 'settings', 'homepage'),
-        { draft, updatedAt: new Date().toISOString() },
+        sanitizeForFirestore({ draft, updatedAt: new Date().toISOString() }),
         { merge: true }
       );
     }
@@ -1206,11 +1246,11 @@ export const cmsService = {
 
   async publishOpenToWorkSettings(settings: OpenToWorkSettings): Promise<void> {
     if (db) {
-      await setDoc(doc(db, 'settings', 'openToWork'), {
+      await setDoc(doc(db, 'settings', 'openToWork'), sanitizeForFirestore({
         ...settings,
         draft: null,
         updatedAt: new Date().toISOString(),
-      });
+      }));
     }
 
     store.openToWork = settings;
@@ -1223,7 +1263,7 @@ export const cmsService = {
     if (db) {
       await setDoc(
         doc(db, 'settings', 'openToWork'),
-        { draft, updatedAt: new Date().toISOString() },
+        sanitizeForFirestore({ draft, updatedAt: new Date().toISOString() }),
         { merge: true }
       );
     }
@@ -1557,25 +1597,16 @@ export const cmsService = {
     buttonText?: string,
     onProgress?: (percent: number) => void
   ): Promise<ResumeRecord> {
-    let meta: any = null;
-    try {
-      meta = await storageClient.uploadFile(file, {
-        category: 'resumes',
-        visibility: 'private',
-        onProgress,
-      });
-    } catch (err) {
-      console.warn('[CMS Storage] R2 upload error, falling back:', err);
-    }
+    const meta = await storageClient.uploadFile(file, {
+      category: 'resumes',
+      visibility: 'private',
+      onProgress,
+    });
 
-    const fileUrl =
-      meta?.secureUrl ||
-      meta?.publicUrl ||
-      (await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      }));
+    const fileUrl = meta?.secureUrl || meta?.publicUrl;
+    if (!fileUrl) {
+      throw new Error('Upload succeeded but storage provider did not return a valid file URL.');
+    }
 
     const current = this.getResumeRecord();
     const cleanBaseName = file.name.replace(/\.[^/.]+$/, '');
@@ -1909,5 +1940,36 @@ export const cmsService = {
       isUsed: usedIn.length > 0,
       usedIn,
     };
+  },
+
+  // ================= EXTRACTION JOB =================
+  getActiveExtractionJob(): ExtractionJob | null {
+    return store.extractionJob || null;
+  },
+
+  async saveExtractionJob(job: ExtractionJob): Promise<void> {
+    store.extractionJob = job;
+    safeStorageSet(STORAGE_KEYS.extractionJob, job);
+    if (db) {
+      try {
+        await setDoc(doc(db, 'settings', 'extractionJob'), sanitizeForFirestore(job));
+      } catch (err) {
+        console.warn('[CMS Firestore] extractionJob write warning:', err);
+      }
+    }
+    notifyListeners();
+  },
+
+  async clearExtractionJob(): Promise<void> {
+    store.extractionJob = null;
+    safeStorageRemove(STORAGE_KEYS.extractionJob);
+    if (db) {
+      try {
+        await deleteDoc(doc(db, 'settings', 'extractionJob'));
+      } catch (err) {
+        console.warn('[CMS Firestore] extractionJob clear warning:', err);
+      }
+    }
+    notifyListeners();
   },
 };

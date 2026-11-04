@@ -10,7 +10,7 @@ import {
   UnderlineType,
   BorderStyle,
 } from 'docx';
-import {
+import type {
   ProfileData,
   AboutSectionSettings,
   ExperienceRecord,
@@ -19,7 +19,7 @@ import {
   EducationRecord,
   CertificationRecord,
   ResumeGeneratorSettings,
-} from '../types/cms';
+} from '../types/cms.ts';
 
 export interface ATSResumeData {
   fullName: string;

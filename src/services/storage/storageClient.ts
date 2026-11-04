@@ -98,15 +98,15 @@ class StorageClient {
       };
 
       xhr.onerror = () => {
-        // Fallback resilience: If backend is temporarily unreachable, create a local data URL
-        // while preserving clear notice and metadata for subsequent sync
-        console.warn('[StorageClient] Network upload error, engaging client data-URL fallback.');
-        this.fallbackDataUrlUpload(file, cleanFileName, category, visibility)
-          .then((fallbackMeta) => {
-            options.onProgress?.(100);
-            resolve(fallbackMeta);
-          })
-          .catch((fallbackErr) => reject(fallbackErr));
+        reject(
+          new Error(
+            'Network error: Failed to reach Cloudflare R2 storage endpoint. Please check authentication and network connection.'
+          )
+        );
+      };
+
+      xhr.ontimeout = () => {
+        reject(new Error('Upload timeout: File upload to Cloudflare R2 exceeded the maximum request duration.'));
       };
 
       xhr.send(formData);
@@ -218,11 +218,28 @@ class StorageClient {
   }
 
   /**
-   * Verifies that a given R2 URL or key is accessible and returns HTTP 200
+   * Verifies that a given R2 URL or key is accessible and exists in storage
    */
   public async verifyFile(urlOrKey: string): Promise<boolean> {
     if (!urlOrKey) return false;
     if (urlOrKey.startsWith('data:')) return true;
+
+    if (!urlOrKey.startsWith('http') && !urlOrKey.startsWith('/api')) {
+      try {
+        const verifyRes = await fetch('/api/storage/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ objectKey: urlOrKey }),
+        });
+        if (verifyRes.ok) {
+          const verifyData = await verifyRes.json();
+          if (verifyData.success && verifyData.verified) return true;
+        }
+      } catch {
+        // Fallback to HEAD check
+      }
+    }
 
     const url = urlOrKey.startsWith('/') || urlOrKey.startsWith('http')
       ? urlOrKey

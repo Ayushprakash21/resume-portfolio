@@ -9,6 +9,7 @@ export interface StorageEnv {
   PORTFOLIO_ASSETS?: any; // Cloudflare R2Bucket binding
   ADMIN_PASSWORD?: string;
   ADMIN_SESSION_SECRET?: string;
+  GEMINI_API_KEY?: string;
 }
 
 export interface Env extends StorageEnv {}
@@ -251,8 +252,9 @@ export async function handleStorageRequest(request: Request, env: StorageEnv): P
       const randomSuffix = crypto.randomUUID().slice(0, 8);
       const objectKey = `${visibility}/${cleanCategory}/${Date.now()}_${randomSuffix}_${cleanFileName}`;
       const contentType = file.type || 'application/octet-stream';
+      const fileBuffer = await file.arrayBuffer();
 
-      await r2.put(objectKey, file.stream(), {
+      await r2.put(objectKey, fileBuffer, {
         httpMetadata: { contentType },
         customMetadata: {
           originalName: cleanFileName,
@@ -294,6 +296,60 @@ export async function handleStorageRequest(request: Request, env: StorageEnv): P
       console.error('[Worker R2] Upload error:', err);
       return new Response(
         JSON.stringify({ success: false, error: err.message || 'Storage upload error.' }),
+        { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+  }
+
+  // 2.5 STORAGE VERIFY ENDPOINT (ADMIN ONLY)
+  if (pathname === '/api/storage/verify' && request.method === 'POST') {
+    const auth = await authenticateAdmin(request, env);
+    if (!auth.authorized) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized: Admin authentication required.' }),
+        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    if (!r2) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'R2 storage binding unavailable.' }),
+        { status: 503, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    try {
+      const body = (await request.json()) as { objectKey?: string };
+      if (!body.objectKey) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Missing objectKey parameter.' }),
+          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+
+      const head = await r2.head(body.objectKey);
+      if (!head) {
+        return new Response(
+          JSON.stringify({ success: false, verified: false, error: 'Object not found in R2 storage.' }),
+          { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          verified: true,
+          objectKey: body.objectKey,
+          sizeBytes: head.size,
+          contentType: head.httpMetadata?.contentType,
+          uploadedAt: head.customMetadata?.uploadedAt,
+          etag: head.httpEtag,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    } catch (err: any) {
+      return new Response(
+        JSON.stringify({ success: false, error: err.message }),
         { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
@@ -650,6 +706,119 @@ export default {
             error: 'Public registration is disabled. Administrator accounts are strictly controlled.',
           }),
           { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+    }
+
+    // ==========================================
+    // 5. SERVER-SIDE RESUME EXTRACTION API (ADMIN ONLY)
+    // ==========================================
+    if (url.pathname === '/api/admin/resume/extract' && request.method === 'POST') {
+      const auth = await authenticateAdmin(request, env);
+      if (!auth.authorized) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Unauthorized: Admin authentication required for extraction.' }),
+          {
+            status: 401,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': url.origin,
+              'Access-Control-Allow-Credentials': 'true',
+            },
+          }
+        );
+      }
+
+      try {
+        const body = (await request.json()) as { rawText?: string; fileName?: string };
+        const rawText = body.rawText || '';
+
+        // If Gemini API Key is configured in environment, call Gemini structured output
+        if (env.GEMINI_API_KEY && rawText.trim().length > 50) {
+          try {
+            const prompt = `Extract all structured resume data from the following resume text into strict JSON format with fields:
+personalInfo: { fullName, headline, email, phone, location, linkedinUrl, githubUrl, portfolioUrl },
+summary: string,
+objective: string,
+experience: array of { jobTitle, employer, location, employmentType, startDate, endDate, isCurrent, responsibilities (array), achievements (array), skillsUsed (array) },
+education: array of { institution, degree, fieldOfStudy, location, startYear, endYear, grade },
+certifications: array of { title, issuer, issueDate, expiryDate, credentialId, verificationUrl },
+projects: array of { name, description, role, technologies (array), achievements (array), projectUrl },
+skills: array of { category, skills (array) }.
+Do NOT fabricate dates or companies. Return ONLY valid JSON.
+
+Resume text:
+${rawText.slice(0, 30000)}`;
+
+            const aiRes = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_API_KEY}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: prompt }] }],
+                  generationConfig: {
+                    responseMimeType: 'application/json',
+                    temperature: 0.1,
+                  },
+                }),
+              }
+            );
+
+            if (aiRes.ok) {
+              const aiData = await aiRes.json();
+              const candidateText = aiData?.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (candidateText) {
+                const parsed = JSON.parse(candidateText);
+                return new Response(
+                  JSON.stringify({
+                    success: true,
+                    engine: 'gemini-ai',
+                    extracted: parsed,
+                  }),
+                  {
+                    status: 200,
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Access-Control-Allow-Origin': url.origin,
+                      'Access-Control-Allow-Credentials': 'true',
+                    },
+                  }
+                );
+              }
+            }
+          } catch (aiErr: any) {
+            console.warn('[Worker AI Extraction] Gemini call failed, falling back:', aiErr);
+          }
+        }
+
+        // Signal client to use local deterministic extraction engine
+        return new Response(
+          JSON.stringify({
+            success: false,
+            fallbackToLocal: true,
+            message: 'AI environment variable not configured or reached quota; use local deterministic extraction engine.',
+          }),
+          {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': url.origin,
+              'Access-Control-Allow-Credentials': 'true',
+            },
+          }
+        );
+      } catch (err: any) {
+        return new Response(
+          JSON.stringify({ success: false, error: err.message }),
+          {
+            status: 500,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': url.origin,
+              'Access-Control-Allow-Credentials': 'true',
+            },
+          }
         );
       }
     }

@@ -16,40 +16,40 @@ import {
   DEFAULT_CERTIFICATIONS,
 } from '../src/data/seedData.ts';
 
-test('1. File Validation: accepts valid PDF, DOCX, DOC and denies unsupported files', () => {
+test('1. File Validation: accepts valid PDF, DOCX, DOC and denies unsupported files', async () => {
   // Valid PDF
   const pdfFile = { name: 'Ayush_Prakash_CV.pdf', size: 1024 * 500 };
-  const pdfVal = validateResumeFile(pdfFile);
+  const pdfVal = await validateResumeFile(pdfFile);
   assert.equal(pdfVal.isValid, true);
   assert.equal(pdfVal.fileType, 'pdf');
 
   // Valid DOCX
   const docxFile = { name: 'Ayush_Resume.docx', size: 1024 * 300 };
-  const docxVal = validateResumeFile(docxFile);
+  const docxVal = await validateResumeFile(docxFile);
   assert.equal(docxVal.isValid, true);
   assert.equal(docxVal.fileType, 'docx');
 
   // Valid DOC
   const docFile = { name: 'Ayush_Resume.doc', size: 1024 * 300 };
-  const docVal = validateResumeFile(docFile);
+  const docVal = await validateResumeFile(docFile);
   assert.equal(docVal.isValid, true);
   assert.equal(docVal.fileType, 'doc');
 
   // Unsupported TXT / EXE
   const txtFile = { name: 'resume.txt', size: 1024 };
-  const txtVal = validateResumeFile(txtFile);
+  const txtVal = await validateResumeFile(txtFile);
   assert.equal(txtVal.isValid, false);
   assert.ok(txtVal.error?.includes('Unsupported file format'));
 
   // Oversized file (> 20 MB)
   const hugeFile = { name: 'huge_resume.pdf', size: 25 * 1024 * 1024 };
-  const hugeVal = validateResumeFile(hugeFile);
+  const hugeVal = await validateResumeFile(hugeFile);
   assert.equal(hugeVal.isValid, false);
   assert.ok(hugeVal.error?.includes('exceeds the maximum allowed limit'));
 
   // Empty file (0 bytes)
   const emptyFile = { name: 'empty.pdf', size: 0 };
-  const emptyVal = validateResumeFile(emptyFile);
+  const emptyVal = await validateResumeFile(emptyFile);
   assert.equal(emptyVal.isValid, false);
   assert.ok(emptyVal.error?.includes('empty'));
 });
@@ -229,4 +229,130 @@ test('4. Safe CMS Update: applies only approved fields, preserves unapproved fie
   assert.equal(result.auditEntry.approvedFieldsCount, 1);
   assert.equal(result.auditEntry.rejectedFieldsCount, 1);
   assert.ok(result.auditEntry.details.includes('Approved New Headline 2026'));
+});
+
+test('5. Multi-Section Diff Application: successfully applies Experience, Education, Certifications, and Projects', async () => {
+  const experiences = [];
+  const educations = [];
+  const certs = [];
+  const projs = [];
+
+  const mockCmsService = {
+    getProfile: () => ({ ...DEFAULT_PROFILE }),
+    publishProfile: async () => {},
+    getAboutSettings: () => ({ ...DEFAULT_ABOUT_SETTINGS }),
+    publishAboutSettings: async () => {},
+    getSkills: () => [...DEFAULT_SKILLS],
+    addSkill: async () => {},
+    getExperiences: () => experiences,
+    addExperience: async (e) => { experiences.push(e); },
+    updateExperience: async () => {},
+    getEducation: () => educations,
+    addEducation: async (e) => { educations.push(e); },
+    updateEducation: async () => {},
+    getCertifications: () => certs,
+    addCertification: async (c) => { certs.push(c); },
+    updateCertification: async () => {},
+    getProjects: () => projs,
+    addProject: async (p) => { projs.push(p); },
+    updateProject: async () => {},
+  };
+
+  const diffItems = [
+    {
+      id: 'diff-exp-1',
+      section: 'experience',
+      field: 'new_experience',
+      label: 'New Experience',
+      category: 'new',
+      existingValue: null,
+      extractedValue: 'Senior AI Engineer at NeuralCorp',
+      currentReviewValue: 'Senior AI Engineer at NeuralCorp',
+      status: 'approved',
+      confidence: 0.95,
+      source: 'Work Experience',
+      structuredRecord: {
+        jobTitle: 'Senior AI Engineer',
+        employer: 'NeuralCorp',
+        startDate: 'Jan 2024',
+        endDate: 'Present',
+        isCurrent: true,
+        responsibilities: ['Architected multi-agent orchestration'],
+      },
+    },
+    {
+      id: 'diff-edu-1',
+      section: 'education',
+      field: 'new_education',
+      label: 'New Education',
+      category: 'new',
+      existingValue: null,
+      extractedValue: 'Master of Science in Artificial Intelligence',
+      currentReviewValue: 'Master of Science in Artificial Intelligence',
+      status: 'approved',
+      confidence: 0.93,
+      source: 'Education',
+      structuredRecord: {
+        institution: 'Stanford University',
+        degree: 'Master of Science',
+        fieldOfStudy: 'Artificial Intelligence',
+        startYear: '2024',
+        endYear: '2026',
+      },
+    },
+    {
+      id: 'diff-cert-1',
+      section: 'certifications',
+      field: 'new_certification',
+      label: 'New Certification',
+      category: 'new',
+      existingValue: null,
+      extractedValue: 'AWS Certified Solutions Architect',
+      currentReviewValue: 'AWS Certified Solutions Architect',
+      status: 'approved',
+      confidence: 0.96,
+      source: 'Certifications',
+      structuredRecord: {
+        title: 'AWS Certified Solutions Architect',
+        issuer: 'Amazon Web Services',
+        completionDate: '2024',
+      },
+    },
+    {
+      id: 'diff-proj-1',
+      section: 'projects',
+      field: 'new_project',
+      label: 'New Project',
+      category: 'new',
+      existingValue: null,
+      extractedValue: 'Autonomous Supply Flow Engine',
+      currentReviewValue: 'Autonomous Supply Flow Engine',
+      status: 'approved',
+      confidence: 0.91,
+      source: 'Projects',
+      structuredRecord: {
+        name: 'Autonomous Supply Flow Engine',
+        description: 'Real-time telemetry and disruption recovery',
+        technologies: ['TypeScript', 'Cloudflare Workers', 'Python'],
+        features: ['Automated re-routing', 'SLA breach alerts'],
+      },
+    },
+  ];
+
+  const result = await applyApprovedDiffItems(diffItems, mockCmsService, 3, 'Comprehensive_CV.pdf');
+
+  assert.equal(result.updatedCount, 4);
+  assert.equal(experiences.length, 1);
+  assert.equal(experiences[0].jobTitle, 'Senior AI Engineer');
+  assert.equal(experiences[0].employer, 'NeuralCorp');
+
+  assert.equal(educations.length, 1);
+  assert.equal(educations[0].institution, 'Stanford University');
+
+  assert.equal(certs.length, 1);
+  assert.equal(certs[0].title, 'AWS Certified Solutions Architect');
+
+  assert.equal(projs.length, 1);
+  assert.equal(projs[0].name, 'Autonomous Supply Flow Engine');
+  assert.ok(projs[0].technologyStack.includes('Cloudflare Workers'));
 });
