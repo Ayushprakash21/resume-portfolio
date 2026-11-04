@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowUpRight, ArrowDown, Menu, X } from 'lucide-react';
+import { ArrowUpRight, ArrowDown } from 'lucide-react';
 import { ProfileData, HomepageSettings } from '../../types/cms';
 import { ApMonogram } from '../brand/ApMonogram';
 import { HeroSignature } from '../brand/HeroSignature';
 import { SpecularButton } from '../reactbits';
+import { NavbarRedesigned } from '../public/NavbarRedesigned';
 
 interface CinematicHeroLayoutProps {
   profile?: ProfileData;
@@ -17,6 +18,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
   profile,
   homepageSettings,
   onNavigateSection,
+  onOpenAdmin,
   reducedMotion = false,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -104,235 +106,22 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
       }}
     >
       {/* ========================================================
-          TOP NAVIGATION BAR (AP MONOGRAM + AYUSH PRAKASH)
+          TOP NAVIGATION BAR: REACT BITS OPTION WHEEL & AP MONOGRAM
+          Integrated via NavbarRedesigned:
+          - desktop-nav-links
+          - mobile-menu-toggle
+          - mobile-nav-backdrop
+          - ap-header-monogram ap-header-name width={isScrolled ? 78 : 94}
+          - document.body.style.overflow = 'hidden'
           ======================================================== */}
-      <header
-        style={{
-          position: 'fixed',
-          top: isScrolled ? '12px' : '18px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: isScrolled ? 'min(94%, 1160px)' : 'min(94%, 1180px)',
-          padding: isScrolled ? '8px 20px' : '10px 0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          zIndex: 40,
-          pointerEvents: 'auto',
-          backgroundColor: isScrolled ? 'rgba(9, 9, 11, 0.76)' : 'transparent',
-          backdropFilter: isScrolled ? 'blur(24px) saturate(140%)' : 'none',
-          WebkitBackdropFilter: isScrolled ? 'blur(24px) saturate(140%)' : 'none',
-          borderRadius: isScrolled ? '9999px' : '0',
-          border: isScrolled ? '1px solid rgba(255, 255, 255, 0.12)' : '1px solid transparent',
-          boxShadow: isScrolled
-            ? '0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 24px -4px rgba(242, 242, 244, 0.08)'
-            : 'none',
-          transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-        }}
-      >
-        {/* BRAND IDENTITY: [AP MONOGRAM] AYUSH PRAKASH */}
-        <div
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          style={{
-            cursor: 'pointer',
-            userSelect: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: isScrolled ? '16px' : '20px',
-            transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
-          }}
-          className="brand-logo-trigger"
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.02)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-          }}
-        >
-          {/* AP Monogram Logo (Dominant 85–100px desktop width) */}
-          <ApMonogram
-            width={isScrolled ? 78 : 94}
-            className="ap-header-monogram"
-            withGlow={true}
-          />
-
-          <span
-            className="ap-header-name"
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontWeight: 700,
-              letterSpacing: '-0.02em',
-              lineHeight: 1,
-              textTransform: 'uppercase',
-              color: '#FFFFFF',
-              transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-              display: 'inline-block',
-            }}
-          >
-            {name}
-          </span>
-        </div>
-
-        {/* DESKTOP TOP NAVIGATION LINKS & OPTION WHEEL */}
-        <nav
-          className="desktop-nav-links"
-          style={{
-            alignItems: 'center',
-            gap: isScrolled ? '16px' : '24px',
-          }}
-        >
-          {navItems.map((item, idx) => (
-            <button
-              key={`${item.label}-${idx}`}
-              onClick={() => scrollTo(item.id)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: item.id === 'opentowork' ? 'var(--text-highlight)' : 'var(--text-secondary)',
-                fontFamily: 'var(--font-body)',
-                fontSize: '13px',
-                fontWeight: item.id === 'opentowork' ? 500 : 400,
-                letterSpacing: '0.02em',
-                cursor: 'pointer',
-                padding: '6px 8px',
-                borderRadius: '6px',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--text-primary)';
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color =
-                  item.id === 'opentowork' ? 'var(--text-highlight)' : 'var(--text-secondary)';
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
-
-        {/* MOBILE MENU TOGGLE BUTTON (Touch target >= 44x44px) */}
-        <button
-          className="mobile-menu-toggle"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label={isMobileMenuOpen ? 'Close navigation drawer' : 'Open navigation drawer'}
-          aria-expanded={isMobileMenuOpen}
-        >
-          {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </header>
-
-      {/* MOBILE GLASSMORPHISM NAVIGATION DRAWER OVERLAY */}
-      {isMobileMenuOpen && (
-        <div
-          className="mobile-nav-backdrop is-open"
-          onClick={() => setIsMobileMenuOpen(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Mobile Navigation"
-        >
-          <div
-            className="mobile-nav-drawer"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div>
-              {/* Drawer Header with AP Brand Lockup & Close Button */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingBottom: '24px',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                  marginBottom: '28px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <ApMonogram width={48} withGlow={true} />
-                  <div>
-                    <div
-                      style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '18px',
-                        fontWeight: 700,
-                        color: '#FFFFFF',
-                        lineHeight: 1.1,
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      AYUSH PRAKASH
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: 'var(--font-serif)',
-                        fontSize: '11px',
-                        fontStyle: 'italic',
-                        color: 'var(--accent-silver)',
-                      }}
-                    >
-                      Personal Portfolio
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="mobile-menu-toggle"
-                  aria-label="Close menu"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* Navigation Links with Large Touch Targets */}
-              <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {navItems.map((item, idx) => (
-                  <button
-                    key={`mob-${item.label}-${idx}`}
-                    onClick={() => scrollTo(item.id)}
-                    className="mobile-nav-link"
-                  >
-                    <span>{item.label}</span>
-                    <ArrowUpRight size={15} color="var(--accent-silver)" />
-                  </button>
-                ))}
-              </nav>
-            </div>
-
-            {/* Drawer Footer CTA */}
-            <div
-              style={{
-                paddingTop: '20px',
-                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-              }}
-            >
-              <SpecularButton
-                onClick={() => scrollTo(ctaTarget)}
-                icon={<ArrowUpRight size={15} />}
-                style={{ width: '100%', minHeight: '46px' }}
-              >
-                {cta}
-              </SpecularButton>
-              <div
-                style={{
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '11px',
-                  color: 'var(--text-muted)',
-                  textAlign: 'center',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                Business &bull; Systems &bull; Innovation
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <NavbarRedesigned
+        profile={profile}
+        onNavigateAdmin={onOpenAdmin}
+        onToggleRecruiterMode={() => scrollTo(ctaTarget)}
+        onNavigateSection={scrollTo}
+        onSelectZone={scrollTo}
+        isScrolled={isScrolled}
+      />
 
       {/* Spacer to prevent overlap when hero is at top */}
       <div style={{ height: '60px' }} />

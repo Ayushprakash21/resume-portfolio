@@ -37,6 +37,7 @@ export interface OptionWheelProps {
   className?: string;
   style?: CSSProperties;
   height?: string | number;
+  label?: string;
 }
 
 interface WheelConfig {
@@ -56,6 +57,18 @@ interface WheelConfig {
   soundVolume: number;
 }
 
+/**
+ * Official Portfolio-wide navigation items mapped to real published CMS sections
+ */
+export const DEFAULT_NAV_WHEEL_ITEMS: OptionWheelItemObject[] = [
+  { id: 'work', label: 'Work', targetId: 'projects', badge: 'Projects', description: 'Selected Engineering & Product Implementations' },
+  { id: 'orion9', label: 'Orion-9', targetId: 'orion-9', badge: 'OS', description: 'Autonomous Supply Chain Architecture' },
+  { id: 'experience', label: 'Experience', targetId: 'experience', badge: 'Career', description: 'Enterprise Operations Leadership' },
+  { id: 'about', label: 'About', targetId: 'about', badge: 'Bio', description: 'Background & Strategic Positioning' },
+  { id: 'opentowork', label: 'Open to Work', targetId: 'opentowork', badge: 'Active', description: 'Role & Location Preferences' },
+  { id: 'contact', label: 'Contact', targetId: 'contact', badge: 'Direct', description: 'Communication & Secure Messaging' },
+];
+
 export const DEFAULT_ORION9_ITEMS: OptionWheelItemObject[] = [
   { id: 'overview', label: 'Orion-9 Overview', targetId: 'orion-9', badge: 'OS', description: 'Autonomous Supply Chain Architecture' },
   { id: 'control-tower', label: 'Control Tower', targetId: 'orion-9', badge: 'Live', description: 'Real-time Telemetry & Global Operations' },
@@ -67,47 +80,49 @@ export const DEFAULT_ORION9_ITEMS: OptionWheelItemObject[] = [
 ];
 
 export const OptionWheel: React.FC<OptionWheelProps> = ({
-  items = DEFAULT_ORION9_ITEMS,
+  items = DEFAULT_NAV_WHEEL_ITEMS,
   defaultSelected = 0,
   onChange,
   onSelect,
   textColor = '#8A8F98',
   activeColor = '#FFFFFF',
-  side = 'left',
-  fontSize = 1.6,
-  spacing = 1.45,
-  curve = 1,
-  tilt = 7.5,
-  blur = 1.5,
+  side = 'center',
+  fontSize = 1.0,
+  spacing = 1.4,
+  curve = 0.5,
+  tilt = 5.0,
+  blur = 1.0,
   fade = 0.28,
   minOpacity = 0.08,
-  smoothing = 180,
-  inset = 36,
+  smoothing = 160,
+  inset = 24,
   loop = false,
   draggable = true,
   soundUrl = '',
   soundVolume = 0.5,
   className = '',
   style,
-  height = '280px',
+  height = '48px',
+  label = 'Portfolio Section Navigation',
 }) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const posRef = useRef(defaultSelected);
-  const targetRef = useRef(defaultSelected);
+  const initialIdx = Math.max(0, Math.min(defaultSelected, (items?.length || 1) - 1));
+  const posRef = useRef(initialIdx);
+  const targetRef = useRef(initialIdx);
   const rafRef = useRef<number | null>(null);
   const lastRef = useRef(0);
   const cfgRef = useRef<WheelConfig>({} as WheelConfig);
   const onChangeRef = useRef(onChange);
   const onSelectRef = useRef(onSelect);
-  const selectedRef = useRef(defaultSelected);
+  const selectedRef = useRef(initialIdx);
   const wheelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dragRef = useRef<{ y: number; start: number; id: number } | null>(null);
   const dragMovedRef = useRef(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef('');
   const lastTickRef = useRef(0);
-  const [selectedIndex, setSelectedIndex] = useState(defaultSelected);
+  const [selectedIndex, setSelectedIndex] = useState(initialIdx);
   const [isDragging, setIsDragging] = useState(false);
 
   const remPx = typeof window !== 'undefined'
@@ -117,9 +132,11 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
   onChangeRef.current = onChange;
   onSelectRef.current = onSelect;
 
+  const validItems = items && items.length > 0 ? items : [];
+
   cfgRef.current = {
-    count: items.length,
-    items,
+    count: validItems.length,
+    items: validItems,
     rowH: Math.max(fontSize * spacing * remPx, 1),
     curve,
     tilt,
@@ -145,21 +162,23 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     const dt = Math.min((now - lastRef.current) / 1000, 0.05);
     lastRef.current = now;
     const cfg = cfgRef.current;
-    const tau = Math.max(cfg.smoothing, 1) / 1000;
-    const k = 1 - Math.exp(-dt / tau);
+    if (cfg.count === 0) return;
+
+    const prefersReducedMotion = typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const target = targetRef.current;
     const cur = posRef.current;
+    const tau = Math.max(cfg.smoothing, 1) / 1000;
+    const k = prefersReducedMotion ? 1 : 1 - Math.exp(-dt / tau);
     let next = cur + (target - cur) * k;
-    const settled = Math.abs(target - next) < 0.001;
+    const settled = prefersReducedMotion || Math.abs(target - next) < 0.001;
     if (settled) next = target;
     posRef.current = next;
 
     const els = itemRefs.current;
     const n = cfg.count;
     const mirror = cfg.side === 'right' ? -1 : 1;
-    // Options sit on a virtual cylindrical drum whose radius keeps the arc length
-    // between two neighbors equal to one row height, so tilt controls how tightly it curls.
     const tiltRad = (cfg.tilt * Math.PI) / 180;
     const R = tiltRad > 0.0005 ? cfg.rowH / tiltRad : 0;
 
@@ -225,6 +244,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
   const applyTarget = useCallback(
     (value: number, snap: boolean) => {
       const cfg = cfgRef.current;
+      if (cfg.count === 0) return;
       let v = value;
       if (!cfg.loop) v = Math.min(Math.max(v, 0), Math.max(cfg.count - 1, 0));
       if (snap) v = Math.round(v);
@@ -245,12 +265,29 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     [startLoop, playTick]
   );
 
+  // Sync when defaultSelected prop changes
+  useEffect(() => {
+    if (validItems.length === 0) return;
+    const clamped = Math.max(0, Math.min(defaultSelected, validItems.length - 1));
+    applyTarget(clamped, true);
+  }, [defaultSelected, validItems.length, applyTarget]);
+
+  // Clamp target if items length changes
+  useEffect(() => {
+    if (validItems.length === 0) return;
+    const maxIdx = validItems.length - 1;
+    if (targetRef.current > maxIdx) {
+      applyTarget(maxIdx, true);
+    }
+  }, [validItems.length, applyTarget]);
+
   // Wheel scroll interaction
   const handleWheel = useCallback(
-    (e: React.WheelEvent) => {
+    (e: React.WheelEvent | WheelEvent) => {
       e.preventDefault();
       const cfg = cfgRef.current;
-      const delta = e.deltaMode === 1 ? e.deltaY * 24 : e.deltaY;
+      if (cfg.count === 0) return;
+      const delta = (e as WheelEvent).deltaMode === 1 ? (e as WheelEvent).deltaY * 24 : e.deltaY;
       const step = Math.max(-1, Math.min(1, delta / cfg.rowH));
       applyTarget(targetRef.current + step, false);
       if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current);
@@ -259,25 +296,16 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     [applyTarget]
   );
 
-  // Native non-passive wheel attachment for smooth gestures
+  // Native non-passive wheel attachment for smooth gestures (only when pointer is over the wheel)
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
-    const onNativeWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const cfg = cfgRef.current;
-      const delta = e.deltaMode === 1 ? e.deltaY * 24 : e.deltaY;
-      const step = Math.max(-1, Math.min(1, delta / cfg.rowH));
-      applyTarget(targetRef.current + step, false);
-      if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current);
-      wheelTimerRef.current = setTimeout(() => applyTarget(targetRef.current, true), 140);
-    };
-    el.addEventListener('wheel', onNativeWheel, { passive: false });
+    el.addEventListener('wheel', handleWheel, { passive: false });
     return () => {
-      el.removeEventListener('wheel', onNativeWheel);
+      el.removeEventListener('wheel', handleWheel);
       if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current);
     };
-  }, [applyTarget]);
+  }, [handleWheel]);
 
   // Pointer drag interaction
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -316,6 +344,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     (index: number) => {
       if (dragMovedRef.current) return;
       const cfg = cfgRef.current;
+      if (cfg.count === 0) return;
       const cur = targetRef.current;
       let d = index - (((cur % cfg.count) + cfg.count) % cfg.count);
       if (cfg.loop && cfg.count > 1) {
@@ -332,6 +361,21 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
   // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
+      const cfg = cfgRef.current;
+      if (cfg.count === 0) return;
+
+      if (e.key === 'Home') {
+        e.preventDefault();
+        applyTarget(0, true);
+        return;
+      }
+
+      if (e.key === 'End') {
+        e.preventDefault();
+        applyTarget(cfg.count - 1, true);
+        return;
+      }
+
       let delta: number | null = null;
       if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') delta = -1;
       else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') delta = 1;
@@ -340,9 +384,10 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
         applyTarget(Math.round(targetRef.current) + delta, true);
         return;
       }
+
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        const chosen = cfgRef.current.items[selectedIndex];
+        const chosen = cfg.items[selectedIndex];
         onSelectRef.current?.(chosen, selectedIndex);
       }
     },
@@ -361,12 +406,18 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     };
   }, []);
 
+  if (validItems.length === 0) {
+    return null;
+  }
+
   return (
     <div
       ref={rootRef}
       role="listbox"
       tabIndex={0}
-      aria-label="Orion-9 3D Option Wheel"
+      aria-label={label}
+      aria-roledescription="cylindrical option wheel"
+      aria-activedescendant={`ow-item-${selectedIndex}`}
       className={`option-wheel${side === 'right' ? ' option-wheel--right' : side === 'center' ? ' option-wheel--center' : ''}${isDragging ? ' option-wheel--dragging' : ''}${className ? ` ${className}` : ''}`}
       style={{
         '--ow-text-color': textColor,
@@ -376,7 +427,6 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
         height,
         ...style,
       } as CSSProperties}
-      onWheel={handleWheel}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}
@@ -391,12 +441,13 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
       <div className="option-wheel__slot-indicator" />
 
       {/* Curved 3D Option Elements */}
-      {items.map((item, index) => {
-        const label = getItemLabel(item);
+      {validItems.map((item, index) => {
+        const labelText = getItemLabel(item);
         const isSelected = selectedIndex === index;
         return (
           <div
-            key={`${label}-${index}`}
+            key={`${labelText}-${index}`}
+            id={`ow-item-${index}`}
             ref={(el) => {
               itemRefs.current[index] = el;
             }}
@@ -405,7 +456,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
             className={`option-wheel__item${isSelected ? ' option-wheel__item--selected' : ''}`}
             onClick={() => handleItemClick(index)}
           >
-            {label}
+            {labelText}
           </div>
         );
       })}
