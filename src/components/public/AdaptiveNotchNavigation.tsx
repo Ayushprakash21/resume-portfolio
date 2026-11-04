@@ -200,6 +200,7 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
     >
       {/* ========================================================
           CONTINUOUS TOP CONNECTING BAR (Attaches to top edge y = 0)
+          Coordinated 105deg metallic crimson gradient across header
           ======================================================== */}
       <div
         style={{
@@ -208,8 +209,10 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           left: 0,
           right: 0,
           height: '2.5px',
-          backgroundColor: '#07080A',
+          background:
+            'linear-gradient(105deg, #080809 0%, #240609 25%, #480B12 50%, #26070B 75%, #090909 100%)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.16)',
           pointerEvents: 'none',
         }}
       />
@@ -248,6 +251,18 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           }}
           aria-hidden="true"
         >
+          <defs>
+            <linearGradient id="apLeftNotchGrad" x1="0%" y1="0%" x2="100%" y2="25%">
+              <stop offset="0%" stopColor="#080809" />
+              <stop offset="45%" stopColor="#150507" />
+              <stop offset="100%" stopColor="#240609" />
+            </linearGradient>
+            <linearGradient id="apLeftBorderGrad" x1="0%" y1="0%" x2="100%" y2="25%">
+              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.16)" />
+              <stop offset="70%" stopColor="rgba(255, 255, 255, 0.12)" />
+              <stop offset="100%" stopColor="rgba(220, 80, 95, 0.24)" />
+            </linearGradient>
+          </defs>
           {/* Surface fill */}
           <path
             d={`M 0 0
@@ -258,9 +273,9 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
                 L ${leftNotchWidth} ${filletRadius}
                 A ${filletRadius} ${filletRadius} 0 0 1 ${leftNotchWidth + filletRadius} 0
                 Z`}
-            fill="#090A0D"
+            fill="url(#apLeftNotchGrad)"
           />
-          {/* Subtle metallic silver border contour */}
+          {/* Subtle metallic silver/crimson border contour */}
           <path
             d={`M 0 ${notchHeight}
                 L ${leftNotchWidth - cornerRadius} ${notchHeight}
@@ -268,8 +283,17 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
                 L ${leftNotchWidth} ${filletRadius}
                 A ${filletRadius} ${filletRadius} 0 0 1 ${leftNotchWidth + filletRadius} 0`}
             fill="none"
-            stroke="rgba(255, 255, 255, 0.12)"
+            stroke="url(#apLeftBorderGrad)"
             strokeWidth="1.2"
+          />
+          {/* Subtle silver highlight along upper border */}
+          <line
+            x1="0"
+            y1="0"
+            x2={leftNotchWidth + filletRadius}
+            y2="0"
+            stroke="rgba(255, 255, 255, 0.16)"
+            strokeWidth="1"
           />
         </svg>
 
@@ -341,10 +365,26 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
             height: '100%',
             pointerEvents: 'none',
             overflow: 'visible',
-            filter: 'drop-shadow(0 12px 28px rgba(0, 0, 0, 0.7))',
+            filter: 'drop-shadow(0 12px 28px rgba(0, 0, 0, 0.75))',
           }}
           aria-hidden="true"
         >
+          <defs>
+            <linearGradient id="apCenterNotchGrad" x1="0%" y1="0%" x2="100%" y2="25%">
+              <stop offset="0%" stopColor="#220508" />
+              <stop offset="22%" stopColor="#30070D" />
+              <stop offset="50%" stopColor="#480B12" />
+              <stop offset="78%" stopColor="#32070D" />
+              <stop offset="100%" stopColor="#24060A" />
+            </linearGradient>
+            <linearGradient id="apCenterBorderGrad" x1="0%" y1="0%" x2="100%" y2="25%">
+              <stop offset="0%" stopColor="rgba(220, 80, 95, 0.22)" />
+              <stop offset="25%" stopColor="rgba(255, 255, 255, 0.12)" />
+              <stop offset="50%" stopColor="rgba(244, 114, 130, 0.3)" />
+              <stop offset="75%" stopColor="rgba(255, 255, 255, 0.12)" />
+              <stop offset="100%" stopColor="rgba(220, 80, 95, 0.22)" />
+            </linearGradient>
+          </defs>
           {/* Surface fill */}
           <path
             d={`M 0 0
@@ -356,9 +396,9 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
                 L ${centerNotchWidth + filletRadius} ${filletRadius}
                 A ${filletRadius} ${filletRadius} 0 0 1 ${centerNotchWidth + filletRadius * 2} 0
                 Z`}
-            fill="#090A0D"
+            fill="url(#apCenterNotchGrad)"
           />
-          {/* Subtle metallic silver border contour */}
+          {/* Subtle metallic silver/crimson border contour */}
           <path
             d={`M 0 0
                 A ${filletRadius} ${filletRadius} 0 0 1 ${filletRadius} ${filletRadius}
@@ -369,12 +409,21 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
                 L ${centerNotchWidth + filletRadius} ${filletRadius}
                 A ${filletRadius} ${filletRadius} 0 0 1 ${centerNotchWidth + filletRadius * 2} 0`}
             fill="none"
-            stroke="rgba(255, 255, 255, 0.12)"
+            stroke="url(#apCenterBorderGrad)"
             strokeWidth="1.2"
+          />
+          {/* Subtle silver highlight along upper border */}
+          <line
+            x1={filletRadius}
+            y1="0"
+            x2={centerNotchWidth + filletRadius}
+            y2="0"
+            stroke="rgba(255, 255, 255, 0.18)"
+            strokeWidth="1"
           />
         </svg>
 
-        {/* Navigation Tabs Container with Sliding Pearl/Silver Capsule Highlight */}
+        {/* Navigation Tabs Container with Sliding Translucent Crimson Capsule Highlight */}
         <div
           ref={navTabsRef}
           role="tablist"
@@ -389,7 +438,8 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
             padding: isMobile ? '0 6px' : '0 12px',
           }}
         >
-          {/* Sliding active indicator capsule pill */}
+          {/* Sliding active indicator capsule pill with subtle dark-red translucent background,
+              thin muted crimson/silver border, and restrained red inner glow */}
           <div
             className="notch-active-pill"
             style={{
@@ -399,11 +449,12 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
               width: `${indicatorStyle.width}px`,
               height: isMobile ? '34px' : '34px',
               transform: `translateX(${indicatorStyle.left}px)`,
-              backgroundColor: 'rgba(255, 255, 255, 0.11)',
-              border: '1px solid rgba(255, 255, 255, 0.22)',
+              background:
+                'linear-gradient(135deg, rgba(120, 18, 28, 0.44) 0%, rgba(68, 11, 18, 0.52) 100%)',
+              border: '1px solid rgba(220, 100, 115, 0.38)',
               borderRadius: '9999px',
               boxShadow:
-                '0 4px 14px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+                'inset 0 0 10px rgba(200, 35, 52, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 4px 14px rgba(0, 0, 0, 0.5)',
               pointerEvents: 'none',
               zIndex: 1,
               transition:
@@ -499,6 +550,18 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           }}
           aria-hidden="true"
         >
+          <defs>
+            <linearGradient id="apRightNotchGrad" x1="0%" y1="0%" x2="100%" y2="25%">
+              <stop offset="0%" stopColor="#24060A" />
+              <stop offset="50%" stopColor="#150507" />
+              <stop offset="100%" stopColor="#090909" />
+            </linearGradient>
+            <linearGradient id="apRightBorderGrad" x1="0%" y1="0%" x2="100%" y2="25%">
+              <stop offset="0%" stopColor="rgba(220, 80, 95, 0.22)" />
+              <stop offset="50%" stopColor="rgba(255, 255, 255, 0.12)" />
+              <stop offset="100%" stopColor="rgba(255, 255, 255, 0.16)" />
+            </linearGradient>
+          </defs>
           {/* Surface fill */}
           <path
             d={`M 0 0
@@ -508,9 +571,9 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
                 L ${rightNotchWidth + filletRadius} ${notchHeight}
                 L ${rightNotchWidth + filletRadius} 0
                 Z`}
-            fill="#090A0D"
+            fill="url(#apRightNotchGrad)"
           />
-          {/* Subtle metallic silver border contour */}
+          {/* Subtle metallic silver/crimson border contour */}
           <path
             d={`M 0 0
                 A ${filletRadius} ${filletRadius} 0 0 1 ${filletRadius} ${filletRadius}
@@ -518,12 +581,21 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
                 A ${cornerRadius} ${cornerRadius} 0 0 0 ${filletRadius + cornerRadius} ${notchHeight}
                 L ${rightNotchWidth + filletRadius} ${notchHeight}`}
             fill="none"
-            stroke="rgba(255, 255, 255, 0.12)"
+            stroke="url(#apRightBorderGrad)"
             strokeWidth="1.2"
+          />
+          {/* Subtle silver highlight along upper border */}
+          <line
+            x1="0"
+            y1="0"
+            x2={rightNotchWidth + filletRadius}
+            y2="0"
+            stroke="rgba(255, 255, 255, 0.16)"
+            strokeWidth="1"
           />
         </svg>
 
-        {/* Content: Connect Quick Action */}
+        {/* Content: Connect Quick Action with subtle graphite/crimson luxury treatment */}
         <div
           style={{
             position: 'relative',
@@ -547,19 +619,20 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
               gap: isMobile ? '0' : '6px',
               padding: isMobile ? '7px 8px' : '6px 12px',
               minHeight: '32px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.14)',
+              background:
+                'linear-gradient(135deg, rgba(38, 7, 11, 0.65) 0%, rgba(18, 5, 8, 0.75) 100%)',
+              border: '1px solid rgba(200, 70, 85, 0.26)',
               borderRadius: '9999px',
               color: '#E4E4E7',
               fontSize: '12px',
               fontWeight: 500,
               textDecoration: 'none',
               transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.35)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
             }}
           >
             {!isMobile && <span>Connect</span>}
-            <ArrowUpRight size={14} color="#A1A1AA" />
+            <ArrowUpRight size={14} color="#D4D4D8" />
           </a>
         </div>
       </div>
@@ -567,20 +640,21 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
       {/* Embedded styles for keyboard accessibility and reduced-motion */}
       <style>{`
         .notch-nav-item:hover {
-          color: #F4F4F5 !important;
+          color: #FFFFFF !important;
         }
 
         .notch-nav-item:focus-visible,
         .notch-action-btn:focus-visible {
-          outline: 2px solid rgba(255, 255, 255, 0.6) !important;
+          outline: 2px solid rgba(220, 100, 115, 0.6) !important;
           outline-offset: 2px !important;
           border-radius: 9999px !important;
         }
 
         .notch-action-btn:hover {
-          background: rgba(255, 255, 255, 0.1) !important;
-          border-color: rgba(255, 255, 255, 0.24) !important;
+          background: linear-gradient(135deg, rgba(72, 11, 18, 0.75) 0%, rgba(38, 7, 11, 0.85) 100%) !important;
+          border-color: rgba(230, 95, 110, 0.45) !important;
           color: #FFFFFF !important;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 0 8px rgba(200, 35, 52, 0.25) !important;
         }
 
         @media (prefers-reduced-motion: reduce) {

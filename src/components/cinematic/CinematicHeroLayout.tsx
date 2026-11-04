@@ -155,7 +155,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
 
           {/* 3. & 4. DOMINANT HERO IDENTITY: AYUSH / PRAKASH (112–150px DESKTOP) */}
           <div
-            className="hero-founder-name"
+            className="hero-founder-name hero-name"
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -172,21 +172,34 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             }}
           >
             <span
+              className="hero-name__first"
               style={{
-                color: '#F8FAFC',
-                textShadow: '0 4px 28px rgba(0, 0, 0, 0.95)',
+                background: 'linear-gradient(165deg, #ffffff 0%, #e1e2e6 42%, #9296a1 100%)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                color: '#e1e2e6',
                 display: 'block',
+                width: 'fit-content',
+                maxWidth: '100%',
                 lineHeight: 0.90,
+                filter: 'drop-shadow(0 4px 28px rgba(0, 0, 0, 0.95))',
               }}
             >
               AYUSH
             </span>
             <span
+              className="hero-name__last"
               style={{
-                background: 'linear-gradient(180deg, #FFFFFF 0%, #B8BCC6 50%, #7A808C 100%)',
+                background:
+                  'linear-gradient(105deg, #f4f4f6 0%, #a8abb5 24%, #8c1524 52%, #bc3545 76%, #500a15 100%)',
                 WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
+                color: '#e1e2e6',
                 display: 'block',
+                width: 'fit-content',
+                maxWidth: '100%',
                 lineHeight: 0.90,
                 filter: 'drop-shadow(0 4px 24px rgba(0, 0, 0, 0.85))',
               }}

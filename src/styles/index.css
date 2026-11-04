@@ -55,6 +55,49 @@ h1, h2, h3, h4, .font-display {
   letter-spacing: -0.03em;
 }
 
+/* Hero Founder Name: Metallic Silver & Deep Crimson Gradient */
+.hero-name {
+  font-weight: 800;
+  line-height: 0.88;
+  letter-spacing: -0.035em;
+}
+
+.hero-name__first {
+  background: linear-gradient(
+    165deg,
+    #ffffff 0%,
+    #e1e2e6 42%,
+    #9296a1 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #e1e2e6;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  filter: drop-shadow(0 4px 28px rgba(0, 0, 0, 0.95));
+}
+
+.hero-name__last {
+  background: linear-gradient(
+    105deg,
+    #f4f4f6 0%,
+    #a8abb5 24%,
+    #8c1524 52%,
+    #bc3545 76%,
+    #500a15 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #e1e2e6;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.85));
+}
+
 .type-editorial-large {
   font-family: var(--font-display);
   font-size: var(--type-editorial-large);
@@ -461,14 +504,15 @@ h1, h2, h3, h4, .font-display {
 
 .notch-nav-item:focus-visible,
 .notch-action-btn:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.6) !important;
+  outline: 2px solid rgba(220, 100, 115, 0.6) !important;
   outline-offset: 2px !important;
 }
 
 .notch-action-btn:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-color: rgba(255, 255, 255, 0.25) !important;
+  background: linear-gradient(135deg, rgba(72, 11, 18, 0.75) 0%, rgba(38, 7, 11, 0.85) 100%) !important;
+  border-color: rgba(230, 95, 110, 0.45) !important;
   color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 0 8px rgba(200, 35, 52, 0.25) !important;
 }
 
 /* Backward-compatible classes for regression test suite */
