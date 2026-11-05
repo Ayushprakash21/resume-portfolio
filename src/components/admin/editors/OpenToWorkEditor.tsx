@@ -17,6 +17,12 @@ import {
 import { OpenToWorkSettings, PreferredLocation } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
 import { LocationSelector } from '../common/LocationSelector';
+import {
+  AdminModal,
+  AdminModalHeader,
+  AdminModalBody,
+  AdminModalFooter,
+} from '../common/AdminModal';
 
 interface OpenToWorkEditorProps {
   initialSettings: OpenToWorkSettings;
@@ -790,58 +796,54 @@ export const OpenToWorkEditor: React.FC<OpenToWorkEditorProps> = ({
 
       {/* Live Preview Modal */}
       {showPreviewModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(16px)',
-            zIndex: 100,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-          }}
+        <AdminModal
+          isOpen={showPreviewModal}
+          onClose={() => setShowPreviewModal(false)}
+          size="lg"
+          maxWidth="840px"
+          ariaLabel="Open to Work Public Preview"
         >
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '900px',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              backgroundColor: '#050505',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              borderRadius: '16px',
-              padding: '40px',
-              position: 'relative',
-            }}
-          >
-            <button
-              onClick={() => setShowPreviewModal(false)}
-              style={{
-                position: 'absolute',
-                top: '20px',
-                right: '20px',
-                background: 'none',
-                border: 'none',
-                color: '#A5A5A9',
-                cursor: 'pointer',
-              }}
-            >
-              <X size={20} />
-            </button>
+          <AdminModalHeader
+            title="Open to Work Public Preview"
+            subtitle="Preview how your availability status, preferred roles, and relocation hubs render."
+            icon={<Briefcase size={18} />}
+            onClose={() => setShowPreviewModal(false)}
+          />
 
+          <AdminModalBody padding="28px">
             <div style={{ marginBottom: '24px' }}>
-              <span style={{ fontSize: '11px', color: '#34D399', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                Preview Mode
+              <span
+                style={{
+                  fontSize: '11px',
+                  color: '#4ADE80',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  fontWeight: 600,
+                }}
+              >
+                Preview Mode &bull; Live Card Rendering
               </span>
-              <h3 style={{ fontSize: '28px', color: '#FFFFFF', marginTop: '4px' }}>{form.headline}</h3>
-              <p style={{ fontSize: '15px', color: '#A5A5A9', marginTop: '10px' }}>{form.description}</p>
+              <h3 style={{ fontSize: '24px', color: '#FFFFFF', marginTop: '6px', fontFamily: 'var(--font-display)', margin: '6px 0 0' }}>
+                {form.headline}
+              </h3>
+              <p style={{ fontSize: '14.5px', color: '#A5A5A9', marginTop: '10px', lineHeight: 1.6 }}>
+                {form.description}
+              </p>
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>
               {form.preferredJobCategories.map((c, i) => (
-                <span key={i} style={{ padding: '6px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.06)', color: '#FFF', fontSize: '12px' }}>
+                <span
+                  key={i}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    color: '#FFF',
+                    fontSize: '12px',
+                  }}
+                >
                   {c}
                 </span>
               ))}
@@ -849,14 +851,27 @@ export const OpenToWorkEditor: React.FC<OpenToWorkEditorProps> = ({
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
               {form.preferredLocations.map((l) => (
-                <div key={l.id} style={{ padding: '14px', borderRadius: '8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div
+                  key={l.id}
+                  style={{
+                    padding: '14px',
+                    borderRadius: '8px',
+                    background: '#0E1412',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                  }}
+                >
                   <div style={{ fontSize: '14px', fontWeight: 600, color: '#FFF' }}>{l.name}</div>
-                  {l.city && <div style={{ fontSize: '12px', color: '#888' }}>{l.city}</div>}
+                  {l.city && <div style={{ fontSize: '12px', color: '#888', marginTop: '2px' }}>{l.city}</div>}
                 </div>
               ))}
             </div>
-          </div>
-        </div>
+          </AdminModalBody>
+
+          <AdminModalFooter
+            onCancel={() => setShowPreviewModal(false)}
+            cancelText="Close Preview"
+          />
+        </AdminModal>
       )}
     </div>
   );

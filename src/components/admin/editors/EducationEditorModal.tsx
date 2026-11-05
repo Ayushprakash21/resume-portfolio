@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Trash2, GraduationCap, Plus } from 'lucide-react';
+import { Trash2, GraduationCap, Plus } from 'lucide-react';
 import { EducationRecord, SkillRecord } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
 import { InstitutionSelector } from '../common/InstitutionSelector';
@@ -8,6 +8,14 @@ import { FieldOfStudySelector } from '../common/FieldOfStudySelector';
 import { YearSelector } from '../common/YearSelector';
 import { GradeTypeSelector } from '../common/GradeTypeSelector';
 import { SkillsMultiSelector } from '../common/SkillsMultiSelector';
+import {
+  AdminModal,
+  AdminModalHeader,
+  AdminModalBody,
+  AdminModalFooter,
+  AdminFormField,
+  AdminInput,
+} from '../common/AdminModal';
 
 interface EducationEditorModalProps {
   initialEducation: EducationRecord | null;
@@ -27,6 +35,7 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
   showNotification,
 }) => {
   const isEditing = !!initialEducation;
+  const [isSaving, setIsSaving] = useState(false);
 
   const [form, setForm] = useState<Omit<EducationRecord, 'id'>>(() => {
     if (initialEducation) {
@@ -89,6 +98,7 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
       return;
     }
 
+    setIsSaving(true);
     try {
       if (isEditing && initialEducation) {
         await cmsService.updateEducation(initialEducation.id, form);
@@ -102,70 +112,32 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
       onClose();
     } catch (err: any) {
       showNotification('Save failed: ' + (err.message || 'Firebase error'), 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = () => {
+    if (!initialEducation || !onDelete) return;
+    if (window.confirm(`Delete education at ${initialEducation.institution}?`)) {
+      onDelete(initialEducation.id);
+      onClose();
     }
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
-        padding: 'clamp(8px, 2.5vw, 20px)',
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: '#0F1015',
-          border: '1px solid rgba(255, 255, 255, 0.14)',
-          borderRadius: '12px',
-          maxWidth: '720px',
-          width: '100%',
-          maxHeight: '94vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.75)',
-        }}
-      >
-        <div
-          style={{
-            padding: '16px 20px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: '#14151C',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <GraduationCap size={18} color="#D5D2D6" />
-            <h3
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '18px',
-                fontWeight: 600,
-                color: '#F4F3EE',
-                margin: 0,
-              }}
-            >
-              {isEditing ? 'Edit Education' : 'Add Education'}
-            </h3>
-          </div>
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#A7B0A9', cursor: 'pointer' }}
-          >
-            <X size={20} />
-          </button>
-        </div>
+    <AdminModal isOpen={true} onClose={onClose} size="lg" ariaLabel={isEditing ? 'Edit Education' : 'Add Education'}>
+      <AdminModalHeader
+        title={isEditing ? 'Edit Education' : 'Add Education'}
+        subtitle="Academic foundation, specialized concentrations, and formal credentials."
+        icon={<GraduationCap size={18} />}
+        onClose={onClose}
+      />
 
-        <form onSubmit={handleSubmit} style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+        <AdminModalBody padding="24px">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Institution Selector */}
             <div>
               <InstitutionSelector
                 value={form.institution}
@@ -174,13 +146,8 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
               />
             </div>
 
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                gap: '16px',
-              }}
-            >
+            {/* Degree and Field of Study (2-column grid with generous width) */}
+            <div className="admin-grid-2col">
               <div>
                 <DegreeSelector
                   value={form.degree}
@@ -197,13 +164,8 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
               </div>
             </div>
 
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                gap: '16px',
-              }}
-            >
+            {/* Start Year, End Year, and Grade/Honors (Intelligent content-proportional grid) */}
+            <div className="admin-grid-dates-grade">
               <div>
                 <YearSelector
                   label="Start Year (Optional)"
@@ -244,48 +206,34 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
             </div>
 
             {/* Highlights */}
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '12px',
-                  color: '#A7B0A9',
-                  marginBottom: '8px',
-                }}
-              >
-                Activities, Honors &amp; Coursework Highlights
-              </label>
-
+            <AdminFormField
+              label="Activities, Honors & Coursework Highlights"
+              helpText="Add key distinctions, research topics, or institutional honors."
+            >
               <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-                <input
+                <AdminInput
                   type="text"
                   value={newHighlight}
                   onChange={(e) => setNewHighlight(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddHighlight())}
                   placeholder="Add academic achievement or coursework highlight..."
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '13px',
-                    outline: 'none',
-                  }}
                 />
                 <button
                   type="button"
                   onClick={handleAddHighlight}
                   style={{
-                    padding: '8px 14px',
+                    padding: '8px 16px',
                     borderRadius: '6px',
-                    backgroundColor: 'rgba(244, 243, 238, 0.08)',
-                    border: '1px solid rgba(244, 243, 238, 0.15)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
                     color: '#F4F3EE',
                     fontSize: '13px',
+                    fontWeight: 500,
                     cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    flexShrink: 0,
                   }}
                 >
                   <Plus size={14} /> Add
@@ -301,105 +249,48 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: '6px 12px',
+                        padding: '8px 12px',
                         backgroundColor: '#0E1412',
-                        borderRadius: '4px',
+                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                        borderRadius: '6px',
                         fontSize: '13px',
                         color: '#C1C4BE',
                       }}
                     >
-                      <span>• {h}</span>
+                      <span style={{ lineHeight: 1.4 }}>• {h}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveHighlight(idx)}
-                        style={{ background: 'none', border: 'none', color: '#E06C75', cursor: 'pointer' }}
+                        title="Remove highlight"
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#E06C75',
+                          cursor: 'pointer',
+                          padding: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                        }}
                       >
-                        <Trash2 size={12} />
+                        <Trash2 size={13} />
                       </button>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
+            </AdminFormField>
           </div>
+        </AdminModalBody>
 
-          <div
-            style={{
-              paddingTop: '20px',
-              marginTop: '20px',
-              borderTop: '1px solid rgba(244, 243, 238, 0.08)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            {isEditing && onDelete && initialEducation ? (
-              <button
-                type="button"
-                onClick={() => {
-                  if (window.confirm(`Delete education at ${initialEducation.institution}?`)) {
-                    onDelete(initialEducation.id);
-                    onClose();
-                  }
-                }}
-                className="btn-glass-destructive"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 14px',
-                  borderRadius: '6px',
-                  backgroundColor: 'rgba(217, 83, 79, 0.12)',
-                  border: '1px solid rgba(217, 83, 79, 0.3)',
-                  color: '#E06C75',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                }}
-              >
-                <Trash2 size={13} /> Delete
-              </button>
-            ) : (
-              <div />
-            )}
-
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={onClose}
-                className="btn-glass-secondary"
-                style={{
-                  padding: '10px 18px',
-                  borderRadius: '6px',
-                  background: 'transparent',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  color: '#C1C4BE',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  minHeight: '40px',
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                style={{
-                  padding: '10px 22px',
-                  borderRadius: '6px',
-                  backgroundColor: '#FFFFFF',
-                  border: 'none',
-                  color: '#050505',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  minHeight: '40px',
-                }}
-              >
-                Save Education
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
+        <AdminModalFooter
+          onCancel={onClose}
+          onDelete={isEditing && onDelete ? handleDelete : undefined}
+          deleteText="Delete"
+          saveText={isEditing ? 'Save Education' : 'Create Record'}
+          isSaving={isSaving}
+          saveType="submit"
+        />
+      </form>
+    </AdminModal>
   );
 };

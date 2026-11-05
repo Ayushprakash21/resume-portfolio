@@ -24,6 +24,15 @@ import { JobTitleSelector } from '../common/JobTitleSelector';
 import { EmploymentTypeSelector } from '../common/EmploymentTypeSelector';
 import { WorkplaceTypeSelector } from '../common/WorkplaceTypeSelector';
 import { SkillsMultiSelector } from '../common/SkillsMultiSelector';
+import {
+  AdminModal,
+  AdminModalHeader,
+  AdminModalBody,
+  AdminModalFooter,
+  AdminFormField,
+  AdminInput,
+  AdminTextarea,
+} from '../common/AdminModal';
 
 interface ExperienceEditorModalProps {
   initialExperience: ExperienceRecord | null;
@@ -121,6 +130,7 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
   const [newResponsibilityInput, setNewResponsibilityInput] = useState('');
 
   // Media upload state
+  const [isSaving, setIsSaving] = useState(false);
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [cropTargetMediaItem, setCropTargetMediaItem] = useState<ExperienceMediaItem | null>(null);
 
@@ -262,6 +272,7 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
       updatedAt: new Date().toISOString(),
     };
 
+    setIsSaving(true);
     try {
       if (isEditing && initialExperience) {
         await cmsService.updateExperience(initialExperience.id, recordPayload);
@@ -283,6 +294,8 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
       onClose();
     } catch (err: any) {
       showNotification('Save failed: ' + (err.message || 'Firebase error'), 'error');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -296,82 +309,20 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
     );
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
-        padding: 'clamp(8px, 2.5vw, 20px)',
-      }}
+    <AdminModal
+      isOpen={true}
+      onClose={onClose}
+      size="xl"
+      maxWidth="900px"
+      ariaLabel={isEditing ? 'Edit Experience' : 'Add Experience'}
     >
-      <div
-        style={{
-          backgroundColor: '#0F1015',
-          border: '1px solid rgba(255, 255, 255, 0.14)',
-          borderRadius: '12px',
-          maxWidth: '820px',
-          width: '100%',
-          maxHeight: '94vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.75)',
-        }}
-      >
-        {/* Sticky Header */}
-        <div
-          style={{
-            padding: '16px 20px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: '#18211D',
-            flexShrink: 0,
-          }}
-        >
-          <div>
-            <h3
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '18px',
-                fontWeight: 600,
-                color: '#F4F3EE',
-                margin: 0,
-              }}
-            >
-              {isEditing ? 'Edit Experience' : 'Add Experience'}
-            </h3>
-            <span
-              style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: '12px',
-                color: '#A7B0A9',
-              }}
-            >
-              LinkedIn-style employment record with timeline, key deliverables, and media samples.
-            </span>
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#A7B0A9',
-              cursor: 'pointer',
-              padding: '4px',
-            }}
-          >
-            <X size={20} />
-          </button>
-        </div>
+      <AdminModalHeader
+        title={isEditing ? 'Edit Experience' : 'Add Experience'}
+        subtitle="LinkedIn-style employment record with timeline, key deliverables, and media samples."
+        onClose={onClose}
+      />
 
-        {/* Scrollable Form Body */}
-        <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+      <AdminModalBody padding="24px">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
             {/* Title & Employer */}
             <div
@@ -915,114 +866,73 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
               )}
             </div>
           </div>
-        </div>
+        </AdminModalBody>
 
-        {/* Sticky Footer Actions */}
-        <div
-          style={{
-            padding: '14px 24px',
-            borderTop: '1px solid rgba(244, 243, 238, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: '#18211D',
-            flexShrink: 0,
-          }}
-        >
-          {isEditing && onDelete && initialExperience ? (
-            <button
-              type="button"
-              onClick={() => {
-                if (window.confirm(`Are you sure you want to delete "${initialExperience.jobTitle}"?`)) {
-                  onDelete(initialExperience.id);
-                  onClose();
+        <AdminModalFooter
+          onCancel={onClose}
+          onDelete={
+            isEditing && onDelete && initialExperience
+              ? () => {
+                  if (window.confirm(`Are you sure you want to delete "${initialExperience.jobTitle}"?`)) {
+                    onDelete(initialExperience.id);
+                    onClose();
+                  }
                 }
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(217, 83, 79, 0.12)',
-                border: '1px solid rgba(217, 83, 79, 0.3)',
-                color: '#E06C75',
-                fontSize: '13px',
-                cursor: 'pointer',
-              }}
-            >
-              <Trash2 size={13} />
-              Delete Role
-            </button>
-          ) : (
-            <div />
-          )}
+              : undefined
+          }
+          deleteText="Delete Role"
+          isSaving={isSaving}
+        >
+          <button
+            type="button"
+            onClick={() => handleSubmit('draft')}
+            disabled={isSaving}
+            className="btn-glass-primary"
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              color: '#E5E5EA',
+              fontSize: '13px',
+              cursor: isSaving ? 'not-allowed' : 'pointer',
+              minHeight: '38px',
+            }}
+          >
+            Save Draft
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSubmit('published')}
+            disabled={isSaving}
+            className="btn-luxury-primary"
+            style={{
+              padding: '8px 20px',
+              borderRadius: '6px',
+              backgroundColor: '#FFFFFF',
+              border: 'none',
+              color: '#050505',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: isSaving ? 'not-allowed' : 'pointer',
+              minHeight: '38px',
+            }}
+          >
+            Publish Role
+          </button>
+        </AdminModalFooter>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-glass-secondary" style={{
-                padding: '10px 18px',
-                borderRadius: '6px',
-                background: 'transparent',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                color: '#C1C4BE',
-                fontSize: '13px',
-                cursor: 'pointer',
-                minHeight: '40px',
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSubmit('draft')}
-              className="btn-glass-primary" style={{
-                padding: '10px 18px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                color: '#E5E5EA',
-                fontSize: '13px',
-                cursor: 'pointer',
-                minHeight: '40px',
-              }}
-            >
-              Save Draft
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSubmit('published')}
-              className="btn-luxury-primary" style={{
-                padding: '10px 22px',
-                borderRadius: '6px',
-                backgroundColor: '#FFFFFF',
-                border: 'none',
-                color: '#050505',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                minHeight: '40px',
-              }}
-            >
-              Publish Role
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {cropTargetMediaItem && (
-        <ImageCropModal
-          isOpen={!!cropTargetMediaItem}
-          imageSrc={cropTargetMediaItem.url}
-          fileName={cropTargetMediaItem.title || 'deliverable.jpg'}
-          title="Crop & Reposition Deliverable"
-          contextHint="Position and frame the deliverable image. Drag and zoom as needed."
-          onClose={() => setCropTargetMediaItem(null)}
-          onApplyCrop={handleApplyCroppedMediaItem}
-        />
-      )}
-    </div>
+        {cropTargetMediaItem && (
+          <ImageCropModal
+            isOpen={!!cropTargetMediaItem}
+            imageSrc={cropTargetMediaItem.url}
+            fileName={cropTargetMediaItem.title || 'deliverable.jpg'}
+            title="Crop & Reposition Deliverable"
+            contextHint="Position and frame the deliverable image. Drag and zoom as needed."
+            onClose={() => setCropTargetMediaItem(null)}
+            onApplyCrop={handleApplyCroppedMediaItem}
+          />
+        )}
+    </AdminModal>
   );
 };

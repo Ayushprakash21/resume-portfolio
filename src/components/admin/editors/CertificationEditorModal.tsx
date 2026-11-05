@@ -19,6 +19,12 @@ import { storageClient } from '../../../services/storage/storageClient';
 import { issuerService, IssuerCandidate, VERIFIED_ISSUERS_DIRECTORY } from '../../../services/issuerService';
 import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop';
 import { SkillsMultiSelector } from '../common/SkillsMultiSelector';
+import {
+  AdminModal,
+  AdminModalHeader,
+  AdminModalBody,
+  AdminModalFooter,
+} from '../common/AdminModal';
 
 interface CertificationEditorModalProps {
   initialCertification: CertificationRecord | null;
@@ -133,6 +139,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [skillSearchQuery, setSkillSearchQuery] = useState('');
   const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Trigger search when user types or clicks an issuer
   const handleSearchIssuer = async (query: string) => {
@@ -286,6 +293,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
       updatedAt: new Date().toISOString(),
     };
 
+    setIsSaving(true);
     try {
       if (isEditing && initialCertification) {
         await cmsService.updateCertification(initialCertification.id, payload);
@@ -307,6 +315,8 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
       onClose();
     } catch (err: any) {
       showNotification('Save failed: ' + (err.message || 'Firebase error'), 'error');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -319,77 +329,20 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
     );
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.88)',
-        backdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
-        padding: 'clamp(8px, 2.5vw, 20px)',
-      }}
+    <AdminModal
+      isOpen={true}
+      onClose={onClose}
+      size="lg"
+      maxWidth="880px"
+      ariaLabel={isEditing ? 'Edit Accreditation & Brand Identity' : 'Add Accreditation & Brand Identity'}
     >
-      <div
-        style={{
-          backgroundColor: '#0F1015',
-          border: '1px solid rgba(255, 255, 255, 0.14)',
-          borderRadius: '16px',
-          maxWidth: '840px',
-          width: '100%',
-          maxHeight: '94vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          boxShadow: '0 30px 80px rgba(0, 0, 0, 0.85)',
-        }}
-      >
-        {/* Sticky Header */}
-        <div
-          style={{
-            padding: '16px 24px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: '#14151C',
-            flexShrink: 0,
-          }}
-        >
-          <div>
-            <h3
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '18px',
-                fontWeight: 600,
-                color: '#F4F3EE',
-                margin: 0,
-              }}
-            >
-              {isEditing ? 'Edit Accreditation & Brand Identity' : 'Add Accreditation & Brand Identity'}
-            </h3>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: '#A7B0A9' }}>
-              Cloudflare R2 Persistent Storage &bull; Verified Brand Logos &bull; React Bits Circular Carousel
-            </span>
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#A7B0A9',
-              cursor: 'pointer',
-              padding: '6px',
-            }}
-          >
-            <X size={20} />
-          </button>
-        </div>
+      <AdminModalHeader
+        title={isEditing ? 'Edit Accreditation & Brand Identity' : 'Add Accreditation & Brand Identity'}
+        subtitle="Cloudflare R2 Persistent Storage • Verified Brand Logos • React Bits Circular Carousel"
+        onClose={onClose}
+      />
 
-        {/* Scrollable Form Body */}
-        <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+      <AdminModalBody padding="24px">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
             
             {/* 1. BASIC INFORMATION */}
@@ -1311,103 +1264,62 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
             </div>
 
           </div>
-        </div>
+        </AdminModalBody>
 
-        {/* Sticky Footer */}
-        <div
-          style={{
-            padding: '14px 24px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: '#14151C',
-            flexShrink: 0,
-          }}
-        >
-          {isEditing && onDelete && initialCertification ? (
-            <button
-              type="button"
-              onClick={() => {
-                if (window.confirm(`Delete certification "${initialCertification.title}"?`)) {
-                  onDelete(initialCertification.id);
-                  onClose();
+        <AdminModalFooter
+          onCancel={onClose}
+          onDelete={
+            isEditing && onDelete && initialCertification
+              ? () => {
+                  if (window.confirm(`Delete certification "${initialCertification.title}"?`)) {
+                    onDelete(initialCertification.id);
+                    onClose();
+                  }
                 }
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(217, 83, 79, 0.12)',
-                border: '1px solid rgba(217, 83, 79, 0.3)',
-                color: '#E06C75',
-                fontSize: '13px',
-                cursor: 'pointer',
-              }}
-            >
-              <Trash2 size={13} />
-              Delete
-            </button>
-          ) : (
-            <div />
-          )}
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                padding: '10px 18px',
-                borderRadius: '6px',
-                background: 'transparent',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                color: '#C1C4BE',
-                fontSize: '13px',
-                cursor: 'pointer',
-                minHeight: '40px',
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSubmit('draft')}
-              style={{
-                padding: '10px 18px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                color: '#E5E5EA',
-                fontSize: '13px',
-                cursor: 'pointer',
-                minHeight: '40px',
-              }}
-            >
-              Save Draft
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSubmit('published')}
-              style={{
-                padding: '10px 22px',
-                borderRadius: '6px',
-                backgroundColor: '#FFFFFF',
-                border: 'none',
-                color: '#050505',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                minHeight: '40px',
-              }}
-            >
-              Publish Credential
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+              : undefined
+          }
+          deleteText="Delete"
+          isSaving={isSaving}
+        >
+          <button
+            type="button"
+            onClick={() => handleSubmit('draft')}
+            disabled={isSaving}
+            className="btn-glass-primary"
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              color: '#E5E5EA',
+              fontSize: '13px',
+              cursor: isSaving ? 'not-allowed' : 'pointer',
+              minHeight: '38px',
+            }}
+          >
+            Save Draft
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSubmit('published')}
+            disabled={isSaving}
+            className="btn-luxury-primary"
+            style={{
+              padding: '8px 20px',
+              borderRadius: '6px',
+              backgroundColor: '#FFFFFF',
+              border: 'none',
+              color: '#050505',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: isSaving ? 'not-allowed' : 'pointer',
+              minHeight: '38px',
+            }}
+          >
+            Publish Credential
+          </button>
+        </AdminModalFooter>
+    </AdminModal>
   );
 };
 

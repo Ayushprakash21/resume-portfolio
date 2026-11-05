@@ -14,6 +14,15 @@ import {
 import { SkillRecord, ExperienceRecord, ProjectRecord, CertificationRecord } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
 import { SearchableSelect, SearchableOption } from '../common/SearchableSelect';
+import {
+  AdminModal,
+  AdminModalHeader,
+  AdminModalBody,
+  AdminModalFooter,
+  AdminFormField,
+  AdminInput,
+  AdminTextarea,
+} from '../common/AdminModal';
 
 interface SkillsManagerProps {
   skills: SkillRecord[];
@@ -458,170 +467,71 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
 
       {/* Add / Edit Skill Modal */}
       {isAddingSkill && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '20px',
-          }}
+        <AdminModal
+          isOpen={isAddingSkill}
+          onClose={() => setIsAddingSkill(false)}
+          size="sm"
+          maxWidth="540px"
+          ariaLabel={editingSkill ? 'Edit Skill' : 'Add New Skill'}
         >
-          <div
-            style={{
-              backgroundColor: 'rgba(18, 18, 22, 0.72)',
-              border: '1px solid rgba(244, 243, 238, 0.15)',
-              borderRadius: '12px',
-              maxWidth: '520px',
-              width: '100%',
-              padding: '24px',
-              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '18px',
-              }}
-            >
-              <h3
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '18px',
-                  fontWeight: 600,
-                  color: '#F4F3EE',
-                  margin: 0,
-                }}
-              >
-                {editingSkill ? 'Edit Skill' : 'Add New Skill'}
-              </h3>
-              <button
-                onClick={() => setIsAddingSkill(false)}
-                style={{ background: 'none', border: 'none', color: '#A7B0A9', cursor: 'pointer' }}
-              >
-                <X size={18} />
-              </button>
-            </div>
+          <AdminModalHeader
+            title={editingSkill ? 'Edit Skill' : 'Add New Skill'}
+            subtitle="Catalog and categorize technical abilities across portfolio modules."
+            icon={<Sparkles size={16} />}
+            onClose={() => setIsAddingSkill(false)}
+          />
 
-            <form onSubmit={handleSaveSkill} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Skill Name <span style={{ color: '#D9534F' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  placeholder="e.g. Claude AI, Logistics Workflow Mapping..."
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '14px',
-                    outline: 'none',
-                  }}
-                />
-              </div>
+          <form onSubmit={handleSaveSkill} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <AdminModalBody padding="22px">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <AdminFormField label="Skill Name" required={true}>
+                  <AdminInput
+                    type="text"
+                    value={formName}
+                    onChange={(e) => setFormName(e.target.value)}
+                    placeholder="e.g. Claude AI, Logistics Workflow Mapping..."
+                  />
+                </AdminFormField>
 
-              <div>
-                <SearchableSelect
-                  label="Capability Category"
-                  options={categories.map((c) => ({
-                    value: c,
-                    label: c,
-                    icon: <Layers size={13} color="#D5D2D6" />,
-                  }))}
-                  value={formCategory}
-                  onChange={(val) => setFormCategory(val)}
-                  placeholder="Select or enter category..."
-                  searchPlaceholder="Search category or type custom..."
-                  allowCustom={true}
-                  customPrompt="Add category:"
-                  clearable={false}
-                />
-              </div>
+                <div>
+                  <SearchableSelect
+                    label="Capability Category"
+                    options={categories.map((c) => ({
+                      value: c,
+                      label: c,
+                      icon: <Layers size={13} color="#D5D2D6" />,
+                    }))}
+                    value={formCategory}
+                    onChange={(val) => setFormCategory(val)}
+                    placeholder="Select or enter category..."
+                    searchPlaceholder="Search category or type custom..."
+                    allowCustom={true}
+                    customPrompt="Add category:"
+                    clearable={false}
+                  />
+                </div>
 
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                    marginBottom: '6px',
-                  }}
+                <AdminFormField
+                  label="Technical Scope & Context (Optional)"
+                  helpText="Brief context of how this skill is applied in projects or operations."
                 >
-                  Technical Scope &amp; Context (Optional)
-                </label>
-                <textarea
-                  rows={2}
-                  value={formDesc}
-                  onChange={(e) => setFormDesc(e.target.value)}
-                  placeholder="Brief context of how this skill is applied..."
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '13px',
-                    outline: 'none',
-                  }}
-                />
+                  <AdminTextarea
+                    rows={3}
+                    value={formDesc}
+                    onChange={(e) => setFormDesc(e.target.value)}
+                    placeholder="Brief context of how this skill is applied..."
+                  />
+                </AdminFormField>
               </div>
+            </AdminModalBody>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
-                <button
-                  type="button"
-                  onClick={() => setIsAddingSkill(false)}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: '6px',
-                    background: 'transparent',
-                    border: '1px solid rgba(244, 243, 238, 0.15)',
-                    color: '#C1C4BE',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  style={{
-                    padding: '8px 20px',
-                    borderRadius: '6px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                    border: 'none',
-                    color: '#F4F3EE',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {editingSkill ? 'Save Changes' : 'Create Skill'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+            <AdminModalFooter
+              onCancel={() => setIsAddingSkill(false)}
+              saveText={editingSkill ? 'Save Changes' : 'Create Skill'}
+              saveType="submit"
+            />
+          </form>
+        </AdminModal>
       )}
     </div>
   );

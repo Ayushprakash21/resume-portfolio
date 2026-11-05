@@ -31,6 +31,12 @@ import { ProjectCategorySelector } from '../common/ProjectCategorySelector';
 import { DevelopmentStatusSelector } from '../common/DevelopmentStatusSelector';
 import { CompanySelector } from '../common/CompanySelector';
 import { SkillsMultiSelector } from '../common/SkillsMultiSelector';
+import {
+  AdminModal,
+  AdminModalHeader,
+  AdminModalBody,
+  AdminModalFooter,
+} from '../common/AdminModal';
 
 interface ProjectEditorModalProps {
   initialProject: ProjectRecord | null;
@@ -142,6 +148,7 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
   const [newFeatureInput, setNewFeatureInput] = useState('');
   const [newTechInput, setNewTechInput] = useState('');
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [cropTargetScreenshotIdx, setCropTargetScreenshotIdx] = useState<number | null>(null);
 
   const handleApplyCroppedScreenshot = async (croppedFile: File) => {
@@ -392,6 +399,7 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
       updatedAt: new Date().toISOString(),
     };
 
+    setIsSaving(true);
     try {
       if (isEditing && initialProject) {
         await cmsService.updateProject(initialProject.id, payload);
@@ -413,6 +421,8 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
       onClose();
     } catch (err: any) {
       showNotification('Save failed: ' + (err.message || 'Firebase error'), 'error');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -425,74 +435,20 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
     );
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
-        padding: 'clamp(8px, 2.5vw, 20px)',
-      }}
+    <AdminModal
+      isOpen={true}
+      onClose={onClose}
+      size="xl"
+      maxWidth="980px"
+      ariaLabel={isEditing ? `Edit Project: ${form.name}` : 'Add New Project'}
     >
-      <div
-        style={{
-          backgroundColor: '#0F1015',
-          border: '1px solid rgba(255, 255, 255, 0.14)',
-          borderRadius: '12px',
-          maxWidth: '880px',
-          width: '100%',
-          maxHeight: '94vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.75)',
-        }}
-      >
-        {/* Sticky Header */}
-        <div
-          style={{
-            padding: '16px 20px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: '#14151C',
-            flexShrink: 0,
-          }}
-        >
-          <div>
-            <h3
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '18px',
-                fontWeight: 600,
-                color: '#F4F3EE',
-                margin: 0,
-              }}
-            >
-              {isEditing ? `Edit Project: ${form.name}` : 'Add New Project'}
-            </h3>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: '#A7B0A9' }}>
-              LinkedIn-style project management with structured narrative blocks and media gallery.
-            </span>
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#A7B0A9',
-              cursor: 'pointer',
-              padding: '4px',
-            }}
-          >
-            <X size={20} />
-          </button>
-        </div>
+      <AdminModalHeader
+        title={isEditing ? `Edit Project: ${form.name}` : 'Add New Project'}
+        subtitle="LinkedIn-style project management with structured narrative blocks and media gallery."
+        onClose={onClose}
+      />
 
+      <AdminModalBody padding="0px">
         {/* Section Navigation Pills */}
         <div
           style={{
@@ -1859,115 +1815,75 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
             </div>
           )}
         </div>
+      </AdminModalBody>
 
-        {/* Sticky Footer Actions */}
-        <div
-          style={{
-            padding: '14px 24px',
-            borderTop: '1px solid rgba(244, 243, 238, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: '#18211D',
-            flexShrink: 0,
-          }}
-        >
-          {isEditing && onDelete && initialProject ? (
-            <button
-              type="button"
-              onClick={() => {
-                if (window.confirm(`Are you sure you want to delete "${initialProject.name}"?`)) {
-                  onDelete(initialProject.id);
-                  onClose();
+        <AdminModalFooter
+          onCancel={onClose}
+          onDelete={
+            isEditing && onDelete && initialProject
+              ? () => {
+                  if (window.confirm(`Are you sure you want to delete "${initialProject.name}"?`)) {
+                    onDelete(initialProject.id);
+                    onClose();
+                  }
                 }
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(217, 83, 79, 0.12)',
-                border: '1px solid rgba(217, 83, 79, 0.3)',
-                color: '#E06C75',
-                fontSize: '13px',
-                cursor: 'pointer',
-              }}
-            >
-              <Trash2 size={13} />
-              Delete Project
-            </button>
-          ) : (
-            <div />
-          )}
+              : undefined
+          }
+          deleteText="Delete Project"
+          isSaving={isSaving}
+        >
+          <button
+            type="button"
+            onClick={() => handleSubmit('draft')}
+            disabled={isSaving}
+            className="btn-glass-primary"
+            style={{
+              padding: '8px 16px',
+              borderRadius: '6px',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              color: '#E5E5EA',
+              fontSize: '13px',
+              cursor: isSaving ? 'not-allowed' : 'pointer',
+              minHeight: '38px',
+            }}
+          >
+            Save Draft
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSubmit('published')}
+            disabled={isSaving}
+            className="btn-luxury-primary"
+            style={{
+              padding: '8px 20px',
+              borderRadius: '6px',
+              backgroundColor: '#FFFFFF',
+              border: 'none',
+              color: '#050505',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: isSaving ? 'not-allowed' : 'pointer',
+              minHeight: '38px',
+            }}
+          >
+            Publish Project
+          </button>
+        </AdminModalFooter>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-glass-secondary" style={{
-                padding: '10px 18px',
-                borderRadius: '6px',
-                background: 'transparent',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                color: '#C1C4BE',
-                fontSize: '13px',
-                cursor: 'pointer',
-                minHeight: '40px',
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSubmit('draft')}
-              className="btn-glass-primary" style={{
-                padding: '10px 18px',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                color: '#E5E5EA',
-                fontSize: '13px',
-                cursor: 'pointer',
-                minHeight: '40px',
-              }}
-            >
-              Save Draft
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSubmit('published')}
-              className="btn-luxury-primary" style={{
-                padding: '10px 22px',
-                borderRadius: '6px',
-                backgroundColor: '#FFFFFF',
-                border: 'none',
-                color: '#050505',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                minHeight: '40px',
-              }}
-            >
-              Publish Project
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {cropTargetScreenshotIdx !== null && form.screenshots?.[cropTargetScreenshotIdx] && (
-        <ImageCropModal
-          isOpen={cropTargetScreenshotIdx !== null}
-          imageSrc={form.screenshots[cropTargetScreenshotIdx]}
-          fileName={`screenshot-${cropTargetScreenshotIdx + 1}.jpg`}
-          initialAspect={16 / 9}
-          initialShape="rect"
-          title={`Screenshot #${cropTargetScreenshotIdx + 1} — Drag, Position & Crop`}
-          contextHint="Position and scale the project screenshot. Use mouse drag or zoom slider."
-          onClose={() => setCropTargetScreenshotIdx(null)}
-          onApplyCrop={handleApplyCroppedScreenshot}
-        />
-      )}
-    </div>
+        {cropTargetScreenshotIdx !== null && form.screenshots?.[cropTargetScreenshotIdx] && (
+          <ImageCropModal
+            isOpen={cropTargetScreenshotIdx !== null}
+            imageSrc={form.screenshots[cropTargetScreenshotIdx]}
+            fileName={`screenshot-${cropTargetScreenshotIdx + 1}.jpg`}
+            initialAspect={16 / 9}
+            initialShape="rect"
+            title={`Screenshot #${cropTargetScreenshotIdx + 1} — Drag, Position & Crop`}
+            contextHint="Position and scale the project screenshot. Use mouse drag or zoom slider."
+            onClose={() => setCropTargetScreenshotIdx(null)}
+            onApplyCrop={handleApplyCroppedScreenshot}
+          />
+        )}
+    </AdminModal>
   );
 };

@@ -55,6 +55,12 @@ import {
   downloadDocx,
 } from '../../../services/resumeGeneratorService';
 import { ResumeGeneratorModal } from '../../resume/ResumeGeneratorModal';
+import {
+  AdminModal,
+  AdminModalHeader,
+  AdminModalBody,
+  AdminModalFooter,
+} from '../common/AdminModal';
 
 interface ResumeManagerProps {
   currentResume: ResumeRecord;
@@ -2811,93 +2817,44 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
 
       {/* Preview Modal */}
       {showPreviewModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '20px',
-          }}
+        <AdminModal
+          isOpen={showPreviewModal}
+          onClose={() => setShowPreviewModal(false)}
+          size="xl"
+          maxWidth="920px"
+          ariaLabel="Resume Preview"
         >
-          <div
-            style={{
-              backgroundColor: 'rgba(18, 18, 22, 0.72)',
-              border: '1px solid rgba(244, 243, 238, 0.15)',
-              borderRadius: '12px',
-              maxWidth: '840px',
-              width: '100%',
-              height: '85vh',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                padding: '14px 20px',
-                borderBottom: '1px solid rgba(244, 243, 238, 0.08)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '15px',
-                  fontWeight: 600,
-                  color: '#F4F3EE',
-                }}
-              >
-                Resume Preview &mdash; {form.fileName}
-              </span>
-              <button
-                onClick={() => setShowPreviewModal(false)}
-                style={{ background: 'none', border: 'none', color: '#A7B0A9', cursor: 'pointer' }}
-              >
-                <X size={18} />
-              </button>
-            </div>
+          <AdminModalHeader
+            title={`Resume Preview — ${form.fileName}`}
+            subtitle="Authoritative resume document hosted on Cloudflare R2 persistent storage."
+            onClose={() => setShowPreviewModal(false)}
+          />
+          <AdminModalBody padding="0" style={{ height: '82vh' }}>
             <iframe
               src={form.fileUrl}
               title="Resume Preview"
               style={{ width: '100%', height: '100%', border: 'none' }}
             />
-          </div>
-        </div>
+          </AdminModalBody>
+        </AdminModal>
       )}
 
       {/* ATS Generator Modal */}
       {/* LinkedIn Export Review Workspace Modal */}
       {showLinkedInModal && linkedInReport && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '20px',
-          }}
+        <AdminModal
+          isOpen={showLinkedInModal && !!linkedInReport}
+          onClose={() => setShowLinkedInModal(false)}
+          size="xl"
+          maxWidth="1040px"
+          ariaLabel="LinkedIn Data Export Review"
         >
           <div
             style={{
-              backgroundColor: '#121216',
-              border: '1px solid rgba(10, 102, 194, 0.35)',
-              borderRadius: '12px',
-              maxWidth: '1000px',
-              width: '100%',
-              height: '90vh',
               display: 'flex',
               flexDirection: 'column',
+              height: '90vh',
               overflow: 'hidden',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
             }}
           >
             {/* Modal Header */}
@@ -3301,7 +3258,7 @@ export const ResumeManager: React.FC<ResumeManagerProps> = ({
               </div>
             </div>
           </div>
-        </div>
+        </AdminModal>
       )}
 
       {/* ATS Generator Modal */}

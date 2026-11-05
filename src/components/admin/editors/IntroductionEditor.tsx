@@ -19,6 +19,12 @@ import { ProfileData } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
 import { LocationSelector } from '../common/LocationSelector';
 import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop';
+import {
+  AdminModal,
+  AdminModalHeader,
+  AdminModalBody,
+  AdminModalFooter,
+} from '../common/AdminModal';
 
 interface IntroductionEditorProps {
   initialProfile: ProfileData;
@@ -1176,178 +1182,114 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
 
       {/* Live Preview Modal */}
       {showPreviewModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '20px',
-          }}
+        <AdminModal
+          isOpen={showPreviewModal}
+          onClose={() => setShowPreviewModal(false)}
+          size="md"
+          maxWidth="680px"
+          ariaLabel="Public Introduction Preview"
         >
-          <div
-            style={{
-              backgroundColor: 'rgba(18, 18, 22, 0.72)',
-              border: '1px solid rgba(244, 243, 238, 0.15)',
-              borderRadius: '12px',
-              maxWidth: '680px',
-              width: '100%',
-              overflow: 'hidden',
-              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
-            }}
-          >
-            {/* Modal Header */}
+          <AdminModalHeader
+            title="Public Introduction Preview"
+            subtitle="Preview how your professional identity and brand assets render to visitors."
+            icon={<User size={18} />}
+            onClose={() => setShowPreviewModal(false)}
+          />
+
+          <AdminModalBody padding="24px">
             <div
               style={{
-                padding: '16px 20px',
-                borderBottom: '1px solid rgba(244, 243, 238, 0.08)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                position: 'relative',
+                height: '140px',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                backgroundColor: '#1E2822',
+                marginBottom: '50px',
               }}
             >
-              <div
+              <img
+                src={form.coverImage || form.profilePhoto}
+                alt="Cover"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+              <img
+                src={form.profilePhoto}
+                alt={form.name}
+                style={{
+                  position: 'absolute',
+                  bottom: '-35px',
+                  left: '24px',
+                  width: '84px',
+                  height: '84px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '3px solid #0A0B0E',
+                  backgroundColor: '#0A0B0E',
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+              <h3
                 style={{
                   fontFamily: 'var(--font-display)',
-                  fontSize: '16px',
-                  fontWeight: 600,
+                  fontSize: '22px',
+                  fontWeight: 700,
                   color: '#F4F3EE',
+                  margin: 0,
                 }}
               >
-                Public Introduction Preview
-              </div>
-              <button
-                onClick={() => setShowPreviewModal(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#A7B0A9',
-                  cursor: 'pointer',
-                }}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Preview Card */}
-            <div style={{ padding: '24px' }}>
-              <div
-                style={{
-                  position: 'relative',
-                  height: '140px',
-                  borderRadius: '8px',
-                  overflow: 'hidden',
-                  backgroundColor: '#1E2822',
-                  marginBottom: '50px',
-                }}
-              >
-                <img
-                  src={form.coverImage || form.profilePhoto}
-                  alt="Cover"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-                <img
-                  src={form.profilePhoto}
-                  alt={form.name}
+                {form.name}
+              </h3>
+              {form.pronouns && (
+                <span
                   style={{
-                    position: 'absolute',
-                    bottom: '-35px',
-                    left: '24px',
-                    width: '84px',
-                    height: '84px',
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    border: '3px solid rgba(18, 18, 22, 0.72)',
-                    backgroundColor: 'rgba(18, 18, 22, 0.72)',
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                <h3
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '22px',
-                    fontWeight: 700,
-                    color: '#F4F3EE',
-                    margin: 0,
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '12px',
+                    color: '#8E948D',
                   }}
                 >
-                  {form.name}
-                </h3>
-                {form.pronouns && (
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '12px',
-                      color: '#8E948D',
-                    }}
-                  >
-                    ({form.pronouns})
-                  </span>
-                )}
-              </div>
-
-              <p
-                style={{
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '14px',
-                  color: '#C1C4BE',
-                  lineHeight: 1.5,
-                  margin: '8px 0 14px',
-                }}
-              >
-                {form.headline}
-              </p>
-
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '16px',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '12px',
-                  color: '#8294A6',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <span>{form.location}</span>
-                <span>&bull;</span>
-                <span>{form.email}</span>
-                <span>&bull;</span>
-                <span style={{ color: '#6CE098' }}>{form.availabilityStatus}</span>
-              </div>
+                  ({form.pronouns})
+                </span>
+              )}
             </div>
+
+            <p
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '14px',
+                color: '#C1C4BE',
+                lineHeight: 1.5,
+                margin: '8px 0 14px',
+              }}
+            >
+              {form.headline}
+            </p>
 
             <div
               style={{
-                padding: '14px 20px',
-                borderTop: '1px solid rgba(244, 243, 238, 0.08)',
                 display: 'flex',
-                justifyContent: 'flex-end',
+                alignItems: 'center',
+                gap: '16px',
+                fontFamily: 'var(--font-body)',
+                fontSize: '12px',
+                color: '#8294A6',
+                flexWrap: 'wrap',
               }}
             >
-              <button
-                onClick={() => setShowPreviewModal(false)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '6px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  border: 'none',
-                  color: '#F4F3EE',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Close Preview
-              </button>
+              <span>{form.location}</span>
+              <span>&bull;</span>
+              <span>{form.email}</span>
+              <span>&bull;</span>
+              <span style={{ color: '#6CE098' }}>{form.availabilityStatus}</span>
             </div>
-          </div>
-        </div>
+          </AdminModalBody>
+
+          <AdminModalFooter
+            onCancel={() => setShowPreviewModal(false)}
+            cancelText="Close Preview"
+          />
+        </AdminModal>
       )}
     </div>
   );

@@ -19,6 +19,14 @@ import { MediaAsset } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
 import { ImageCropModal } from '../common/ImageCropModal';
 import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop';
+import {
+  AdminModal,
+  AdminModalHeader,
+  AdminModalBody,
+  AdminModalFooter,
+  AdminFormField,
+  AdminInput,
+} from '../common/AdminModal';
 
 interface MediaLibraryManagerProps {
   media: MediaAsset[];
@@ -598,57 +606,22 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
 
       {/* Asset Detail & Usage Inspector Modal */}
       {selectedAsset && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '20px',
-          }}
+        <AdminModal
+          isOpen={!!selectedAsset}
+          onClose={() => setSelectedAsset(null)}
+          size="md"
+          maxWidth="700px"
+          ariaLabel="Asset Details & Usage Inspector"
         >
-          <div
-            style={{
-              backgroundColor: 'rgba(18, 18, 22, 0.72)',
-              border: '1px solid rgba(244, 243, 238, 0.15)',
-              borderRadius: '12px',
-              maxWidth: '680px',
-              width: '100%',
-              padding: '24px',
-              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '18px',
-              }}
-            >
-              <h3
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '18px',
-                  fontWeight: 600,
-                  color: '#F4F3EE',
-                  margin: 0,
-                }}
-              >
-                Asset Details &amp; Usage Inspector
-              </h3>
-              <button
-                onClick={() => setSelectedAsset(null)}
-                style={{ background: 'none', border: 'none', color: '#A7B0A9', cursor: 'pointer' }}
-              >
-                <X size={18} />
-              </button>
-            </div>
+          <AdminModalHeader
+            title="Asset Details & Usage Inspector"
+            subtitle="Verify storage references, metadata, alt text, and active portfolio usage."
+            icon={<ImageIcon size={18} />}
+            onClose={() => setSelectedAsset(null)}
+          />
 
-            <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: '20px', marginBottom: '20px' }}>
+          <AdminModalBody padding="24px">
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(160px, 200px) 1fr', gap: '20px', marginBottom: '20px' }}>
               <div
                 style={{
                   height: '180px',
@@ -762,63 +735,17 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
               );
             })()}
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <button
-                type="button"
-                onClick={() => handleDelete(selectedAsset)}
-                className="btn-glass-destructive" style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '8px 14px',
-                  borderRadius: '6px',
-                  backgroundColor: 'rgba(217, 83, 79, 0.12)',
-                  border: '1px solid rgba(217, 83, 79, 0.3)',
-                  color: '#E06C75',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                }}
-              >
-                <Trash2 size={13} />
-                Delete Asset
-              </button>
+          </AdminModalBody>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  type="button"
-                  onClick={() => setSelectedAsset(null)}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: '6px',
-                    background: 'transparent',
-                    border: '1px solid rgba(244, 243, 238, 0.15)',
-                    color: '#C1C4BE',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveMetadata}
-                  style={{
-                    padding: '8px 20px',
-                    borderRadius: '6px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                    border: 'none',
-                    color: '#F4F3EE',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Save Metadata
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+          <AdminModalFooter
+            onCancel={() => setSelectedAsset(null)}
+            onDelete={() => handleDelete(selectedAsset)}
+            deleteText="Delete Asset"
+            onSave={handleSaveMetadata}
+            saveText="Save Metadata"
+            saveType="button"
+          />
+        </AdminModal>
       )}
       {/* Interactive Crop Modal for Selected Asset */}
       {cropTargetAsset && (

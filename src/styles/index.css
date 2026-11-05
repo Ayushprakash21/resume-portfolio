@@ -683,3 +683,51 @@ h1, h2, h3, h4, .font-display {
     width: clamp(120px, 34vw, 160px);
   }
 }
+
+/* ========================================================
+   ADMIN UNIFIED MODAL DESIGN SYSTEM & FORM CONTROLS
+   ======================================================== */
+.admin-modal-overlay {
+  animation: fadeIn 0.18s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.admin-grid-2col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.admin-grid-dates-grade {
+  display: grid;
+  grid-template-columns: 130px 150px minmax(0, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 720px) {
+  .admin-grid-2col,
+  .admin-grid-dates-grade {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .admin-modal-container {
+    max-height: 98vh !important;
+    border-radius: 10px !important;
+  }
+}
+

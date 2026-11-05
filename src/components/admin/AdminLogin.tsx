@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import { Mail, Key, AlertCircle, ArrowLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { ApMonogram } from '../brand/ApMonogram';
+import {
+  AdminModal,
+  AdminModalHeader,
+  AdminModalBody,
+  AdminModalFooter,
+  AdminFormField,
+  AdminInput,
+} from './common/AdminModal';
 
 interface AdminLoginProps {
   onLoginSuccess: () => void;
@@ -284,85 +292,60 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onReturn
 
       {/* Password Reset Modal */}
       {showResetModal && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(16px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-            zIndex: 100,
-          }}
+        <AdminModal
+          isOpen={showResetModal}
+          onClose={() => setShowResetModal(false)}
+          size="sm"
+          maxWidth="420px"
+          ariaLabel="Reset Admin Password"
         >
-          <div
-            className="glass-panel"
-            style={{
-              width: '100%',
-              maxWidth: '380px',
-              padding: '28px',
-            }}
-          >
-            <h3 style={{ fontFamily: 'var(--font-display)', color: '#FFFFFF', marginBottom: '12px' }}>
-              Reset Admin Password
-            </h3>
+          <AdminModalHeader
+            title="Reset Admin Password"
+            subtitle="Request an encrypted password reset token via email."
+            icon={<Key size={18} />}
+            onClose={() => setShowResetModal(false)}
+          />
+
+          <AdminModalBody padding="24px">
             {resetSent ? (
               <div>
-                <p style={{ fontSize: '13px', color: '#34D399', marginBottom: '16px' }}>
-                  A secure password reset link has been dispatched to {resetEmail}.
+                <p style={{ fontSize: '13.5px', color: '#4ADE80', marginBottom: '8px', lineHeight: 1.5 }}>
+                  A secure password reset link has been dispatched to <strong>{resetEmail}</strong>.
                 </p>
-                <button
-                  onClick={() => setShowResetModal(false)}
-                  className="btn-editorial-pill"
-                  style={{ width: '100%' }}
-                >
-                  Close
-                </button>
+                <p style={{ fontSize: '12px', color: '#8E948D', margin: 0 }}>
+                  Check your inbox and spam folder, then follow the instructions.
+                </p>
               </div>
             ) : (
-              <form onSubmit={handlePasswordReset}>
-                <input
-                  type="email"
-                  required
-                  value={resetEmail}
-                  onChange={(e) => setResetEmail(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    borderRadius: '8px',
-                    color: '#FFFFFF',
-                    marginBottom: '16px',
-                    outline: 'none',
-                  }}
-                />
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button
-                    type="submit"
-                    className="btn-luxury-primary"
-                    style={{ flex: 1, padding: '10px', fontSize: '13px' }}
-                  >
-                    Send Link
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowResetModal(false)}
-                    className="btn-editorial-pill"
-                    style={{ flex: 1, padding: '10px', fontSize: '13px' }}
-                  >
-                    Cancel
-                  </button>
-                </div>
+              <form id="password-reset-form" onSubmit={handlePasswordReset}>
+                <AdminFormField
+                  label="Administrative Email Address"
+                  required={true}
+                  helpText="Enter your authorized portfolio administrator address."
+                >
+                  <AdminInput
+                    type="email"
+                    required
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    placeholder="ayushprakash0021@gmail.com"
+                  />
+                </AdminFormField>
               </form>
             )}
-          </div>
-        </div>
+          </AdminModalBody>
+
+          <AdminModalFooter
+            onCancel={() => setShowResetModal(false)}
+            cancelText={resetSent ? 'Close' : 'Cancel'}
+            onSave={resetSent ? undefined : () => {
+              const formEl = document.getElementById('password-reset-form') as HTMLFormElement | null;
+              formEl?.requestSubmit();
+            }}
+            saveText="Send Link"
+            saveType="button"
+          />
+        </AdminModal>
       )}
     </div>
   );

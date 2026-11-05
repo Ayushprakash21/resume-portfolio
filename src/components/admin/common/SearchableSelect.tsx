@@ -361,14 +361,36 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
               const currentOption = options.find((opt) => opt.value === selectedValues[0]);
               const displayLabel = currentOption ? currentOption.label : selectedValues[0];
               return (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                  {currentOption?.icon && <span>{currentOption.icon}</span>}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    overflow: 'hidden',
+                    flex: 1,
+                    minWidth: 0,
+                  }}
+                >
+                  {currentOption?.icon && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
+                      {currentOption.icon}
+                    </span>
+                  )}
                   <span
+                    title={displayLabel}
                     style={{
-                      whiteSpace: 'nowrap',
+                      fontWeight: 500,
+                      color: '#F4F3EE',
+                      lineHeight: 1.35,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      fontWeight: 500,
+                      whiteSpace: 'normal',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      wordBreak: 'break-word',
+                      minWidth: 0,
+                      flex: 1,
                     }}
                   >
                     {displayLabel}
@@ -376,12 +398,18 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
                   {currentOption?.badge && (
                     <span
                       style={{
-                        fontSize: '10px',
-                        padding: '1px 6px',
-                        borderRadius: '8px',
-                        backgroundColor: 'rgba(120, 30, 49, 0.25)',
-                        color: '#E098A3',
-                        border: '1px solid rgba(120, 30, 49, 0.4)',
+                        fontSize: '9.5px',
+                        fontWeight: 600,
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                        padding: '1.5px 5.5px',
+                        borderRadius: '3px',
+                        backgroundColor: 'rgba(140, 21, 36, 0.25)',
+                        color: '#F47282',
+                        border: '1px solid rgba(140, 21, 36, 0.45)',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                        lineHeight: 1.2,
                       }}
                     >
                       {currentOption.badge}
