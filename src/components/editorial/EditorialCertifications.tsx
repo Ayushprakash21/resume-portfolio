@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Award, CheckCircle2, ExternalLink, X, Eye, FileText } from 'lucide-react';
 import { CertificationRecord } from '../../types/cms';
 import CircularCarousel from '../reactbits/CircularCarousel';
@@ -10,6 +10,26 @@ interface EditorialCertificationsProps {
 
 export const EditorialCertifications: React.FC<EditorialCertificationsProps> = ({ certifications }) => {
   const [activeCert, setActiveCert] = useState<CertificationRecord | null>(null);
+
+  // Lock body scroll and register Escape listener when modal is active
+  useEffect(() => {
+    if (activeCert) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setActiveCert(null);
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [activeCert]);
 
   // Filter only published certifications for public view
   const publishedCertifications = (certifications || []).filter(
@@ -101,25 +121,25 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
             items={carouselItems}
             preset="cylinder"
             intro="rise"
-            cardWidth={300}
-            cardHeight={410}
-            aspectRatio={0.73}
+            cardWidth={340}
+            cardHeight={450}
+            aspectRatio={0.75}
             speed={3.8}
             autoplay={true}
+            isPaused={!!activeCert}
             captions={true}
             gap={48}
             tilt={-1.5}
             curve={0.65}
             parallax={0.95}
             cornerRadius={22}
-            onSelect={(item) => setActiveCert(item.cert)}
             renderCard={(item, index, isCenter) => {
               const cert = item.cert as CertificationRecord;
               return (
                 <BorderGlow
                   borderRadius="22px"
-                  glowRadius={280}
-                  glowIntensity={0.28}
+                  glowRadius={300}
+                  glowIntensity={0.30}
                   glowColor={isCenter ? '#DC505F' : '#B8C0CC'}
                   style={{ width: '100%', height: '100%' }}
                 >
@@ -134,7 +154,7 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                       border: isCenter
                         ? '1px solid rgba(255, 255, 255, 0.24)'
                         : '1px solid rgba(255, 255, 255, 0.10)',
-                      padding: '22px',
+                      padding: '24px 22px',
                       boxSizing: 'border-box',
                       display: 'flex',
                       flexDirection: 'column',

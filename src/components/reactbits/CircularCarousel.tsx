@@ -17,8 +17,9 @@ export interface CircularCarouselProps<T = CircularCarouselItem> {
   cardWidth?: number;
   cardHeight?: number;
   aspectRatio?: number;
-  speed?: number; // Autoplay interval in seconds (e.g. 3.8s)
+  speed?: number; // Autoplay interval in seconds (default: 3.8s)
   autoplay?: boolean;
+  isPaused?: boolean; // Pause when external modal is open
   captions?: boolean;
   gap?: number;
   tilt?: number; // Camera tilt in degrees (default: -1.5)
@@ -27,6 +28,7 @@ export interface CircularCarouselProps<T = CircularCarouselItem> {
   cornerRadius?: number; // Border radius (default: 22)
   renderCard?: (item: T, index: number, isCenter: boolean) => React.ReactNode;
   onSelect?: (item: T, index: number) => void;
+  onChange?: (item: T, index: number) => void;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -35,11 +37,12 @@ export function CircularCarousel<T = CircularCarouselItem>({
   items,
   preset = 'cylinder',
   intro = 'rise',
-  cardWidth = 300,
-  cardHeight = 410,
-  aspectRatio = 0.73,
+  cardWidth = 340,
+  cardHeight = 450,
+  aspectRatio = 0.75,
   speed = 3.8,
   autoplay = true,
+  isPaused = false,
   captions = true,
   gap = 48,
   tilt = -1.5,
@@ -48,6 +51,7 @@ export function CircularCarousel<T = CircularCarouselItem>({
   cornerRadius = 22,
   renderCard,
   onSelect,
+  onChange,
   className = '',
   style = {},
 }: CircularCarouselProps<T>) {
@@ -65,7 +69,7 @@ export function CircularCarousel<T = CircularCarouselItem>({
   const activeIndexRef = useRef<number>(0);
 
   // Autoplay and interaction timers
-  const autoplayIntervalMs = speed && speed > 0 && speed <= 15 ? speed * 1000 : 3800;
+  const autoplayIntervalMs = speed && speed > 0 && speed <= 30 ? speed * 1000 : 3800;
   const pauseUntilRef = useRef<number>(0);
   const lastStepTimeRef = useRef<number>(performance.now());
 
@@ -73,8 +77,9 @@ export function CircularCarousel<T = CircularCarouselItem>({
   const isHoveredRef = useRef<boolean>(false);
   const isDraggingRef = useRef<boolean>(false);
   const isVisibleRef = useRef<boolean>(true);
-  const dragRef = useRef<{ startX: number; startAngle: number; pointerId: number } | null>(null);
+  const dragRef = useRef<{ startX: number; startY: number; startAngle: number; pointerId: number } | null>(null);
   const dragMovedRef = useRef<boolean>(false);
+  const lastDragEndTimeRef = useRef<number>(0);
   const totalDxRef = useRef<number>(0);
 
   const [activeIndex, setActiveIndex] = useState<number>(0);
@@ -118,21 +123,23 @@ export function CircularCarousel<T = CircularCarouselItem>({
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       // Autoplay advance: smoothly advances targetAngle to next card every interval
-      if (
+      const canAutoplay =
         autoplay &&
+        !isPaused &&
         !isHoveredRef.current &&
         !isDraggingRef.current &&
         isVisibleRef.current &&
         !prefersReducedMotion &&
-        now >= pauseUntilRef.current
-      ) {
+        now >= pauseUntilRef.current;
+
+      if (canAutoplay) {
         if (now - lastStepTimeRef.current >= autoplayIntervalMs) {
           lastStepTimeRef.current = now;
           targetAngleRef.current =
             Math.round(targetAngleRef.current / angleStep) * angleStep + angleStep;
         }
       } else {
-        if (isHoveredRef.current || isDraggingRef.current || now < pauseUntilRef.current) {
+        if (isDraggingRef.current || isPaused || now < pauseUntilRef.current) {
           lastStepTimeRef.current = now;
         }
       }
@@ -157,7 +164,7 @@ export function CircularCarousel<T = CircularCarouselItem>({
       if (nearestIdx !== activeIndexRef.current) {
         activeIndexRef.current = nearestIdx;
         setActiveIndex(nearestIdx);
-        onSelect?.(items[nearestIdx], nearestIdx);
+        onChange?.(items[nearestIdx], nearestIdx);
       }
 
       // Responsive card dimensions
@@ -168,23 +175,23 @@ export function CircularCarousel<T = CircularCarouselItem>({
       const isTablet = containerWidth > 640 && containerWidth <= 1024;
 
       const effectiveCardWidth = isMobile
-        ? Math.min(255, containerWidth * 0.78)
+        ? Math.min(285, Math.round(containerWidth * 0.82))
         : isTablet
-        ? 275
-        : cardWidth;
+        ? 310
+        : cardWidth; // 340px desktop target
 
       const effectiveCardHeight = cardHeight
         ? isMobile
-          ? Math.round(cardHeight * 0.86)
+          ? 390
           : isTablet
-          ? Math.round(cardHeight * 0.92)
-          : cardHeight
+          ? 420
+          : cardHeight // 450px desktop target
         : Math.round(effectiveCardWidth / aspectRatio);
 
-      const effectiveGap = isMobile ? 24 : isTablet ? 36 : gap;
+      const effectiveGap = isMobile ? 32 : isTablet ? 48 : gap;
 
       // Cylinder radius: complete 3D circular cylinder
-      const minRadius = isMobile ? 280 : isTablet ? 330 : 380;
+      const minRadius = isMobile ? 310 : isTablet ? 380 : 440;
       const basePerimeter = Math.max(n, 4) * (effectiveCardWidth + effectiveGap);
       const radius = Math.max(minRadius, basePerimeter / (2 * Math.PI));
 
@@ -202,26 +209,49 @@ export function CircularCarousel<T = CircularCarouselItem>({
         const rad = (delta * Math.PI) / 180;
 
         // 3D Cylinder coordinates
-        const spread = isMobile ? 0.84 : parallax;
+        const spread = isMobile ? 0.82 : parallax;
         const x = radius * Math.sin(rad) * spread;
 
-        const depthFactor = isMobile ? 0.45 : 0.55;
+        // Depth factor: central card front-most, adjacent and rear recede
+        const depthFactor = isMobile ? 0.55 : 0.65;
         const z = radius * (Math.cos(rad) - 1) * depthFactor;
 
-        const rotY = -delta * (isMobile ? 0.55 : curve);
+        const rotY = -delta * (isMobile ? 0.52 : curve);
         const rotX = tilt;
 
         // Intro animation offset
         const introY = !mounted && intro === 'rise' ? 40 : 0;
 
-        // Progressive scale: front card prominent (1.03), side/back cards scaled down
-        const scale = Math.max(0.76, 1.03 - (absDelta / 180) * 0.27);
+        // Normalised circular distance u in units of angleStep
+        const u = absDelta / angleStep;
 
-        // Progressive opacity: front card 1.0, sides 0.76, rear 0.38 (all cards visible)
-        const opacity = Math.max(0.38, 1 - Math.pow(absDelta / 180, 1.35) * 0.62);
+        let opacity: number;
+        let scale: number;
+        let blur: number;
+        let contrast: number;
 
-        // Subtle depth blur for background cards
-        const blur = absDelta > 50 ? Math.min(2.0, (absDelta - 50) * 0.015) : 0;
+        if (u < 0.22) {
+          // Central active card: 100% opacity, 1.0 scale, sharp, high contrast
+          opacity = 1.0;
+          scale = 1.0;
+          blur = 0;
+          contrast = 1.0;
+        } else if (u <= 1.15) {
+          // Adjacent cards: target 25–40% opacity, ~0.82–0.90 scale, slight blur, reduced contrast
+          const t = Math.min(1, Math.max(0, (u - 0.22) / 0.78));
+          opacity = 1.0 - t * 0.68; // 1.0 -> 0.32 (32% opacity)
+          scale = 1.0 - t * 0.15;   // 1.0 -> 0.85 scale
+          blur = t * 1.5;           // 0 -> 1.5px blur
+          contrast = 1.0 - t * 0.2; // 1.0 -> 0.80 contrast
+        } else {
+          // Further / rear cards: very low opacity (0.10), distant perspective
+          const t = Math.min(1, (u - 1.0) / 1.0);
+          opacity = Math.max(0.08, 0.32 - t * 0.22); // 0.32 -> 0.10
+          scale = Math.max(0.70, 0.85 - t * 0.15);   // 0.85 -> 0.70
+          blur = 1.5 + t * 1.8;                      // 1.5 -> 3.3px blur
+          contrast = 0.75;
+        }
+
         const zIndex = Math.round(1000 - absDelta * 5);
         const isCenter = absDelta < angleStep / 2;
 
@@ -232,7 +262,7 @@ export function CircularCarousel<T = CircularCarouselItem>({
         el.style.borderRadius = `${cornerRadius}px`;
         el.style.transform = `translate3d(${x.toFixed(2)}px, ${introY}px, ${z.toFixed(2)}px) rotateY(${rotY.toFixed(2)}deg) rotateX(${rotX}deg) scale(${scale.toFixed(3)})`;
         el.style.opacity = String(opacity.toFixed(3));
-        el.style.filter = blur > 0.2 ? `blur(${blur.toFixed(1)}px)` : 'none';
+        el.style.filter = blur > 0.2 ? `blur(${blur.toFixed(1)}px) contrast(${contrast.toFixed(2)})` : 'none';
         el.style.zIndex = String(zIndex);
         el.style.visibility = 'visible';
         el.style.pointerEvents = absDelta < 55 ? 'auto' : 'none';
@@ -244,7 +274,7 @@ export function CircularCarousel<T = CircularCarouselItem>({
         }
       }
     },
-    [angleStep, aspectRatio, autoplay, autoplayIntervalMs, cardHeight, cardWidth, cornerRadius, curve, gap, intro, items, mounted, n, onSelect, parallax, tilt]
+    [angleStep, aspectRatio, autoplay, autoplayIntervalMs, cardHeight, cardWidth, cornerRadius, curve, gap, intro, isPaused, items, mounted, n, onChange, parallax, tilt]
   );
 
   // Single stable RAF loop
@@ -279,15 +309,17 @@ export function CircularCarousel<T = CircularCarouselItem>({
 
   const prev = useCallback(() => {
     targetAngleRef.current = Math.round(targetAngleRef.current / angleStep) * angleStep - angleStep;
+    pauseUntilRef.current = performance.now() + 4000;
   }, [angleStep]);
 
   const next = useCallback(() => {
     targetAngleRef.current = Math.round(targetAngleRef.current / angleStep) * angleStep + angleStep;
+    pauseUntilRef.current = performance.now() + 4000;
   }, [angleStep]);
 
   const triggerManualNav = useCallback((action: () => void) => {
     action();
-    pauseUntilRef.current = performance.now() + 3500;
+    pauseUntilRef.current = performance.now() + 4000;
     setRerenderKey((k) => k + 1);
   }, []);
 
@@ -296,6 +328,7 @@ export function CircularCarousel<T = CircularCarouselItem>({
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     dragRef.current = {
       startX: e.clientX,
+      startY: e.clientY,
       startAngle: targetAngleRef.current,
       pointerId: e.pointerId,
     };
@@ -309,9 +342,10 @@ export function CircularCarousel<T = CircularCarouselItem>({
     const drag = dragRef.current;
     if (!drag) return;
     const dx = e.clientX - drag.startX;
+    const dy = e.clientY - drag.startY;
     totalDxRef.current = dx;
 
-    if (Math.abs(dx) > 6) {
+    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
       if (!dragMovedRef.current) {
         dragMovedRef.current = true;
         try {
@@ -336,15 +370,15 @@ export function CircularCarousel<T = CircularCarouselItem>({
       } catch {
         // ignore
       }
-
       // Snap to nearest card position
       targetAngleRef.current = Math.round(targetAngleRef.current / angleStep) * angleStep;
     }
 
+    lastDragEndTimeRef.current = performance.now();
     dragRef.current = null;
     isDraggingRef.current = false;
     setIsDragging(false);
-    pauseUntilRef.current = performance.now() + 2500;
+    pauseUntilRef.current = performance.now() + 3500;
     setRerenderKey((k) => k + 1);
   };
 
@@ -397,11 +431,16 @@ export function CircularCarousel<T = CircularCarouselItem>({
                 cardRefs.current[idx] = el;
               }}
               className={`circular-carousel__card${isCenter ? ' circular-carousel__card--center' : ''}`}
-              onClick={() => {
-                if (!dragMovedRef.current) {
-                  triggerManualNav(() => snapTo(idx));
-                  onSelect?.(item, idx);
+              onClick={(e) => {
+                if (dragMovedRef.current || performance.now() - lastDragEndTimeRef.current < 250) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  return;
                 }
+                if (!isCenter) {
+                  triggerManualNav(() => snapTo(idx));
+                }
+                onSelect?.(item, idx);
               }}
             >
               {renderCard ? (
