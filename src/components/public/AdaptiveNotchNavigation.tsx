@@ -219,7 +219,7 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
 
       {/* ========================================================
           1. LEFT BRAND NOTCH (Logo Notch)
-          Flush with left edge, concave fillet on right
+          Clean square boundary flush with left edge
           ======================================================== */}
       <div
         className="adaptive-notch-island left-brand-notch"
@@ -234,69 +234,6 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           alignItems: 'center',
         }}
       >
-        <svg
-          viewBox={`0 0 ${leftNotchWidth + filletRadius} ${notchHeight}`}
-          width={leftNotchWidth + filletRadius}
-          height={notchHeight}
-          preserveAspectRatio="none"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            pointerEvents: 'none',
-            overflow: 'visible',
-            filter: 'drop-shadow(0 10px 24px rgba(0, 0, 0, 0.65))',
-          }}
-          aria-hidden="true"
-        >
-          <defs>
-            <linearGradient id="apLeftNotchGrad" x1="0%" y1="0%" x2="100%" y2="25%">
-              <stop offset="0%" stopColor="#080809" />
-              <stop offset="45%" stopColor="#150507" />
-              <stop offset="100%" stopColor="#240609" />
-            </linearGradient>
-            <linearGradient id="apLeftBorderGrad" x1="0%" y1="0%" x2="100%" y2="25%">
-              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.16)" />
-              <stop offset="70%" stopColor="rgba(255, 255, 255, 0.12)" />
-              <stop offset="100%" stopColor="rgba(220, 80, 95, 0.24)" />
-            </linearGradient>
-          </defs>
-          {/* Surface fill */}
-          <path
-            d={`M 0 0
-                L 0 ${notchHeight - cornerRadius}
-                A ${cornerRadius} ${cornerRadius} 0 0 0 ${cornerRadius} ${notchHeight}
-                L ${leftNotchWidth - cornerRadius} ${notchHeight}
-                A ${cornerRadius} ${cornerRadius} 0 0 0 ${leftNotchWidth} ${notchHeight - cornerRadius}
-                L ${leftNotchWidth} ${filletRadius}
-                A ${filletRadius} ${filletRadius} 0 0 1 ${leftNotchWidth + filletRadius} 0
-                Z`}
-            fill="url(#apLeftNotchGrad)"
-          />
-          {/* Subtle metallic silver/crimson border contour */}
-          <path
-            d={`M 0 ${notchHeight}
-                L ${leftNotchWidth - cornerRadius} ${notchHeight}
-                A ${cornerRadius} ${cornerRadius} 0 0 0 ${leftNotchWidth} ${notchHeight - cornerRadius}
-                L ${leftNotchWidth} ${filletRadius}
-                A ${filletRadius} ${filletRadius} 0 0 1 ${leftNotchWidth + filletRadius} 0`}
-            fill="none"
-            stroke="url(#apLeftBorderGrad)"
-            strokeWidth="1.2"
-          />
-          {/* Subtle silver highlight along upper border */}
-          <line
-            x1="0"
-            y1="0"
-            x2={leftNotchWidth + filletRadius}
-            y2="0"
-            stroke="rgba(255, 255, 255, 0.16)"
-            strokeWidth="1"
-          />
-        </svg>
-
         {/* Content: Authentic AP Logo Asset */}
         <a
           href="#hero"
@@ -517,7 +454,7 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
 
       {/* ========================================================
           3. RIGHT ACTION NOTCH (Action / Account Slot)
-          Concave fillet on left, flush with right screen edge
+          Clean square boundary flush with right screen edge
           ======================================================== */}
       <div
         className="adaptive-notch-island right-action-notch"
@@ -533,68 +470,6 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           justifyContent: 'flex-end',
         }}
       >
-        <svg
-          viewBox={`0 0 ${rightNotchWidth + filletRadius} ${notchHeight}`}
-          width={rightNotchWidth + filletRadius}
-          height={notchHeight}
-          preserveAspectRatio="none"
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: '100%',
-            height: '100%',
-            pointerEvents: 'none',
-            overflow: 'visible',
-            filter: 'drop-shadow(0 10px 24px rgba(0, 0, 0, 0.65))',
-          }}
-          aria-hidden="true"
-        >
-          <defs>
-            <linearGradient id="apRightNotchGrad" x1="0%" y1="0%" x2="100%" y2="25%">
-              <stop offset="0%" stopColor="#24060A" />
-              <stop offset="50%" stopColor="#150507" />
-              <stop offset="100%" stopColor="#090909" />
-            </linearGradient>
-            <linearGradient id="apRightBorderGrad" x1="0%" y1="0%" x2="100%" y2="25%">
-              <stop offset="0%" stopColor="rgba(220, 80, 95, 0.22)" />
-              <stop offset="50%" stopColor="rgba(255, 255, 255, 0.12)" />
-              <stop offset="100%" stopColor="rgba(255, 255, 255, 0.16)" />
-            </linearGradient>
-          </defs>
-          {/* Surface fill */}
-          <path
-            d={`M 0 0
-                A ${filletRadius} ${filletRadius} 0 0 1 ${filletRadius} ${filletRadius}
-                L ${filletRadius} ${notchHeight - cornerRadius}
-                A ${cornerRadius} ${cornerRadius} 0 0 0 ${filletRadius + cornerRadius} ${notchHeight}
-                L ${rightNotchWidth + filletRadius} ${notchHeight}
-                L ${rightNotchWidth + filletRadius} 0
-                Z`}
-            fill="url(#apRightNotchGrad)"
-          />
-          {/* Subtle metallic silver/crimson border contour */}
-          <path
-            d={`M 0 0
-                A ${filletRadius} ${filletRadius} 0 0 1 ${filletRadius} ${filletRadius}
-                L ${filletRadius} ${notchHeight - cornerRadius}
-                A ${cornerRadius} ${cornerRadius} 0 0 0 ${filletRadius + cornerRadius} ${notchHeight}
-                L ${rightNotchWidth + filletRadius} ${notchHeight}`}
-            fill="none"
-            stroke="url(#apRightBorderGrad)"
-            strokeWidth="1.2"
-          />
-          {/* Subtle silver highlight along upper border */}
-          <line
-            x1="0"
-            y1="0"
-            x2={rightNotchWidth + filletRadius}
-            y2="0"
-            stroke="rgba(255, 255, 255, 0.16)"
-            strokeWidth="1"
-          />
-        </svg>
-
         {/* Content: Connect Quick Action with subtle graphite/crimson luxury treatment */}
         <div
           style={{
