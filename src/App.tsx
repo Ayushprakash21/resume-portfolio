@@ -14,6 +14,7 @@ import { Footer } from './components/Footer';
 import { SwarmCursor } from './components/reactbits/SwarmCursor';
 import { ResumeGeneratorModal } from './components/resume/ResumeGeneratorModal';
 import { AdaptiveNotchNavigation } from './components/public/AdaptiveNotchNavigation';
+import { BootIntro } from './components/public/BootIntro';
 
 // Admin Console Components
 import { AdminLogin } from './components/admin/AdminLogin';
@@ -212,6 +213,9 @@ export const App: React.FC = () => {
         color: appearance.textPrimary || 'var(--text-primary)',
       }}
     >
+      {/* 4-SECOND CINEMATIC AP BRAND BOOT ANIMATION */}
+      <BootIntro />
+
       {/* REACT BITS: SWARM CURSOR (Monochromatic Silver Liquid-Metal Particle Trail) */}
       <SwarmCursor color="217, 221, 227" particleCount={28} />
 
