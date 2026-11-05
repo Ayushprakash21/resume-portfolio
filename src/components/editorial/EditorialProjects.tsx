@@ -74,7 +74,7 @@ export const EditorialProjects: React.FC<EditorialProjectsProps> = ({
               marginBottom: '16px',
             }}
           >
-            Selected Projects
+            Projects
           </h2>
 
           <p
