@@ -11,6 +11,7 @@ export const ContactSectionRedesigned: React.FC<ContactSectionProps> = ({ profil
   const [copied, setCopied] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -27,16 +28,17 @@ export const ContactSectionRedesigned: React.FC<ContactSectionProps> = ({ profil
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     if (!formData.name || !formData.email || !formData.message) return;
 
     setSubmitting(true);
     try {
       await cmsService.submitContactMessage({
-        name: formData.name,
-        email: formData.email,
-        organization: formData.organization,
-        subject: formData.subject,
-        message: formData.message,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        organization: formData.organization.trim(),
+        subject: formData.subject.trim(),
+        message: formData.message.trim(),
       });
 
       setFormSubmitted(true);
@@ -48,9 +50,10 @@ export const ContactSectionRedesigned: React.FC<ContactSectionProps> = ({ profil
         message: '',
       });
 
-      setTimeout(() => setFormSubmitted(false), 5000);
-    } catch (err) {
+      setTimeout(() => setFormSubmitted(false), 8000);
+    } catch (err: any) {
       console.error('Contact submission error:', err);
+      setSubmitError("We couldn't submit your enquiry right now. Please try again shortly.");
     } finally {
       setSubmitting(false);
     }

@@ -294,6 +294,9 @@ export interface ContactMessage {
   createdAt: string;
   read: boolean;
   archived: boolean;
+  emailDelivered?: boolean;
+  emailMessageId?: string;
+  emailRecipient?: string;
 }
 
 export interface SiteSettings {

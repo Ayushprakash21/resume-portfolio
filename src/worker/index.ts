@@ -4,7 +4,9 @@
  * Cloudflare R2 object storage operations, and static assets.
  */
 
-export interface StorageEnv {
+import { handleContactRequest, type ContactEnv } from './contact/contactHandler.ts';
+
+export interface StorageEnv extends ContactEnv {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
   PORTFOLIO_ASSETS?: any; // Cloudflare R2Bucket binding
   ADMIN_PASSWORD?: string;
@@ -541,6 +543,16 @@ export async function handleStorageRequest(request: Request, env: StorageEnv): P
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+
+    // ==========================================
+    // CONTACT ENQUIRY EMAIL DELIVERY API
+    // ==========================================
+    if (url.pathname === '/api/contact/submit') {
+      const contactRes = await handleContactRequest(request, env);
+      if (contactRes) {
+        return contactRes;
+      }
+    }
 
     // ==========================================
     // CLOUDFLARE R2 CENTRAL STORAGE API

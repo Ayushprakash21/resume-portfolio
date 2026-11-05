@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Github, Linkedin, Copy, Check, Send, CheckCircle2 } from 'lucide-react';
+import { Mail, Github, Linkedin, Copy, Check, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cmsService } from '../../services/cmsService';
 import { ProfileData } from '../../types/cms';
 import { BorderGlow, SpecularButton } from '../reactbits';
@@ -12,6 +12,8 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
   const [copied, setCopied] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [hpWebsite, setHpWebsite] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -28,19 +30,38 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.message) return;
+    setSubmitError(null);
+
+    const name = formData.name.trim();
+    const email = formData.email.trim();
+    const message = formData.message.trim();
+
+    if (!name || name.length < 2) {
+      setSubmitError('Please enter your name (at least 2 characters).');
+      return;
+    }
+    if (!email || !email.includes('@')) {
+      setSubmitError('Please enter a valid email address.');
+      return;
+    }
+    if (!message || message.length < 10) {
+      setSubmitError('Please enter a message with at least 10 characters.');
+      return;
+    }
 
     setSubmitting(true);
     try {
       await cmsService.submitContactMessage({
-        name: formData.name,
-        email: formData.email,
-        organization: formData.organization,
-        subject: formData.subject,
-        message: formData.message,
+        name,
+        email,
+        organization: formData.organization.trim(),
+        subject: formData.subject.trim(),
+        message,
+        hp_website: hpWebsite,
       });
 
       setFormSubmitted(true);
+      setSubmitError(null);
       setFormData({
         name: '',
         email: '',
@@ -48,9 +69,13 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
         subject: 'Operations & Strategy Inquiry',
         message: '',
       });
-      setTimeout(() => setFormSubmitted(false), 6000);
-    } catch (err) {
+      setHpWebsite('');
+      setTimeout(() => setFormSubmitted(false), 8000);
+    } catch (err: any) {
       console.error('Contact submit error:', err);
+      setSubmitError(
+        "We couldn't submit your enquiry right now. Please try again shortly."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -288,15 +313,49 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                 <CheckCircle2 size={22} color="var(--accent-emerald)" />
                 <div>
                   <div style={{ fontFamily: 'var(--font-display)', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                    Message Dispatched Successfully
+                    Enquiry Submitted Successfully
                   </div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                    Thank you. I will review your inquiry and respond promptly.
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', lineHeight: 1.5 }}>
+                    Your enquiry has been submitted successfully. Thank you for reaching out.
                   </div>
                 </div>
               </div>
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {submitError && (
+                  <div
+                    role="alert"
+                    style={{
+                      padding: '12px 16px',
+                      borderRadius: '6px',
+                      backgroundColor: 'rgba(229, 46, 66, 0.12)',
+                      border: '1px solid rgba(229, 46, 66, 0.35)',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '12px',
+                    }}
+                  >
+                    <AlertCircle size={18} color="#E52E42" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#FCA5A5', lineHeight: 1.5 }}>
+                      {submitError}
+                    </div>
+                  </div>
+                )}
+
+                {/* Honeypot field for bot deterrence */}
+                <div style={{ display: 'none', position: 'absolute', left: '-9999px' }} aria-hidden="true">
+                  <label htmlFor="hp_website">Leave empty</label>
+                  <input
+                    type="text"
+                    id="hp_website"
+                    name="hp_website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={hpWebsite}
+                    onChange={(e) => setHpWebsite(e.target.value)}
+                  />
+                </div>
+
                 <div>
                   <label
                     style={{
@@ -313,7 +372,10 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                     type="text"
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) => {
+                      if (submitError) setSubmitError(null);
+                      setFormData({ ...formData, name: e.target.value });
+                    }}
                     placeholder="e.g. Sarah Jenkins"
                     style={{
                       width: '100%',
@@ -345,7 +407,10 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                     type="email"
                     required
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) => {
+                      if (submitError) setSubmitError(null);
+                      setFormData({ ...formData, email: e.target.value });
+                    }}
                     placeholder="sarah@organization.com"
                     style={{
                       width: '100%',
@@ -408,7 +473,10 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                     rows={4}
                     required
                     value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    onChange={(e) => {
+                      if (submitError) setSubmitError(null);
+                      setFormData({ ...formData, message: e.target.value });
+                    }}
                     placeholder="Describe your inquiry, proposal, or context..."
                     style={{
                       width: '100%',

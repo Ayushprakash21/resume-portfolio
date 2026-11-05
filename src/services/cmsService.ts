@@ -1772,23 +1772,68 @@ export const cmsService = {
     organization?: string;
     subject: string;
     message: string;
-  }): Promise<{ success: boolean; id: string }> {
+    hp_website?: string;
+  }): Promise<{ success: boolean; id: string; emailDelivered?: boolean; messageId?: string }> {
+    let emailDelivered = false;
+    let emailMessageId: string | undefined;
+
+    // 1. Dispatch enquiry to server-side Cloudflare Worker endpoint
+    const res = await fetch('/api/contact/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: msg.name,
+        email: msg.email,
+        organization: msg.organization || '',
+        subject: msg.subject || 'Operations & Strategy Inquiry',
+        message: msg.message,
+        hp_website: msg.hp_website || '',
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.success) {
+      const errorMsg = data.error || 'Failed to submit contact enquiry.';
+      const err = new Error(errorMsg);
+      (err as any).code = data.code;
+      (err as any).status = res.status;
+      throw err;
+    }
+
+    emailDelivered = true;
+    emailMessageId = data.messageId;
+
+    // 2. Preserve administrative message record in Firestore and local store
     const newRecord: ContactMessage = {
-      ...msg,
+      name: msg.name,
+      email: msg.email,
+      organization: msg.organization,
+      subject: msg.subject,
+      message: msg.message,
       id: 'msg-' + Date.now(),
-      createdAt: new Date().toISOString(),
+      createdAt: data.timestamp || new Date().toISOString(),
       read: false,
       archived: false,
+      emailDelivered,
+      emailMessageId,
+      emailRecipient: data.deliveredTo || 'ayushprakash0021@gmail.com',
     };
 
     if (db) {
-      await addDoc(collection(db, 'contactMessages'), newRecord);
+      try {
+        await addDoc(collection(db, 'contactMessages'), newRecord);
+      } catch (firestoreErr) {
+        console.warn('[CMS] Notice: Firestore contact write deferred:', firestoreErr);
+      }
     }
 
     store.messages.unshift(newRecord);
     safeStorageSet(STORAGE_KEYS.messages, store.messages);
     notifyListeners();
-    return { success: true, id: newRecord.id };
+    return { success: true, id: newRecord.id, emailDelivered, messageId: emailMessageId };
   },
 
   async markMessageRead(id: string, read: boolean): Promise<void> {
