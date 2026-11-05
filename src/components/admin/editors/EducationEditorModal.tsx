@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { X, Trash2, GraduationCap, Plus } from 'lucide-react';
 import { EducationRecord, SkillRecord } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
+import { InstitutionSelector } from '../common/InstitutionSelector';
+import { DegreeSelector } from '../common/DegreeSelector';
 
 interface EducationEditorModalProps {
   initialEducation: EducationRecord | null;
@@ -25,31 +27,35 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
   const [form, setForm] = useState<Omit<EducationRecord, 'id'>>(() => {
     if (initialEducation) {
       return {
-        institution: initialEducation.institution,
-        degree: initialEducation.degree,
-        fieldOfStudy: initialEducation.fieldOfStudy,
-        startYear: initialEducation.startYear,
-        endYear: initialEducation.endYear,
+        institution: initialEducation.institution || '',
+        degree: initialEducation.degree || '',
+        fieldOfStudy: initialEducation.fieldOfStudy || '',
+        startYear: initialEducation.startYear || '',
+        endYear: initialEducation.endYear || '',
         grade: initialEducation.grade || '',
         description: initialEducation.description || '',
         skillsUsed: initialEducation.skillsUsed || [],
         logoUrl: initialEducation.logoUrl || '',
         highlights: initialEducation.highlights || [],
         displayOrder: initialEducation.displayOrder || 1,
+        requiresDateConfirmation: initialEducation.requiresDateConfirmation ?? (!initialEducation.startYear && !!initialEducation.endYear),
+        dateConfirmationNotes: initialEducation.dateConfirmationNotes || '',
       };
     }
     return {
       institution: '',
-      degree: 'Bachelor of Technology (B.Tech)',
-      fieldOfStudy: 'Operations, Systems & Technology Management',
-      startYear: '2019',
-      endYear: '2023',
-      grade: 'First Class with Distinction',
+      degree: 'Master of Business Administration (MBA)',
+      fieldOfStudy: 'IT & Marketing',
+      startYear: '',
+      endYear: '2021',
+      grade: '',
       description: '',
       skillsUsed: [],
       logoUrl: '',
       highlights: [],
       displayOrder: 1,
+      requiresDateConfirmation: true,
+      dateConfirmationNotes: 'Start year not specified in source resume; displays with completion year.',
     };
   });
 
@@ -154,32 +160,10 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
         <form onSubmit={handleSubmit} style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '12px',
-                  color: '#A7B0A9',
-                  marginBottom: '6px',
-                }}
-              >
-                School / University / Institute <span style={{ color: '#D9534F' }}>*</span>
-              </label>
-              <input
-                type="text"
+              <InstitutionSelector
                 value={form.institution}
-                onChange={(e) => updateField('institution', e.target.value)}
-                placeholder="e.g. Institute of Technology"
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: '6px',
-                  backgroundColor: '#0E1412',
-                  border: '1px solid rgba(244, 243, 238, 0.12)',
-                  color: '#F4F3EE',
-                  fontSize: '14px',
-                  outline: 'none',
-                }}
+                onChange={(val) => updateField('institution', val)}
+                required={true}
               />
             </div>
 
@@ -191,32 +175,10 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
               }}
             >
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Degree <span style={{ color: '#D9534F' }}>*</span>
-                </label>
-                <input
-                  type="text"
+                <DegreeSelector
                   value={form.degree}
-                  onChange={(e) => updateField('degree', e.target.value)}
-                  placeholder="e.g. Bachelor of Technology (B.Tech)"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '14px',
-                    outline: 'none',
-                  }}
+                  onChange={(val) => updateField('degree', val)}
+                  required={true}
                 />
               </div>
 
@@ -236,7 +198,7 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
                   type="text"
                   value={form.fieldOfStudy}
                   onChange={(e) => updateField('fieldOfStudy', e.target.value)}
-                  placeholder="e.g. Operations & Systems Management"
+                  placeholder="e.g. IT & Marketing"
                   style={{
                     width: '100%',
                     padding: '10px 12px',
@@ -268,13 +230,13 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
                     marginBottom: '6px',
                   }}
                 >
-                  Start Year
+                  Start Year (Optional)
                 </label>
                 <input
                   type="text"
                   value={form.startYear}
                   onChange={(e) => updateField('startYear', e.target.value)}
-                  placeholder="2019"
+                  placeholder="e.g. 2019"
                   style={{
                     width: '100%',
                     padding: '8px 12px',
@@ -298,13 +260,13 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
                     marginBottom: '6px',
                   }}
                 >
-                  End Year (or Expected)
+                  End Year / Completion Year <span style={{ color: '#D9534F' }}>*</span>
                 </label>
                 <input
                   type="text"
                   value={form.endYear}
                   onChange={(e) => updateField('endYear', e.target.value)}
-                  placeholder="2023"
+                  placeholder="e.g. 2021"
                   style={{
                     width: '100%',
                     padding: '8px 12px',

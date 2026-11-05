@@ -77,7 +77,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ education })
               >
                 <Calendar size={14} color="var(--accent-primary)" />
                 <span>
-                  {edu.startYear} — {edu.endYear}
+                  {edu.startYear ? `${edu.startYear} — ${edu.endYear}` : edu.endYear}
                 </span>
               </div>
             </div>

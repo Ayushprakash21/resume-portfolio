@@ -84,7 +84,11 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = ({ experience
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Calendar size={13} color="var(--accent-primary)" />
                     <span>
-                      {exp.startDate} — {exp.endDate}
+                      {exp.isCurrent || exp.endDate === 'Present'
+                        ? `${exp.startDate} — Present`
+                        : exp.startDate === exp.endDate
+                        ? exp.startDate
+                        : `${exp.startDate} — ${exp.endDate}`}
                     </span>
                   </div>
                   {exp.location && (

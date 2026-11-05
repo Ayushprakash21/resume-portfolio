@@ -863,6 +863,22 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                         >
                           ● {exp.status}
                         </span>
+                        {exp.requiresDateConfirmation && (
+                          <span
+                            title={exp.dateConfirmationNotes || 'Month not specified in resume; displays with year-level precision'}
+                            style={{
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              backgroundColor: 'rgba(214, 168, 84, 0.15)',
+                              color: '#E8CE7D',
+                              fontSize: '11px',
+                              fontWeight: 500,
+                              border: '1px solid rgba(214, 168, 84, 0.3)',
+                            }}
+                          >
+                            ⚠️ Date Confirmation Required
+                          </span>
+                        )}
                       </div>
 
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#8294A6', marginTop: '2px' }}>
@@ -1128,14 +1144,32 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                   }}
                 >
                   <div>
-                    <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 600, color: '#F4F3EE', margin: 0 }}>
-                      {edu.degree}
-                    </h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 600, color: '#F4F3EE', margin: 0 }}>
+                        {edu.degree}
+                      </h3>
+                      {edu.requiresDateConfirmation && (
+                        <span
+                          title={edu.dateConfirmationNotes || 'Only completion year in resume; start year requires confirmation'}
+                          style={{
+                            padding: '2px 8px',
+                            borderRadius: '10px',
+                            backgroundColor: 'rgba(214, 168, 84, 0.15)',
+                            color: '#E8CE7D',
+                            fontSize: '11px',
+                            fontWeight: 500,
+                            border: '1px solid rgba(214, 168, 84, 0.3)',
+                          }}
+                        >
+                          ⚠️ Date Confirmation Required
+                        </span>
+                      )}
+                    </div>
                     <div style={{ fontSize: '13px', color: '#8294A6', marginTop: '2px' }}>
                       {edu.institution} &bull; {edu.fieldOfStudy}
                     </div>
                     <div style={{ fontSize: '12px', color: '#8E948D', marginTop: '2px' }}>
-                      {edu.startYear} &mdash; {edu.endYear} {edu.grade && `&bull; ${edu.grade}`}
+                      {edu.startYear ? `${edu.startYear} — ${edu.endYear}` : edu.endYear} {edu.grade && `&bull; ${edu.grade}`}
                     </div>
                     {edu.highlights && edu.highlights.length > 0 && (
                       <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '12px', color: '#C1C4BE' }}>
@@ -1273,6 +1307,22 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                         >
                           ● {cert.status}
                         </span>
+                        {cert.requiresDateConfirmation && (
+                          <span
+                            title={cert.dateConfirmationNotes || 'Issue date not specified in resume; flagged for confirmation'}
+                            style={{
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              backgroundColor: 'rgba(214, 168, 84, 0.15)',
+                              color: '#E8CE7D',
+                              fontSize: '11px',
+                              fontWeight: 500,
+                              border: '1px solid rgba(214, 168, 84, 0.3)',
+                            }}
+                          >
+                            ⚠️ Date Confirmation Required
+                          </span>
+                        )}
                       </div>
 
                       <div style={{ fontSize: '13px', color: '#8294A6', marginTop: '2px' }}>

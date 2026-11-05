@@ -22,13 +22,14 @@ interface SkillsManagerProps {
   showNotification: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }
 
-const CATEGORIES = [
+const DEFAULT_SKILL_CATEGORIES = [
+  'Supply Chain Operations',
+  'Project Management and Coordination',
+  'Business Operations',
+  'Enterprise Systems and Reporting',
+  'AI and Product Development',
   'Supply Chain & Logistics Systems',
-  'Business Operations & Strategy',
-  'AI & Applied Product Innovation',
   'Full-Stack & Cloud Architecture',
-  'Process Engineering & Tools',
-  'General Capabilities',
 ];
 
 export const SkillsManager: React.FC<SkillsManagerProps> = ({
@@ -44,8 +45,16 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
   const [editingSkill, setEditingSkill] = useState<SkillRecord | null>(null);
 
   const [formName, setFormName] = useState('');
-  const [formCategory, setFormCategory] = useState('Supply Chain & Logistics Systems');
+  const [formCategory, setFormCategory] = useState('Supply Chain Operations');
   const [formDesc, setFormDesc] = useState('');
+
+  const categories = React.useMemo(() => {
+    const set = new Set<string>(DEFAULT_SKILL_CATEGORIES);
+    skills.forEach((s) => {
+      if (s.category?.trim()) set.add(s.category.trim());
+    });
+    return Array.from(set);
+  }, [skills]);
 
   // Calculate usage for a skill name across portfolio entities
   const getSkillUsage = (skillName: string) => {
@@ -293,7 +302,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
           }}
         >
           <option value="All">All Categories ({skills.length})</option>
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <option key={c} value={c}>
               {c}
             </option>
@@ -555,7 +564,7 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
                     outline: 'none',
                   }}
                 >
-                  {CATEGORIES.map((c) => (
+                  {categories.map((c) => (
                     <option key={c} value={c}>
                       {c}
                     </option>

@@ -87,7 +87,11 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                 >
                   <Calendar size={13} />
                   <span>
-                    {exp.startDate} &mdash; {exp.endDate}
+                    {exp.isCurrent || exp.endDate === 'Present'
+                      ? `${exp.startDate} — Present`
+                      : exp.startDate === exp.endDate
+                      ? exp.startDate
+                      : `${exp.startDate} — ${exp.endDate}`}
                   </span>
                   {exp.isCurrent && (
                     <span

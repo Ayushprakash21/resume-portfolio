@@ -94,6 +94,8 @@ export interface ExperienceRecord {
   startDate: string;
   endDate: string;
   isCurrent?: boolean;
+  requiresDateConfirmation?: boolean; // True when month was not specified in source resume
+  dateConfirmationNotes?: string;
   description: string;
   responsibilities: string[];
   achievements?: string[];
@@ -190,6 +192,8 @@ export interface CertificationRecord {
   category: string;
   highlightTag: string;
   displayOrder?: number;
+  requiresDateConfirmation?: boolean;
+  dateConfirmationNotes?: string;
   status: 'published' | 'draft';
   createdAt?: string;
   updatedAt?: string;
@@ -233,6 +237,8 @@ export interface EducationRecord {
   logoUrl?: string;
   highlights: string[];
   displayOrder: number;
+  requiresDateConfirmation?: boolean;
+  dateConfirmationNotes?: string;
   mediaItems?: {
     id: string;
     url: string;

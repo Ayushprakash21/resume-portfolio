@@ -84,7 +84,7 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
                 >
                   <Calendar size={13} />
                   <span>
-                    {edu.startYear} &mdash; {edu.endYear}
+                    {edu.startYear ? `${edu.startYear} — ${edu.endYear}` : edu.endYear}
                   </span>
                 </div>
 

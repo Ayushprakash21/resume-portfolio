@@ -14,6 +14,9 @@ import {
 } from 'lucide-react';
 import { ExperienceRecord, ExperienceMediaItem, SkillRecord } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
+import { CompanySelector } from '../common/CompanySelector';
+import { LocationSelector } from '../common/LocationSelector';
+import { DateMonthYearPicker } from '../common/DateMonthYearPicker';
 
 interface ExperienceEditorModalProps {
   initialExperience: ExperienceRecord | null;
@@ -56,15 +59,17 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
         jobTitle: initialExperience.jobTitle || '',
         employmentType: initialExperience.employmentType !== undefined ? initialExperience.employmentType : '',
         showEmploymentTypeBadge: initialExperience.showEmploymentTypeBadge !== undefined ? initialExperience.showEmploymentTypeBadge : true,
-        location: initialExperience.location || 'Bengaluru, India',
+        location: initialExperience.location || '',
         locationType: initialExperience.locationType || 'Hybrid',
-        startMonth: initialExperience.startMonth || 'January',
-        startYear: initialExperience.startYear || '2024',
-        endMonth: initialExperience.endMonth || 'December',
-        endYear: initialExperience.endYear || '2024',
-        startDate: initialExperience.startDate || 'Jan 2024',
+        startMonth: initialExperience.startMonth || '',
+        startYear: initialExperience.startYear || '',
+        endMonth: initialExperience.endMonth || '',
+        endYear: initialExperience.endYear || '',
+        startDate: initialExperience.startDate || '',
         endDate: initialExperience.endDate || 'Present',
         isCurrent: initialExperience.isCurrent ?? true,
+        requiresDateConfirmation: initialExperience.requiresDateConfirmation ?? false,
+        dateConfirmationNotes: initialExperience.dateConfirmationNotes || '',
         description: initialExperience.description || '',
         responsibilities: initialExperience.responsibilities || [],
         achievements: initialExperience.achievements || [],
@@ -81,15 +86,17 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
       jobTitle: '',
       employmentType: '',
       showEmploymentTypeBadge: true,
-      location: 'Bengaluru, India',
+      location: '',
       locationType: 'Hybrid',
-      startMonth: 'January',
+      startMonth: '',
       startYear: new Date().getFullYear().toString(),
-      endMonth: 'December',
+      endMonth: '',
       endYear: new Date().getFullYear().toString(),
-      startDate: 'Jan ' + new Date().getFullYear(),
+      startDate: new Date().getFullYear().toString(),
       endDate: 'Present',
       isCurrent: true,
+      requiresDateConfirmation: false,
+      dateConfirmationNotes: '',
       description: '',
       responsibilities: [],
       achievements: [],
@@ -200,10 +207,19 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
       return;
     }
 
-    const computedStartDate = `${form.startMonth?.slice(0, 3)} ${form.startYear}`;
+    const computedStartDate = form.startMonth?.trim()
+      ? `${form.startMonth.slice(0, 3)} ${form.startYear}`
+      : form.startYear?.trim() || '';
     const computedEndDate = form.isCurrent
       ? 'Present'
-      : `${form.endMonth?.slice(0, 3)} ${form.endYear}`;
+      : form.endMonth?.trim()
+      ? `${form.endMonth.slice(0, 3)} ${form.endYear}`
+      : form.endYear?.trim() || '';
+
+    const requiresConfirm =
+      (!form.startMonth?.trim() && !!form.startYear?.trim()) ||
+      (!form.isCurrent && !form.endMonth?.trim() && !!form.endYear?.trim()) ||
+      form.requiresDateConfirmation === true;
 
     const recordPayload = {
       ...form,
@@ -211,6 +227,7 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
       showEmploymentTypeBadge: form.showEmploymentTypeBadge ?? true,
       startDate: computedStartDate,
       endDate: computedEndDate,
+      requiresDateConfirmation: requiresConfirm,
       status: targetStatus,
       updatedAt: new Date().toISOString(),
     };
@@ -365,32 +382,10 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Company / Organization <span style={{ color: '#D9534F' }}>*</span>
-                </label>
-                <input
-                  type="text"
+                <CompanySelector
                   value={form.employer}
-                  onChange={(e) => updateField('employer', e.target.value)}
-                  placeholder="e.g. Enterprise Operations Logistics"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '14px',
-                    outline: 'none',
-                  }}
+                  onChange={(val) => updateField('employer', val)}
+                  required={true}
                 />
               </div>
             </div>
@@ -513,32 +508,11 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Location
-                </label>
-                <input
-                  type="text"
+                <LocationSelector
                   value={form.location || ''}
-                  onChange={(e) => updateField('location', e.target.value)}
-                  placeholder="e.g. Bengaluru, India"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '14px',
-                    outline: 'none',
-                  }}
+                  onChange={(val) => updateField('location', val)}
+                  label="Location"
+                  placeholder="e.g. Indore, Madhya Pradesh, India"
                 />
               </div>
 
@@ -576,149 +550,39 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
             </div>
 
             {/* Timeline Dates & Currently Working Checkbox */}
-            <div
-              style={{
-                backgroundColor: '#0E1412',
-                border: '1px solid rgba(244, 243, 238, 0.08)',
-                borderRadius: '8px',
-                padding: '16px',
-              }}
-            >
-              <div style={{ marginBottom: '14px' }}>
-                <label
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '13px',
-                    color: '#F4F3EE',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={form.isCurrent}
-                    onChange={(e) => updateField('isCurrent', e.target.checked)}
-                    style={{ accentColor: '#4A5749', width: '16px', height: '16px' }}
-                  />
-                  <span>I am currently working in this role</span>
-                </label>
-              </div>
-
-              <div
+            <div>
+              <label
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '16px',
+                  display: 'block',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '12px',
+                  color: '#A7B0A9',
+                  marginBottom: '6px',
                 }}
               >
-                {/* Start Date */}
-                <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '12px',
-                      color: '#A7B0A9',
-                      marginBottom: '6px',
-                    }}
-                  >
-                    Start Date
-                  </label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <select
-                      value={form.startMonth}
-                      onChange={(e) => updateField('startMonth', e.target.value)}
-                      style={{
-                        flex: 1,
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        backgroundColor: 'rgba(18, 18, 22, 0.72)',
-                        border: '1px solid rgba(244, 243, 238, 0.12)',
-                        color: '#F4F3EE',
-                        fontSize: '13px',
-                      }}
-                    >
-                      {MONTHS.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="text"
-                      value={form.startYear}
-                      onChange={(e) => updateField('startYear', e.target.value)}
-                      placeholder="YYYY"
-                      style={{
-                        width: '80px',
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        backgroundColor: 'rgba(18, 18, 22, 0.72)',
-                        border: '1px solid rgba(244, 243, 238, 0.12)',
-                        color: '#F4F3EE',
-                        fontSize: '13px',
-                        textAlign: 'center',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* End Date */}
-                <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '12px',
-                      color: form.isCurrent ? '#6B7F72' : '#A7B0A9',
-                      marginBottom: '6px',
-                    }}
-                  >
-                    End Date {form.isCurrent && '(Present)'}
-                  </label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <select
-                      disabled={form.isCurrent}
-                      value={form.endMonth}
-                      onChange={(e) => updateField('endMonth', e.target.value)}
-                      style={{
-                        flex: 1,
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        backgroundColor: form.isCurrent ? '#111514' : '#141C19',
-                        border: '1px solid rgba(244, 243, 238, 0.12)',
-                        color: form.isCurrent ? '#6B7F72' : '#F4F3EE',
-                        fontSize: '13px',
-                      }}
-                    >
-                      {MONTHS.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="text"
-                      disabled={form.isCurrent}
-                      value={form.isCurrent ? 'Present' : form.endYear}
-                      onChange={(e) => updateField('endYear', e.target.value)}
-                      placeholder="YYYY"
-                      style={{
-                        width: '80px',
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        backgroundColor: form.isCurrent ? '#111514' : '#141C19',
-                        border: '1px solid rgba(244, 243, 238, 0.12)',
-                        color: form.isCurrent ? '#6B7F72' : '#F4F3EE',
-                        fontSize: '13px',
-                        textAlign: 'center',
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
+                Employment Timeline &amp; Dates <span style={{ color: '#D9534F' }}>*</span>
+              </label>
+              <DateMonthYearPicker
+                startMonth={form.startMonth}
+                startYear={form.startYear}
+                endMonth={form.endMonth}
+                endYear={form.endYear}
+                isCurrent={form.isCurrent}
+                requiresDateConfirmation={form.requiresDateConfirmation}
+                onChange={(dates) => {
+                  setForm((prev) => ({
+                    ...prev,
+                    startMonth: dates.startMonth,
+                    startYear: dates.startYear,
+                    endMonth: dates.endMonth,
+                    endYear: dates.endYear,
+                    isCurrent: dates.isCurrent,
+                    startDate: dates.startDate,
+                    endDate: dates.endDate,
+                    requiresDateConfirmation: dates.requiresDateConfirmation,
+                  }));
+                }}
+              />
             </div>
 
             {/* Description / Highlights */}

@@ -262,15 +262,24 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
       return;
     }
 
-    const computedCompletionDate = `${form.issueMonth} ${form.issueYear}`;
+    const computedCompletionDate = form.issueMonth?.trim()
+      ? `${form.issueMonth} ${form.issueYear}`
+      : form.issueYear?.trim() || form.completionDate || 'Certified';
     const computedExpiryDate = form.doesNotExpire
       ? 'Does not expire'
-      : `${form.expirationMonth} ${form.expirationYear}`;
+      : form.expirationMonth?.trim()
+      ? `${form.expirationMonth} ${form.expirationYear}`
+      : form.expirationYear?.trim() || 'Does not expire';
+
+    const requiresConfirm =
+      (!form.issueMonth?.trim() && !!form.issueYear?.trim()) ||
+      (!form.issueYear && !form.issueMonth);
 
     const payload = {
       ...form,
       completionDate: computedCompletionDate,
       expiryDate: computedExpiryDate,
+      requiresDateConfirmation: requiresConfirm,
       status: targetStatus,
       updatedAt: new Date().toISOString(),
     };
@@ -890,7 +899,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                   </label>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <select
-                      value={form.issueMonth}
+                      value={form.issueMonth || ''}
                       onChange={(e) => updateField('issueMonth', e.target.value)}
                       style={{
                         flex: 1,
@@ -898,10 +907,11 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                         borderRadius: '6px',
                         backgroundColor: '#0F1015',
                         border: '1px solid rgba(255, 255, 255, 0.12)',
-                        color: '#F4F3EE',
+                        color: form.issueMonth ? '#F4F3EE' : '#9296A1',
                         fontSize: '13px',
                       }}
                     >
+                      <option value="">— Month Not Specified (Year Only) —</option>
                       {MONTHS.map((m) => (
                         <option key={m} value={m}>
                           {m}
@@ -942,7 +952,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <select
                       disabled={form.doesNotExpire}
-                      value={form.expirationMonth}
+                      value={form.expirationMonth || ''}
                       onChange={(e) => updateField('expirationMonth', e.target.value)}
                       style={{
                         flex: 1,
@@ -950,10 +960,11 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                         borderRadius: '6px',
                         backgroundColor: form.doesNotExpire ? '#0A0A0C' : '#0F1015',
                         border: '1px solid rgba(255, 255, 255, 0.12)',
-                        color: form.doesNotExpire ? '#6B7F72' : '#F4F3EE',
+                        color: form.doesNotExpire ? '#6B7F72' : form.expirationMonth ? '#F4F3EE' : '#9296A1',
                         fontSize: '13px',
                       }}
                     >
+                      <option value="">— Month Not Specified (Year Only) —</option>
                       {MONTHS.map((m) => (
                         <option key={m} value={m}>
                           {m}

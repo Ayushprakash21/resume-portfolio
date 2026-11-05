@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { ProfileData } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
+import { LocationSelector } from '../common/LocationSelector';
 
 interface IntroductionEditorProps {
   initialProfile: ProfileData;
@@ -758,6 +759,24 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
           >
             Location Coordinates
           </h3>
+
+          <div style={{ marginBottom: '18px' }}>
+            <LocationSelector
+              value={form.location || ''}
+              onChange={(locStr, parts) => {
+                setForm((prev) => ({
+                  ...prev,
+                  location: locStr,
+                  city: parts?.city || prev.city,
+                  stateProvince: parts?.stateProvince || prev.stateProvince,
+                  countryRegion: parts?.countryRegion || prev.countryRegion,
+                }));
+              }}
+              label="Location Search & Lookup"
+              placeholder="Search or enter location (e.g. Indore, Madhya Pradesh, India)..."
+              helpText="Search any city, state, or country worldwide, or edit fields below directly."
+            />
+          </div>
 
           <div
             style={{
