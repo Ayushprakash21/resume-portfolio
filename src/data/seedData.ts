@@ -91,7 +91,7 @@ export const DEFAULT_EXPERIENCES: ExperienceRecord[] = [
     id: 'exp-2',
     employer: 'Independent Product Development & Research',
     jobTitle: 'Product Operations & Architecture Lead',
-    employmentType: 'Founder / Self-employed',
+    employmentType: '',
     location: 'Bengaluru, India',
     locationType: 'Remote',
     startMonth: 'June',

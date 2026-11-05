@@ -103,7 +103,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                       Current
                     </span>
                   )}
-                  {exp.employmentType && (
+                  {exp.employmentType && exp.showEmploymentTypeBadge !== false && (
                     <span
                       style={{
                         padding: '2px 8px',

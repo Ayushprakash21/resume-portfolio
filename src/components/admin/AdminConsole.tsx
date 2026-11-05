@@ -846,7 +846,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                         <span style={{ fontFamily: 'var(--font-display)', fontSize: '17px', fontWeight: 600, color: '#F4F3EE' }}>
                           {exp.jobTitle}
                         </span>
-                        {exp.employmentType && (
+                        {exp.employmentType && exp.showEmploymentTypeBadge !== false && (
                           <span style={{ padding: '2px 8px', borderRadius: '10px', backgroundColor: 'rgba(244, 243, 238, 0.05)', fontSize: '11px', color: '#A7B0A9' }}>
                             {exp.employmentType}
                           </span>

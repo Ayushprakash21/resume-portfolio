@@ -1496,7 +1496,7 @@ export const cmsService = {
           id: `exp-li-${Date.now()}-${i}`,
           employer: data.employer || 'Enterprise Company',
           jobTitle: data.jobTitle || 'Professional Role',
-          employmentType: 'Full-time',
+          employmentType: data.employmentType || '',
           location: data.location || '',
           locationType: 'Hybrid',
           startDate: data.startDate || '',

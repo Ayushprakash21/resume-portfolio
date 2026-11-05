@@ -83,7 +83,8 @@ export interface ExperienceRecord {
   id: string;
   employer: string;
   jobTitle: string;
-  employmentType?: string; // Full-time, Contract, Part-time, Self-employed, Founder
+  employmentType?: string; // Full-time, Contract, Part-time, Self-employed, Founder, etc. (empty string hides badge)
+  showEmploymentTypeBadge?: boolean; // Controls public & admin badge display
   location?: string;
   locationType?: 'On-site' | 'Hybrid' | 'Remote';
   startMonth?: string;

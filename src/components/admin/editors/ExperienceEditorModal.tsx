@@ -52,9 +52,10 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
   const [form, setForm] = useState<Omit<ExperienceRecord, 'id'>>(() => {
     if (initialExperience) {
       return {
-        employer: initialExperience.employer,
-        jobTitle: initialExperience.jobTitle,
-        employmentType: initialExperience.employmentType || 'Full-time',
+        employer: initialExperience.employer || '',
+        jobTitle: initialExperience.jobTitle || '',
+        employmentType: initialExperience.employmentType !== undefined ? initialExperience.employmentType : '',
+        showEmploymentTypeBadge: initialExperience.showEmploymentTypeBadge !== undefined ? initialExperience.showEmploymentTypeBadge : true,
         location: initialExperience.location || 'Bengaluru, India',
         locationType: initialExperience.locationType || 'Hybrid',
         startMonth: initialExperience.startMonth || 'January',
@@ -78,7 +79,8 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
     return {
       employer: '',
       jobTitle: '',
-      employmentType: 'Full-time',
+      employmentType: '',
+      showEmploymentTypeBadge: true,
       location: 'Bengaluru, India',
       locationType: 'Hybrid',
       startMonth: 'January',
@@ -205,6 +207,8 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
 
     const recordPayload = {
       ...form,
+      employmentType: form.employmentType?.trim() || '',
+      showEmploymentTypeBadge: form.showEmploymentTypeBadge ?? true,
       startDate: computedStartDate,
       endDate: computedEndDate,
       status: targetStatus,
@@ -400,19 +404,36 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
               }}
             >
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Employment Type
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '12px',
+                      color: '#A7B0A9',
+                    }}
+                  >
+                    Role Classification / Employment Type
+                  </label>
+                  {form.employmentType && (
+                    <button
+                      type="button"
+                      onClick={() => updateField('employmentType', '')}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#E05252',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        padding: '0',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      Clear / Remove Badge
+                    </button>
+                  )}
+                </div>
                 <select
-                  value={form.employmentType}
+                  value={form.employmentType || ''}
                   onChange={(e) => updateField('employmentType', e.target.value)}
                   style={{
                     width: '100%',
@@ -423,15 +444,72 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
                     color: '#F4F3EE',
                     fontSize: '14px',
                     outline: 'none',
+                    marginBottom: '8px',
                   }}
                 >
+                  <option value="">None / Not Specified (No Badge)</option>
                   <option value="Full-time">Full-time</option>
                   <option value="Part-time">Part-time</option>
-                  <option value="Self-employed / Founder">Self-employed / Founder</option>
                   <option value="Contract">Contract</option>
                   <option value="Freelance">Freelance</option>
                   <option value="Internship">Internship</option>
+                  <option value="Self-employed">Self-employed</option>
+                  <option value="Founder">Founder</option>
+                  <option value="Founder / Self-employed">Founder / Self-employed</option>
+                  <option value="Self-employed / Founder">Self-employed / Founder</option>
+                  {form.employmentType &&
+                    ![
+                      '',
+                      'Full-time',
+                      'Part-time',
+                      'Contract',
+                      'Freelance',
+                      'Internship',
+                      'Self-employed',
+                      'Founder',
+                      'Founder / Self-employed',
+                      'Self-employed / Founder',
+                    ].includes(form.employmentType) && (
+                      <option value={form.employmentType}>{form.employmentType}</option>
+                    )}
                 </select>
+
+                <input
+                  type="text"
+                  value={form.employmentType || ''}
+                  onChange={(e) => updateField('employmentType', e.target.value)}
+                  placeholder="Or custom classification (leave empty to hide badge)"
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: '#080C0B',
+                    border: '1px dashed rgba(244, 243, 238, 0.15)',
+                    color: '#F4F3EE',
+                    fontSize: '12px',
+                    outline: 'none',
+                    marginBottom: '8px',
+                  }}
+                />
+
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    color: '#A7B0A9',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={form.showEmploymentTypeBadge !== false}
+                    onChange={(e) => updateField('showEmploymentTypeBadge', e.target.checked)}
+                    style={{ cursor: 'pointer', accentColor: '#D32F2F' }}
+                  />
+                  <span>Show classification badge on public card & admin</span>
+                </label>
               </div>
 
               <div>

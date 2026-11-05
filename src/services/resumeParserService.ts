@@ -1158,7 +1158,7 @@ export async function applyApprovedDiffItems(
           id: `exp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           employer: expData.employer || 'Enterprise Company',
           jobTitle: expData.jobTitle || 'Specialist',
-          employmentType: (expData.employmentType as any) || 'Full-time',
+          employmentType: (expData.employmentType as any) || '',
           location: expData.location || '',
           locationType: 'Hybrid',
           startDate: expData.startDate || '',
