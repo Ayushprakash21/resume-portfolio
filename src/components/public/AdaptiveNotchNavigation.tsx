@@ -171,10 +171,14 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
   const isTablet = viewportWidth > 640 && viewportWidth <= 1024;
 
   // Geometry dimensions
-  const notchHeight = isMobile ? 44 : 48;
+  const notchHeight = isMobile ? 44 : 50;
   const filletRadius = isMobile ? 12 : 16;
   const cornerRadius = isMobile ? 14 : 18;
-  const centerNotchWidth = isMobile ? Math.min(viewportWidth - 120, 280) : isTablet ? 390 : 440;
+  const centerNotchWidth = isMobile
+    ? Math.min(viewportWidth - 20, 360)
+    : isTablet
+    ? 520
+    : 560;
 
   return (
     <header
@@ -196,7 +200,8 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
     >
       {/* ========================================================
           CONTINUOUS TOP CONNECTING BAR (Attaches to top edge y = 0)
-          Coordinated 105deg metallic crimson gradient across header
+          Clean, continuous top navigation surface spanning flush
+          from left to right boundary with zero outer corner shapes
           ======================================================== */}
       <div
         style={{
@@ -214,48 +219,11 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
       />
 
       {/* ========================================================
-          1. AP BRAND LOGO (Relocated into top navigation layout,
-             no separate outer notch extension or layout wrapper)
-          ======================================================== */}
-      <a
-        href="#hero"
-        onClick={(e) => {
-          e.preventDefault();
-          handleItemClick(NAV_DESTINATIONS[0]);
-        }}
-        aria-label="Navigate to top"
-        className="left-brand-notch"
-        style={{
-          position: 'absolute',
-          top: isMobile ? '6px' : '8px',
-          left: isMobile ? '14px' : '24px',
-          zIndex: 10,
-          display: 'flex',
-          alignItems: 'center',
-          pointerEvents: 'auto',
-          textDecoration: 'none',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: isMobile ? '28px' : '32px',
-            height: isMobile ? '28px' : '32px',
-            borderRadius: '7px',
-            backgroundColor: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid rgba(255, 255, 255, 0.14)',
-            boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-          }}
-        >
-          <ApMonogram width={isMobile ? 18 : 22} withGlow={false} />
-        </div>
-      </a>
-
-      {/* ========================================================
-          2. CENTRAL NAVIGATION NOTCH (Main Destination Island)
-          Concave fillets on left and right, rounded bottom corners
+          CENTRAL NAVIGATION STRUCTURE (UNIFIED ADAPTIVE NOTCH)
+          Houses the AP logo, central navigation destinations,
+          and Connect action within a single sculpted notch island.
+          Both outer corner notch structures at left & right are
+          completely removed.
           ======================================================== */}
       <div
         className="adaptive-notch-island center-nav-notch"
@@ -269,7 +237,8 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           pointerEvents: 'auto',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
+          justifyContent: 'space-between',
+          padding: isMobile ? '0 8px' : '0 14px',
         }}
       >
         <svg
@@ -343,7 +312,49 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           />
         </svg>
 
-        {/* Navigation Tabs Container with Sliding Translucent Crimson Capsule Highlight */}
+        {/* 1. RELOCATED AP BRAND MONOGRAM (integrated inside main navigation island) */}
+        <a
+          href="#hero"
+          onClick={(e) => {
+            e.preventDefault();
+            handleItemClick(NAV_DESTINATIONS[0]);
+          }}
+          aria-label="Navigate to top"
+          className="left-brand-notch"
+          style={{
+            position: 'relative',
+            zIndex: 3,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: isMobile ? '28px' : '32px',
+            height: isMobile ? '28px' : '32px',
+            borderRadius: '8px',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid rgba(255, 255, 255, 0.14)',
+            boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+            flexShrink: 0,
+            textDecoration: 'none',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <ApMonogram width={isMobile ? 18 : 22} withGlow={false} />
+        </a>
+
+        {/* Subtle vertical divider */}
+        <div
+          style={{
+            width: '1px',
+            height: isMobile ? '16px' : '20px',
+            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+            margin: isMobile ? '0 4px' : '0 8px',
+            flexShrink: 0,
+            zIndex: 2,
+          }}
+          aria-hidden="true"
+        />
+
+        {/* 2. NAVIGATION TABS with Sliding Translucent Crimson Capsule Highlight */}
         <div
           ref={navTabsRef}
           role="tablist"
@@ -352,19 +363,18 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
             zIndex: 2,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            width: '100%',
+            justifyContent: 'center',
+            flex: 1,
             height: '100%',
-            padding: isMobile ? '0 6px' : '0 12px',
+            padding: isMobile ? '0 2px' : '0 4px',
           }}
         >
-          {/* Sliding active indicator capsule pill with subtle dark-red translucent background,
-              thin muted crimson/silver border, and restrained red inner glow */}
+          {/* Sliding active indicator capsule pill */}
           <div
             className="notch-active-pill"
             style={{
               position: 'absolute',
-              top: isMobile ? '5px' : '7px',
+              top: isMobile ? '5px' : '8px',
               left: 0,
               width: `${indicatorStyle.width}px`,
               height: isMobile ? '34px' : '34px',
@@ -405,10 +415,10 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: isMobile ? '0px' : '7px',
-                  padding: isMobile ? '8px 10px' : '7px 14px',
-                  minWidth: isMobile ? '44px' : 'auto',
-                  minHeight: '44px',
+                  gap: isMobile ? '0px' : '6px',
+                  padding: isMobile ? '6px 7px' : '6px 11px',
+                  minWidth: isMobile ? '38px' : 'auto',
+                  minHeight: '38px',
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
@@ -424,7 +434,7 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
                 }}
               >
                 <Icon
-                  size={isMobile ? 17 : 16}
+                  size={isMobile ? 16 : 15}
                   strokeWidth={isActive ? 2.3 : 1.9}
                   className="notch-icon"
                 />
@@ -433,53 +443,61 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
             );
           })}
         </div>
-      </div>
 
-      {/* ========================================================
-          3. CONNECT QUICK ACTION (Relocated into top navigation layout,
-             no separate outer notch extension or layout wrapper)
-          ======================================================== */}
-      <div
-        className="right-action-notch"
-        style={{
-          position: 'absolute',
-          top: isMobile ? '6px' : '8px',
-          right: isMobile ? '14px' : '24px',
-          zIndex: 10,
-          display: 'flex',
-          alignItems: 'center',
-          pointerEvents: 'auto',
-        }}
-      >
-        <a
-          href="#contact"
-          onClick={(e) => {
-            e.preventDefault();
-            handleItemClick(NAV_DESTINATIONS[3]);
-          }}
-          aria-label="Connect with Ayush"
-          className="notch-action-btn"
+        {/* Subtle vertical divider */}
+        <div
           style={{
+            width: '1px',
+            height: isMobile ? '16px' : '20px',
+            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+            margin: isMobile ? '0 4px' : '0 8px',
+            flexShrink: 0,
+            zIndex: 2,
+          }}
+          aria-hidden="true"
+        />
+
+        {/* 3. RELOCATED CONNECT QUICK ACTION (integrated inside main navigation island) */}
+        <div
+          className="right-action-notch"
+          style={{
+            position: 'relative',
+            zIndex: 3,
             display: 'flex',
             alignItems: 'center',
-            gap: isMobile ? '0' : '6px',
-            padding: isMobile ? '7px 8px' : '6px 12px',
-            minHeight: '32px',
-            background:
-              'linear-gradient(135deg, rgba(38, 7, 11, 0.65) 0%, rgba(18, 5, 8, 0.75) 100%)',
-            border: '1px solid rgba(200, 70, 85, 0.26)',
-            borderRadius: '9999px',
-            color: '#E4E4E7',
-            fontSize: '12px',
-            fontWeight: 500,
-            textDecoration: 'none',
-            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+            flexShrink: 0,
           }}
         >
-          {!isMobile && <span>Connect</span>}
-          <ArrowUpRight size={14} color="#D4D4D8" />
-        </a>
+          <a
+            href="#contact"
+            onClick={(e) => {
+              e.preventDefault();
+              handleItemClick(NAV_DESTINATIONS[3]);
+            }}
+            aria-label="Connect with Ayush"
+            className="notch-action-btn"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: isMobile ? '0' : '5px',
+              padding: isMobile ? '6px 8px' : '5px 11px',
+              minHeight: '30px',
+              background:
+                'linear-gradient(135deg, rgba(48, 7, 13, 0.7) 0%, rgba(20, 5, 9, 0.8) 100%)',
+              border: '1px solid rgba(200, 70, 85, 0.3)',
+              borderRadius: '9999px',
+              color: '#E4E4E7',
+              fontSize: '12px',
+              fontWeight: 500,
+              textDecoration: 'none',
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+            }}
+          >
+            {!isMobile && <span>Connect</span>}
+            <ArrowUpRight size={13} color="#D4D4D8" />
+          </a>
+        </div>
       </div>
 
       {/* Embedded styles for keyboard accessibility and reduced-motion */}
