@@ -4,6 +4,10 @@ import { EducationRecord, SkillRecord } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
 import { InstitutionSelector } from '../common/InstitutionSelector';
 import { DegreeSelector } from '../common/DegreeSelector';
+import { FieldOfStudySelector } from '../common/FieldOfStudySelector';
+import { YearSelector } from '../common/YearSelector';
+import { GradeTypeSelector } from '../common/GradeTypeSelector';
+import { SkillsMultiSelector } from '../common/SkillsMultiSelector';
 
 interface EducationEditorModalProps {
   initialEducation: EducationRecord | null;
@@ -138,17 +142,20 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
             backgroundColor: '#14151C',
           }}
         >
-          <h3
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '18px',
-              fontWeight: 600,
-              color: '#F4F3EE',
-              margin: 0,
-            }}
-          >
-            {isEditing ? 'Edit Education' : 'Add Education'}
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <GraduationCap size={18} color="#D5D2D6" />
+            <h3
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '18px',
+                fontWeight: 600,
+                color: '#F4F3EE',
+                margin: 0,
+              }}
+            >
+              {isEditing ? 'Edit Education' : 'Add Education'}
+            </h3>
+          </div>
           <button
             onClick={onClose}
             style={{ background: 'none', border: 'none', color: '#A7B0A9', cursor: 'pointer' }}
@@ -183,32 +190,9 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Field of Study
-                </label>
-                <input
-                  type="text"
+                <FieldOfStudySelector
                   value={form.fieldOfStudy}
-                  onChange={(e) => updateField('fieldOfStudy', e.target.value)}
-                  placeholder="e.g. IT & Marketing"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '14px',
-                    outline: 'none',
-                  }}
+                  onChange={(val) => updateField('fieldOfStudy', val)}
                 />
               </div>
             </div>
@@ -221,94 +205,42 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
               }}
             >
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Start Year (Optional)
-                </label>
-                <input
-                  type="text"
+                <YearSelector
+                  label="Start Year (Optional)"
                   value={form.startYear}
-                  onChange={(e) => updateField('startYear', e.target.value)}
+                  onChange={(val) => updateField('startYear', val)}
                   placeholder="e.g. 2019"
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '13px',
-                    outline: 'none',
-                  }}
+                  required={false}
                 />
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                    marginBottom: '6px',
-                  }}
-                >
-                  End Year / Completion Year <span style={{ color: '#D9534F' }}>*</span>
-                </label>
-                <input
-                  type="text"
+                <YearSelector
+                  label="End Year / Completion Year"
                   value={form.endYear}
-                  onChange={(e) => updateField('endYear', e.target.value)}
+                  onChange={(val) => updateField('endYear', val)}
                   placeholder="e.g. 2021"
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '13px',
-                    outline: 'none',
-                  }}
+                  required={true}
                 />
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Grade / Honors (Optional)
-                </label>
-                <input
-                  type="text"
+                <GradeTypeSelector
                   value={form.grade || ''}
-                  onChange={(e) => updateField('grade', e.target.value)}
-                  placeholder="e.g. First Class with Distinction"
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '13px',
-                    outline: 'none',
-                  }}
+                  onChange={(val) => updateField('grade', val)}
                 />
               </div>
+            </div>
+
+            {/* Associated Skills */}
+            <div>
+              <SkillsMultiSelector
+                value={form.skillsUsed || []}
+                onChange={(skills) => updateField('skillsUsed', skills)}
+                allSkills={allSkills}
+                label="Skills & Competencies Acquired"
+                placeholder="Select or type competencies acquired during studies..."
+              />
             </div>
 
             {/* Highlights */}
@@ -410,7 +342,8 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
                     onClose();
                   }
                 }}
-                className="btn-glass-destructive" style={{
+                className="btn-glass-destructive"
+                style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
@@ -433,7 +366,8 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="btn-glass-secondary" style={{
+                className="btn-glass-secondary"
+                style={{
                   padding: '10px 18px',
                   borderRadius: '6px',
                   background: 'transparent',

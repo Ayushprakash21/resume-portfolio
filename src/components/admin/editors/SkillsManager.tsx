@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { SkillRecord, ExperienceRecord, ProjectRecord, CertificationRecord } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
+import { SearchableSelect, SearchableOption } from '../common/SearchableSelect';
 
 interface SkillsManagerProps {
   skills: SkillRecord[];
@@ -539,37 +540,21 @@ export const SkillsManager: React.FC<SkillsManagerProps> = ({
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Capability Category
-                </label>
-                <select
+                <SearchableSelect
+                  label="Capability Category"
+                  options={categories.map((c) => ({
+                    value: c,
+                    label: c,
+                    icon: <Layers size={13} color="#D5D2D6" />,
+                  }))}
                   value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '13px',
-                    outline: 'none',
-                  }}
-                >
-                  {categories.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormCategory(val)}
+                  placeholder="Select or enter category..."
+                  searchPlaceholder="Search category or type custom..."
+                  allowCustom={true}
+                  customPrompt="Add category:"
+                  clearable={false}
+                />
               </div>
 
               <div>

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { OpenToWorkSettings, PreferredLocation } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
+import { LocationSelector } from '../common/LocationSelector';
 
 interface OpenToWorkEditorProps {
   initialSettings: OpenToWorkSettings;
@@ -572,22 +573,21 @@ export const OpenToWorkEditor: React.FC<OpenToWorkEditorProps> = ({
             <div style={{ fontSize: '13px', fontWeight: 600, color: '#A5A5A9', marginBottom: '12px' }}>
               Add Preferred Location
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto auto auto', gap: '12px', alignItems: 'center' }}>
-              <input
-                type="text"
-                placeholder="Country (e.g. Switzerland)"
-                value={newLocName}
-                onChange={(e) => setNewLocName(e.target.value)}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  backgroundColor: '#1A1B22',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  color: '#FFFFFF',
-                  fontSize: '12px',
-                  outline: 'none',
-                }}
-              />
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto auto auto', gap: '12px', alignItems: 'center' }}>
+              <div>
+                <LocationSelector
+                  value={newLocName}
+                  onChange={(loc, parts) => {
+                    if (parts?.countryRegion) {
+                      setNewLocName(parts.countryRegion);
+                      setNewLocCity(parts.city || parts.stateProvince || '');
+                    } else {
+                      setNewLocName(loc);
+                    }
+                  }}
+                  placeholder="Search country or city (e.g. Switzerland, Zurich, London)..."
+                />
+              </div>
               <input
                 type="text"
                 placeholder="Cities / Regions (e.g. Zurich / Geneva)"

@@ -27,6 +27,10 @@ import { cmsService } from '../../../services/cmsService';
 import { optimizeImageFile } from '../../../utils/imageOptimizer';
 import { ImageCropModal } from '../common/ImageCropModal';
 import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop';
+import { ProjectCategorySelector } from '../common/ProjectCategorySelector';
+import { DevelopmentStatusSelector } from '../common/DevelopmentStatusSelector';
+import { CompanySelector } from '../common/CompanySelector';
+import { SkillsMultiSelector } from '../common/SkillsMultiSelector';
 
 interface ProjectEditorModalProps {
   initialProject: ProjectRecord | null;
@@ -572,32 +576,9 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
                 </div>
 
                 <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '12px',
-                      color: '#A7B0A9',
-                      marginBottom: '6px',
-                    }}
-                  >
-                    Category
-                  </label>
-                  <input
-                    type="text"
+                  <ProjectCategorySelector
                     value={form.category}
-                    onChange={(e) => updateField('category', e.target.value)}
-                    placeholder="e.g. Supply Chain Operating System"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      borderRadius: '6px',
-                      backgroundColor: '#0E1412',
-                      border: '1px solid rgba(244, 243, 238, 0.12)',
-                      color: '#F4F3EE',
-                      fontSize: '14px',
-                      outline: 'none',
-                    }}
+                    onChange={(val) => updateField('category', val)}
                   />
                 </div>
               </div>
@@ -670,69 +651,18 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
                 }}
               >
                 <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '12px',
-                      color: '#A7B0A9',
-                      marginBottom: '6px',
-                    }}
-                  >
-                    Development Status
-                  </label>
-                  <select
+                  <DevelopmentStatusSelector
                     value={form.developmentStatus}
-                    onChange={(e) => updateField('developmentStatus', e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      borderRadius: '6px',
-                      backgroundColor: '#0E1412',
-                      border: '1px solid rgba(244, 243, 238, 0.12)',
-                      color: '#F4F3EE',
-                      fontSize: '13px',
-                      outline: 'none',
-                    }}
-                  >
-                    <option value="Active Architectural Prototype & Research">
-                      Active Architectural Prototype &amp; Research
-                    </option>
-                    <option value="Active Independent Product Development">
-                      Active Independent Product Development
-                    </option>
-                    <option value="Production System">Production System</option>
-                    <option value="Concept & Specification">Concept &amp; Specification</option>
-                  </select>
+                    onChange={(val) => updateField('developmentStatus', val)}
+                  />
                 </div>
 
                 <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '12px',
-                      color: '#A7B0A9',
-                      marginBottom: '6px',
-                    }}
-                  >
-                    Associated Organization
-                  </label>
-                  <input
-                    type="text"
+                  <CompanySelector
+                    label="Associated Organization"
                     value={form.associatedOrganization || ''}
-                    onChange={(e) => updateField('associatedOrganization', e.target.value)}
-                    placeholder="e.g. Independent Product Research"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      borderRadius: '6px',
-                      backgroundColor: '#0E1412',
-                      border: '1px solid rgba(244, 243, 238, 0.12)',
-                      color: '#F4F3EE',
-                      fontSize: '13px',
-                      outline: 'none',
-                    }}
+                    onChange={(val) => updateField('associatedOrganization', val)}
+                    required={false}
                   />
                 </div>
               </div>
@@ -1919,125 +1849,13 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
           {/* TAB 4: ASSOCIATED SKILLS */}
           {activeSectionTab === 'skills' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <label
-                style={{
-                  display: 'block',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '12px',
-                  color: '#A7B0A9',
-                }}
-              >
-                Skills Associated With This Project
-              </label>
-
-              {/* Tag pills */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', minHeight: '32px' }}>
-                {(form.skillsUsed || []).map((sk) => (
-                  <span
-                    key={sk}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '4px 10px',
-                      backgroundColor: 'rgba(130, 148, 166, 0.15)',
-                      border: '1px solid rgba(130, 148, 166, 0.3)',
-                      borderRadius: '16px',
-                      fontSize: '12px',
-                      color: '#F4F3EE',
-                    }}
-                  >
-                    {sk}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(sk)}
-                      style={{ background: 'none', border: 'none', color: '#8294A6', cursor: 'pointer', padding: 0 }}
-                    >
-                      <X size={11} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-
-              {/* Search + Create Input */}
-              <div style={{ display: 'flex', gap: '8px', position: 'relative' }}>
-                <div style={{ flex: 1, position: 'relative' }}>
-                  <input
-                    type="text"
-                    value={skillSearchQuery}
-                    onChange={(e) => setSkillSearchQuery(e.target.value)}
-                    placeholder="Search existing skills or type a new capability..."
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px 8px 32px',
-                      borderRadius: '6px',
-                      backgroundColor: '#0E1412',
-                      border: '1px solid rgba(244, 243, 238, 0.12)',
-                      color: '#F4F3EE',
-                      fontSize: '13px',
-                      outline: 'none',
-                    }}
-                  />
-                  <Search
-                    size={13}
-                    color="#8E948D"
-                    style={{ position: 'absolute', left: '10px', top: '10px' }}
-                  />
-                </div>
-                {skillSearchQuery.trim() && (
-                  <button
-                    type="button"
-                    onClick={() => handleAddSkill(skillSearchQuery)}
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: '6px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                      border: 'none',
-                      color: '#F4F3EE',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    + Create &ldquo;{skillSearchQuery}&rdquo;
-                  </button>
-                )}
-              </div>
-
-              {skillSearchQuery && filteredSkills.length > 0 && (
-                <div
-                  style={{
-                    backgroundColor: '#18211D',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    borderRadius: '6px',
-                    maxHeight: '140px',
-                    overflowY: 'auto',
-                    padding: '4px',
-                  }}
-                >
-                  {filteredSkills.slice(0, 8).map((sk) => (
-                    <button
-                      key={sk}
-                      type="button"
-                      onClick={() => handleAddSkill(sk)}
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '6px 10px',
-                        background: 'none',
-                        border: 'none',
-                        color: '#C1C4BE',
-                        fontSize: '12px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      + {sk}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <SkillsMultiSelector
+                value={form.skillsUsed || []}
+                onChange={(skills) => updateField('skillsUsed', skills)}
+                allSkills={allSkills}
+                label="Skills Associated With This Project"
+                placeholder="Select skills or type a new project capability..."
+              />
             </div>
           )}
         </div>

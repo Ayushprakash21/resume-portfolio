@@ -20,6 +20,10 @@ import { LocationSelector } from '../common/LocationSelector';
 import { DateMonthYearPicker } from '../common/DateMonthYearPicker';
 import { ImageCropModal } from '../common/ImageCropModal';
 import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop';
+import { JobTitleSelector } from '../common/JobTitleSelector';
+import { EmploymentTypeSelector } from '../common/EmploymentTypeSelector';
+import { WorkplaceTypeSelector } from '../common/WorkplaceTypeSelector';
+import { SkillsMultiSelector } from '../common/SkillsMultiSelector';
 
 interface ExperienceEditorModalProps {
   initialExperience: ExperienceRecord | null;
@@ -378,32 +382,10 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
               }}
             >
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Job Title <span style={{ color: '#D9534F' }}>*</span>
-                </label>
-                <input
-                  type="text"
+                <JobTitleSelector
                   value={form.jobTitle}
-                  onChange={(e) => updateField('jobTitle', e.target.value)}
-                  placeholder="e.g. Operations & Systems Specialist"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '14px',
-                    outline: 'none',
-                  }}
+                  onChange={(val) => updateField('jobTitle', val)}
+                  required={true}
                 />
               </div>
 
@@ -517,84 +499,33 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
                     </button>
                   )}
                 </div>
-                <select
+                <EmploymentTypeSelector
                   value={form.employmentType || ''}
-                  onChange={(e) => updateField('employmentType', e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '14px',
-                    outline: 'none',
-                    marginBottom: '8px',
-                  }}
-                >
-                  <option value="">None / Not Specified (No Badge)</option>
-                  <option value="Full-time">Full-time</option>
-                  <option value="Part-time">Part-time</option>
-                  <option value="Contract">Contract</option>
-                  <option value="Freelance">Freelance</option>
-                  <option value="Internship">Internship</option>
-                  <option value="Self-employed">Self-employed</option>
-                  <option value="Founder">Founder</option>
-                  <option value="Founder / Self-employed">Founder / Self-employed</option>
-                  <option value="Self-employed / Founder">Self-employed / Founder</option>
-                  {form.employmentType &&
-                    ![
-                      '',
-                      'Full-time',
-                      'Part-time',
-                      'Contract',
-                      'Freelance',
-                      'Internship',
-                      'Self-employed',
-                      'Founder',
-                      'Founder / Self-employed',
-                      'Self-employed / Founder',
-                    ].includes(form.employmentType) && (
-                      <option value={form.employmentType}>{form.employmentType}</option>
-                    )}
-                </select>
-
-                <input
-                  type="text"
-                  value={form.employmentType || ''}
-                  onChange={(e) => updateField('employmentType', e.target.value)}
-                  placeholder="Or custom classification (leave empty to hide badge)"
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#080C0B',
-                    border: '1px dashed rgba(244, 243, 238, 0.15)',
-                    color: '#F4F3EE',
-                    fontSize: '12px',
-                    outline: 'none',
-                    marginBottom: '8px',
-                  }}
+                  onChange={(val) => updateField('employmentType', val)}
                 />
-
-                <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={form.showEmploymentTypeBadge !== false}
-                    onChange={(e) => updateField('showEmploymentTypeBadge', e.target.checked)}
-                    style={{ cursor: 'pointer', accentColor: '#D32F2F' }}
-                  />
-                  <span>Show classification badge on public card & admin</span>
-                </label>
+                <select style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" value={form.employmentType || ''} onChange={() => {}}>
+                  <option value="">None / Not Specified (No Badge)</option>
+                </select>
+                <div style={{ marginTop: '8px' }}>
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      color: '#A7B0A9',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.showEmploymentTypeBadge !== false}
+                      onChange={(e) => updateField('showEmploymentTypeBadge', e.target.checked)}
+                      style={{ cursor: 'pointer', accentColor: '#D32F2F' }}
+                    />
+                    <span>Show classification badge on public card & admin</span>
+                  </label>
+                </div>
               </div>
 
               <div>
@@ -607,35 +538,10 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#A7B0A9',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Location Type
-                </label>
-                <select
-                  value={form.locationType}
-                  onChange={(e) => updateField('locationType', e.target.value as any)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#0E1412',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '14px',
-                    outline: 'none',
-                  }}
-                >
-                  <option value="On-site">On-site</option>
-                  <option value="Hybrid">Hybrid</option>
-                  <option value="Remote">Remote</option>
-                </select>
+                <WorkplaceTypeSelector
+                  value={form.locationType || 'Hybrid'}
+                  onChange={(val) => updateField('locationType', val as any)}
+                />
               </div>
             </div>
 
@@ -802,146 +708,15 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
               )}
             </div>
 
-            {/* Associated Skills (Search & Add + Create New) */}
+            {/* Associated Skills */}
             <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '12px',
-                  color: '#A7B0A9',
-                  marginBottom: '6px',
-                }}
-              >
-                Skills Associated With This Role
-              </label>
-
-              {/* Tag pill list */}
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '6px',
-                  marginBottom: '10px',
-                  minHeight: '28px',
-                }}
-              >
-                {form.skillsUsed.map((sk) => (
-                  <span
-                    key={sk}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '4px 10px',
-                      backgroundColor: 'rgba(130, 148, 166, 0.15)',
-                      border: '1px solid rgba(130, 148, 166, 0.3)',
-                      borderRadius: '16px',
-                      fontSize: '12px',
-                      color: '#F4F3EE',
-                    }}
-                  >
-                    {sk}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(sk)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#8294A6',
-                        cursor: 'pointer',
-                        padding: 0,
-                      }}
-                    >
-                      <X size={11} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-
-              {/* Search + Create Input */}
-              <div style={{ display: 'flex', gap: '8px', position: 'relative' }}>
-                <div style={{ flex: 1, position: 'relative' }}>
-                  <input
-                    type="text"
-                    value={skillSearchQuery}
-                    onChange={(e) => setSkillSearchQuery(e.target.value)}
-                    placeholder="Search existing skills or type a new capability..."
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px 8px 32px',
-                      borderRadius: '6px',
-                      backgroundColor: '#0E1412',
-                      border: '1px solid rgba(244, 243, 238, 0.12)',
-                      color: '#F4F3EE',
-                      fontSize: '13px',
-                      outline: 'none',
-                    }}
-                  />
-                  <Search
-                    size={13}
-                    color="#8E948D"
-                    style={{ position: 'absolute', left: '10px', top: '10px' }}
-                  />
-                </div>
-                {skillSearchQuery.trim() && (
-                  <button
-                    type="button"
-                    onClick={() => handleAddSkill(skillSearchQuery)}
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: '6px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                      border: 'none',
-                      color: '#F4F3EE',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    + Create &ldquo;{skillSearchQuery}&rdquo;
-                  </button>
-                )}
-              </div>
-
-              {/* Autocomplete Suggestions */}
-              {skillSearchQuery && filteredSkills.length > 0 && (
-                <div
-                  style={{
-                    backgroundColor: '#18211D',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    borderRadius: '6px',
-                    marginTop: '4px',
-                    maxHeight: '140px',
-                    overflowY: 'auto',
-                    padding: '4px',
-                  }}
-                >
-                  {filteredSkills.slice(0, 6).map((sk) => (
-                    <button
-                      key={sk}
-                      type="button"
-                      onClick={() => handleAddSkill(sk)}
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '6px 10px',
-                        background: 'none',
-                        border: 'none',
-                        color: '#C1C4BE',
-                        fontSize: '12px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(244, 243, 238, 0.05)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
-                      + {sk}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <SkillsMultiSelector
+                value={form.skillsUsed}
+                onChange={(skills) => updateField('skillsUsed', skills)}
+                allSkills={allSkills}
+                label="Skills Associated With This Role"
+                placeholder="Select skills or type a new capability..."
+              />
             </div>
 
             {/* Media & Work Samples (Images / PDFs / Links) */}

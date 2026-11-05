@@ -18,6 +18,7 @@ import { cmsService } from '../../../services/cmsService';
 import { storageClient } from '../../../services/storage/storageClient';
 import { issuerService, IssuerCandidate, VERIFIED_ISSUERS_DIRECTORY } from '../../../services/issuerService';
 import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop';
+import { SkillsMultiSelector } from '../common/SkillsMultiSelector';
 
 interface CertificationEditorModalProps {
   initialCertification: CertificationRecord | null;
@@ -1090,142 +1091,13 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
 
             {/* 6. ASSOCIATED SKILLS */}
             <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '12px',
-                  color: '#A7B0A9',
-                  marginBottom: '6px',
-                }}
-              >
-                Associated Skills &amp; Competencies
-              </label>
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '6px',
-                  marginBottom: '10px',
-                  minHeight: '32px',
-                  padding: '8px',
-                  borderRadius: '6px',
-                  backgroundColor: '#14151C',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                }}
-              >
-                {(form.skillsUsed || []).map((sk) => (
-                  <span
-                    key={sk}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: '3px 8px',
-                      borderRadius: '4px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                      fontSize: '12px',
-                      color: '#F4F3EE',
-                    }}
-                  >
-                    <span>{sk}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(sk)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#A7B0A9',
-                        cursor: 'pointer',
-                        padding: 0,
-                        display: 'flex',
-                      }}
-                    >
-                      <X size={12} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-
-              {/* Add Skill Search */}
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="text"
-                  value={skillSearchQuery}
-                  onChange={(e) => setSkillSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (skillSearchQuery.trim()) {
-                        handleAddSkill(skillSearchQuery);
-                      }
-                    }
-                  }}
-                  placeholder="Type to search or add new skill..."
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#14151C',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    color: '#F4F3EE',
-                    fontSize: '13px',
-                    outline: 'none',
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (skillSearchQuery.trim()) {
-                      handleAddSkill(skillSearchQuery);
-                    }
-                  }}
-                  style={{
-                    padding: '8px 14px',
-                    borderRadius: '6px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    color: '#F4F3EE',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Add Skill
-                </button>
-              </div>
-
-              {filteredSkills.length > 0 && skillSearchQuery.trim() && (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '6px',
-                    marginTop: '8px',
-                    padding: '8px',
-                    borderRadius: '6px',
-                    backgroundColor: '#14151C',
-                  }}
-                >
-                  {filteredSkills.slice(0, 6).map((name) => (
-                    <button
-                      key={name}
-                      type="button"
-                      onClick={() => handleAddSkill(name)}
-                      style={{
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        color: '#A7B0A9',
-                        fontSize: '11px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      + {name}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <SkillsMultiSelector
+                value={form.skillsUsed || []}
+                onChange={(skills) => updateField('skillsUsed', skills)}
+                allSkills={allSkills}
+                label="Associated Skills & Competencies"
+                placeholder="Select skills or type a new competency..."
+              />
             </div>
 
             {/* 7. CERTIFICATE ATTACHMENT */}

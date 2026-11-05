@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { MapPin, Search, Check, X, Globe, Plus, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import ReactDOM from 'react-dom';
+import { MapPin, Check, X, Plus, Loader2 } from 'lucide-react';
 
 export interface LocationParts {
   city?: string;
@@ -25,6 +26,15 @@ interface LocationItem {
   country: string;
   formatted: string;
   badge?: string;
+}
+
+interface PopupPosition {
+  top?: number;
+  bottom?: number;
+  left: number;
+  width: number;
+  maxHeight: number;
+  placement: 'bottom' | 'top';
 }
 
 // Curated baseline database of key Indian locations & global tech/business hubs
@@ -79,19 +89,79 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   const [query, setQuery] = useState('');
   const [liveResults, setLiveResults] = useState<LocationItem[]>([]);
   const [isLoadingLive, setIsLoadingLive] = useState(false);
+  const [popupPos, setPopupPos] = useState<PopupPosition | null>(null);
+
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<number | null>(null);
+
+  // Position calculation
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    const windowWidth = window.innerWidth;
+
+    const spaceBelow = windowHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const preferredHeight = 300;
+
+    const shouldFlip = spaceBelow < 220 && spaceAbove > spaceBelow;
+    const width = Math.min(rect.width, windowWidth - 16);
+    const left = Math.max(8, Math.min(rect.left, windowWidth - width - 8));
+
+    if (shouldFlip) {
+      const maxHeight = Math.min(preferredHeight, Math.max(120, spaceAbove - 16));
+      setPopupPos({
+        bottom: windowHeight - rect.top + 4,
+        left,
+        width,
+        maxHeight,
+        placement: 'top',
+      });
+    } else {
+      const maxHeight = Math.min(preferredHeight, Math.max(120, spaceBelow - 16));
+      setPopupPos({
+        top: rect.bottom + 4,
+        left,
+        width,
+        maxHeight,
+        placement: 'bottom',
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPopupPos(null);
+      return;
+    }
+
+    updatePosition();
+
+    const handleScrollOrResize = () => updatePosition();
+    window.addEventListener('resize', handleScrollOrResize);
+    window.addEventListener('scroll', handleScrollOrResize, true);
+
+    return () => {
+      window.removeEventListener('resize', handleScrollOrResize);
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+    };
+  }, [isOpen, updatePosition]);
 
   // Close dropdown on outside click
   useEffect(() => {
+    if (!isOpen) return;
     const handleOutsideClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
+      const target = e.target as Node;
+      if (triggerRef.current?.contains(target)) return;
+      if (popupRef.current?.contains(target)) return;
+      setIsOpen(false);
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, []);
+  }, [isOpen]);
 
   // Debounced geocoding search using free OpenStreetMap Nominatim with graceful fallback
   useEffect(() => {
@@ -197,32 +267,29 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     setQuery('');
   };
 
-  const handleCustomSubmit = (customText: string) => {
-    const trimmed = customText.trim();
-    if (!trimmed) return;
+  const handleCustomSubmit = (raw: string) => {
+    if (!raw.trim()) return;
+    const parts = raw.split(',').map((p) => p.trim());
+    let city: string | undefined;
+    let stateProvince: string | undefined;
+    let countryRegion: string | undefined;
 
-    // Split "City, State, Country" if possible
-    const segments = trimmed.split(',').map((s) => s.trim());
-    let city = '';
-    let stateProvince = '';
-    let countryRegion = '';
-
-    if (segments.length >= 3) {
-      city = segments[0];
-      stateProvince = segments[1];
-      countryRegion = segments.slice(2).join(', ');
-    } else if (segments.length === 2) {
-      city = segments[0];
-      countryRegion = segments[1];
+    if (parts.length >= 3) {
+      city = parts[0];
+      stateProvince = parts[1];
+      countryRegion = parts[2];
+    } else if (parts.length === 2) {
+      city = parts[0];
+      countryRegion = parts[1];
     } else {
-      city = segments[0];
+      city = parts[0];
     }
 
-    onChange(trimmed, {
+    onChange(raw.trim(), {
       city,
       stateProvince,
       countryRegion,
-      formattedLocation: trimmed,
+      formattedLocation: raw.trim(),
     });
     setIsOpen(false);
     setQuery('');
@@ -250,6 +317,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
 
       {/* Trigger & Direct Input */}
       <div
+        ref={triggerRef}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -325,124 +393,130 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         )}
       </div>
 
-      {/* Dropdown Suggestions */}
-      {isOpen && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 4px)',
-            left: 0,
-            right: 0,
-            zIndex: 99999,
-            backgroundColor: '#0F1216',
-            border: '1px solid rgba(255, 255, 255, 0.18)',
-            borderRadius: '8px',
-            boxShadow: '0 14px 40px rgba(0, 0, 0, 0.85)',
-            maxHeight: '300px',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Status bar */}
+      {/* PORTAL-BASED Dropdown Suggestions: Rendered in document.body to prevent ANY modal clipping */}
+      {isOpen &&
+        popupPos &&
+        ReactDOM.createPortal(
           <div
+            ref={popupRef}
             style={{
-              padding: '6px 12px',
-              backgroundColor: '#14181F',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              position: 'fixed',
+              top: popupPos.top !== undefined ? `${popupPos.top}px` : undefined,
+              bottom: popupPos.bottom !== undefined ? `${popupPos.bottom}px` : undefined,
+              left: `${popupPos.left}px`,
+              width: `${popupPos.width}px`,
+              maxHeight: `${popupPos.maxHeight}px`,
+              zIndex: 999999,
+              backgroundColor: '#0F1216',
+              border: '1px solid rgba(255, 255, 255, 0.18)',
+              borderRadius: '8px',
+              boxShadow: '0 16px 48px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.08)',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              fontSize: '11px',
-              color: '#8E948D',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              animation: 'fadeIn 0.15s ease-out',
             }}
           >
-            <span>Location Suggestions</span>
-            {isLoadingLive && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#6CE098' }}>
-                <Loader2 size={12} className="animate-spin" /> Fetching live...
-              </span>
-            )}
-          </div>
+            {/* Status bar */}
+            <div
+              style={{
+                padding: '6px 12px',
+                backgroundColor: '#14181F',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: '11px',
+                color: '#8E948D',
+              }}
+            >
+              <span>Location Suggestions</span>
+              {isLoadingLive && (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#6CE098' }}>
+                  <Loader2 size={12} className="animate-spin" /> Fetching live...
+                </span>
+              )}
+            </div>
 
-          {/* List items */}
-          <div style={{ overflowY: 'auto', flex: 1, padding: '4px 0' }}>
-            {suggestions.map((loc, idx) => {
-              const isSelected = loc.formatted === value;
-              return (
+            {/* List items */}
+            <div style={{ overflowY: 'auto', flex: 1, padding: '4px 0' }}>
+              {suggestions.map((loc, idx) => {
+                const isSelected = loc.formatted === value;
+                return (
+                  <div
+                    key={loc.formatted + '-' + idx}
+                    onClick={() => handleSelect(loc)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '8px 12px',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      color: isSelected ? '#FFFFFF' : '#D5D2D6',
+                      backgroundColor: isSelected ? 'rgba(120, 30, 49, 0.28)' : 'transparent',
+                      transition: 'background-color 0.1s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = isSelected
+                        ? 'rgba(120, 30, 49, 0.28)'
+                        : 'transparent';
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                      <MapPin size={13} color="#8E948D" />
+                      <div>
+                        <span style={{ fontWeight: isSelected ? 600 : 400 }}>{loc.formatted}</span>
+                        {loc.badge && (
+                          <span
+                            style={{
+                              marginLeft: '8px',
+                              fontSize: '10px',
+                              padding: '1px 5px',
+                              borderRadius: '4px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                              color: '#A7B0A9',
+                            }}
+                          >
+                            {loc.badge}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {isSelected && <Check size={14} color="#6CE098" />}
+                  </div>
+                );
+              })}
+
+              {/* Custom Entry Option */}
+              {query.trim().length > 0 && !exactMatchExists && (
                 <div
-                  key={loc.formatted + '-' + idx}
-                  onClick={() => handleSelect(loc)}
+                  onClick={() => handleCustomSubmit(query)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 12px',
+                    gap: '8px',
+                    padding: '10px 12px',
                     fontSize: '13px',
                     cursor: 'pointer',
-                    color: isSelected ? '#FFFFFF' : '#D5D2D6',
-                    backgroundColor: isSelected ? 'rgba(120, 30, 49, 0.28)' : 'transparent',
-                    transition: 'background-color 0.1s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = isSelected
-                      ? 'rgba(120, 30, 49, 0.28)'
-                      : 'transparent';
+                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                    backgroundColor: 'rgba(120, 30, 49, 0.16)',
+                    color: '#F4F3EE',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                    <MapPin size={13} color="#8E948D" />
-                    <div>
-                      <span style={{ fontWeight: isSelected ? 600 : 400 }}>{loc.formatted}</span>
-                      {loc.badge && (
-                        <span
-                          style={{
-                            marginLeft: '8px',
-                            fontSize: '10px',
-                            padding: '1px 5px',
-                            borderRadius: '4px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                            color: '#A7B0A9',
-                          }}
-                        >
-                          {loc.badge}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {isSelected && <Check size={14} color="#6CE098" />}
+                  <Plus size={14} color="#E098A3" />
+                  <span>
+                    Use custom location: <strong>"{query.trim()}"</strong>
+                  </span>
                 </div>
-              );
-            })}
-
-            {/* Custom Entry Option */}
-            {query.trim().length > 0 && !exactMatchExists && (
-              <div
-                onClick={() => handleCustomSubmit(query)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '10px 12px',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                  backgroundColor: 'rgba(120, 30, 49, 0.16)',
-                  color: '#F4F3EE',
-                }}
-              >
-                <Plus size={14} color="#E098A3" />
-                <span>
-                  Use custom location: <strong>"{query.trim()}"</strong>
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
 
       {helpText && !error && (
         <span
