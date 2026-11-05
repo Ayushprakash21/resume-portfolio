@@ -54,14 +54,14 @@ describe('Exact Adaptive Notch Navigation Suite', () => {
     );
   });
 
-  it('4. Distinctive sculpted notch geometry: Left Brand Notch, Center Navigation Notch, Connect removed', () => {
-    assert.ok(
-      notchNavFile.includes('left-brand-notch'),
-      'Component defines Left Brand Notch'
-    );
+  it('4. Distinctive sculpted notch geometry: Center Navigation Notch (AP logo & Connect cleanly removed)', () => {
     assert.ok(
       notchNavFile.includes('center-nav-notch'),
       'Component defines Center Navigation Notch'
+    );
+    assert.ok(
+      !notchNavFile.includes('left-brand-notch') && !notchNavFile.includes('<ApMonogram'),
+      'AP logo cleanly removed from navigation DOM per user specification'
     );
     assert.ok(
       !notchNavFile.includes('right-action-notch') && !notchNavFile.includes('notch-action-btn'),
@@ -83,10 +83,10 @@ describe('Exact Adaptive Notch Navigation Suite', () => {
     );
   });
 
-  it('5. Left Brand Notch houses authentic AP logo asset without unnecessary wordmark', () => {
+  it('5. Navigation contains exactly four centered destination links without unnecessary wordmark or logo', () => {
     assert.ok(
-      notchNavFile.includes('ApMonogram'),
-      'Left Brand Notch houses ApMonogram brand logo asset'
+      !notchNavFile.includes('ApMonogram'),
+      'Navigation does not contain ApMonogram brand logo asset'
     );
     assert.ok(
       !notchNavFile.includes('AYUSH PRAKASH wordmark') && !notchNavFile.includes('THE INTELLIGENCE UNIVERSE'),

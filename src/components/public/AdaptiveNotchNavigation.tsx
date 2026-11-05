@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Home, Briefcase, Layers, User } from 'lucide-react';
-import { ApMonogram } from '../brand/ApMonogram';
 
 export interface NavDestination {
   id: string;
@@ -170,15 +169,15 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
   const isMobile = viewportWidth <= 640;
   const isTablet = viewportWidth > 640 && viewportWidth <= 1024;
 
-  // Geometry dimensions: tight, balanced footprint without empty space after Contact
+  // Geometry dimensions: tight, balanced footprint for exactly four centered navigation links
   const notchHeight = isMobile ? 44 : 50;
   const filletRadius = isMobile ? 12 : 16;
   const cornerRadius = isMobile ? 14 : 18;
   const centerNotchWidth = isMobile
-    ? Math.min(viewportWidth - 24, 236)
+    ? Math.min(viewportWidth - 24, 216)
     : isTablet
-    ? 400
-    : 418;
+    ? 340
+    : 360;
 
   return (
     <header
@@ -220,9 +219,9 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
 
       {/* ========================================================
           CENTRAL NAVIGATION STRUCTURE (UNIFIED ADAPTIVE NOTCH)
-          Houses the AP logo and exactly 4 navigation destinations:
+          Houses exactly four centered navigation destinations:
           Home, Work, Experience, Contact.
-          Connect button and trailing separator completely removed.
+          AP logo, Connect button, and all separators completely removed.
           ======================================================== */}
       <div
         className="adaptive-notch-island center-nav-notch"
@@ -237,8 +236,7 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: isMobile ? '0 6px' : '0 10px',
-          gap: isMobile ? '4px' : '6px',
+          padding: isMobile ? '0 6px' : '0 12px',
         }}
       >
         <svg
@@ -312,49 +310,7 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           />
         </svg>
 
-        {/* 1. RELOCATED AP BRAND MONOGRAM (integrated inside main navigation island) */}
-        <a
-          href="#hero"
-          onClick={(e) => {
-            e.preventDefault();
-            handleItemClick(NAV_DESTINATIONS[0]);
-          }}
-          aria-label="Navigate to top"
-          className="left-brand-notch"
-          style={{
-            position: 'relative',
-            zIndex: 3,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: isMobile ? '28px' : '32px',
-            height: isMobile ? '28px' : '32px',
-            borderRadius: '8px',
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.14)',
-            boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.15)',
-            flexShrink: 0,
-            textDecoration: 'none',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          <ApMonogram width={isMobile ? 18 : 22} withGlow={false} />
-        </a>
-
-        {/* Subtle vertical divider */}
-        <div
-          style={{
-            width: '1px',
-            height: isMobile ? '16px' : '20px',
-            backgroundColor: 'rgba(255, 255, 255, 0.12)',
-            margin: isMobile ? '0 4px' : '0 8px',
-            flexShrink: 0,
-            zIndex: 2,
-          }}
-          aria-hidden="true"
-        />
-
-        {/* 2. NAVIGATION TABS with Sliding Translucent Crimson Capsule Highlight */}
+        {/* NAVIGATION TABS with Sliding Translucent Crimson Capsule Highlight */}
         <div
           ref={navTabsRef}
           role="tablist"
@@ -363,10 +319,10 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
             zIndex: 2,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            flex: 1,
+            justifyContent: 'space-between',
+            width: '100%',
             height: '100%',
-            padding: isMobile ? '0 2px' : '0 4px',
+            padding: isMobile ? '0 2px' : '0 6px',
           }}
         >
           {/* Sliding active indicator capsule pill */}
