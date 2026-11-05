@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Home, Briefcase, Layers, User, ArrowUpRight } from 'lucide-react';
+import { Home, Briefcase, Layers, User } from 'lucide-react';
 import { ApMonogram } from '../brand/ApMonogram';
 
 export interface NavDestination {
@@ -170,15 +170,15 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
   const isMobile = viewportWidth <= 640;
   const isTablet = viewportWidth > 640 && viewportWidth <= 1024;
 
-  // Geometry dimensions
+  // Geometry dimensions: tight, balanced footprint without empty space after Contact
   const notchHeight = isMobile ? 44 : 50;
   const filletRadius = isMobile ? 12 : 16;
   const cornerRadius = isMobile ? 14 : 18;
   const centerNotchWidth = isMobile
-    ? Math.min(viewportWidth - 20, 360)
+    ? Math.min(viewportWidth - 24, 236)
     : isTablet
-    ? 520
-    : 560;
+    ? 400
+    : 418;
 
   return (
     <header
@@ -220,10 +220,9 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
 
       {/* ========================================================
           CENTRAL NAVIGATION STRUCTURE (UNIFIED ADAPTIVE NOTCH)
-          Houses the AP logo, central navigation destinations,
-          and Connect action within a single sculpted notch island.
-          Both outer corner notch structures at left & right are
-          completely removed.
+          Houses the AP logo and exactly 4 navigation destinations:
+          Home, Work, Experience, Contact.
+          Connect button and trailing separator completely removed.
           ======================================================== */}
       <div
         className="adaptive-notch-island center-nav-notch"
@@ -237,8 +236,9 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           pointerEvents: 'auto',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: isMobile ? '0 8px' : '0 14px',
+          justifyContent: 'center',
+          padding: isMobile ? '0 6px' : '0 10px',
+          gap: isMobile ? '4px' : '6px',
         }}
       >
         <svg
@@ -443,61 +443,6 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
             );
           })}
         </div>
-
-        {/* Subtle vertical divider */}
-        <div
-          style={{
-            width: '1px',
-            height: isMobile ? '16px' : '20px',
-            backgroundColor: 'rgba(255, 255, 255, 0.12)',
-            margin: isMobile ? '0 4px' : '0 8px',
-            flexShrink: 0,
-            zIndex: 2,
-          }}
-          aria-hidden="true"
-        />
-
-        {/* 3. RELOCATED CONNECT QUICK ACTION (integrated inside main navigation island) */}
-        <div
-          className="right-action-notch"
-          style={{
-            position: 'relative',
-            zIndex: 3,
-            display: 'flex',
-            alignItems: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <a
-            href="#contact"
-            onClick={(e) => {
-              e.preventDefault();
-              handleItemClick(NAV_DESTINATIONS[3]);
-            }}
-            aria-label="Connect with Ayush"
-            className="notch-action-btn"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: isMobile ? '0' : '5px',
-              padding: isMobile ? '6px 8px' : '5px 11px',
-              minHeight: '30px',
-              background:
-                'linear-gradient(135deg, rgba(48, 7, 13, 0.7) 0%, rgba(20, 5, 9, 0.8) 100%)',
-              border: '1px solid rgba(200, 70, 85, 0.3)',
-              borderRadius: '9999px',
-              color: '#E4E4E7',
-              fontSize: '12px',
-              fontWeight: 500,
-              textDecoration: 'none',
-              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-            }}
-          >
-            {!isMobile && <span>Connect</span>}
-            <ArrowUpRight size={13} color="#D4D4D8" />
-          </a>
-        </div>
       </div>
 
       {/* Embedded styles for keyboard accessibility and reduced-motion */}
@@ -506,24 +451,15 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           color: #FFFFFF !important;
         }
 
-        .notch-nav-item:focus-visible,
-        .notch-action-btn:focus-visible {
+        .notch-nav-item:focus-visible {
           outline: 2px solid rgba(220, 100, 115, 0.6) !important;
           outline-offset: 2px !important;
           border-radius: 9999px !important;
         }
 
-        .notch-action-btn:hover {
-          background: linear-gradient(135deg, rgba(72, 11, 18, 0.75) 0%, rgba(38, 7, 11, 0.85) 100%) !important;
-          border-color: rgba(230, 95, 110, 0.45) !important;
-          color: #FFFFFF !important;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 0 8px rgba(200, 35, 52, 0.25) !important;
-        }
-
         @media (prefers-reduced-motion: reduce) {
           .notch-active-pill,
-          .notch-nav-item,
-          .notch-action-btn {
+          .notch-nav-item {
             transition: none !important;
             animation: none !important;
           }

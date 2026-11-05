@@ -54,7 +54,7 @@ describe('Exact Adaptive Notch Navigation Suite', () => {
     );
   });
 
-  it('4. Distinctive sculpted notch geometry: Left Brand Notch, Center Navigation Notch, Right Action Notch', () => {
+  it('4. Distinctive sculpted notch geometry: Left Brand Notch, Center Navigation Notch, Connect removed', () => {
     assert.ok(
       notchNavFile.includes('left-brand-notch'),
       'Component defines Left Brand Notch'
@@ -64,8 +64,8 @@ describe('Exact Adaptive Notch Navigation Suite', () => {
       'Component defines Center Navigation Notch'
     );
     assert.ok(
-      notchNavFile.includes('right-action-notch'),
-      'Component defines Right Action Notch'
+      !notchNavFile.includes('right-action-notch') && !notchNavFile.includes('notch-action-btn'),
+      'Connect action notch cleanly removed per user specification'
     );
     // Inverted concave fillets
     assert.ok(
