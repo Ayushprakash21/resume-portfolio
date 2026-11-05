@@ -460,7 +460,16 @@ function initFirestoreSync() {
         if (!snap.empty) {
           const list: CertificationRecord[] = [];
           snap.forEach((d) => {
-            list.push({ ...d.data(), id: d.id } as CertificationRecord);
+            const data = d.data();
+            const defaultMatch = DEFAULT_CERTIFICATIONS.find((def) => def.id === d.id);
+            list.push({
+              ...(defaultMatch || {}),
+              ...data,
+              id: d.id,
+              issuerLogo: data.issuerLogo || defaultMatch?.issuerLogo || '',
+              issuerLogoAlt: data.issuerLogoAlt || defaultMatch?.issuerLogoAlt || '',
+              issuerWebsite: data.issuerWebsite || defaultMatch?.issuerWebsite || '',
+            } as CertificationRecord);
           });
           list.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
           store.certifications = list;

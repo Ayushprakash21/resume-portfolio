@@ -101,45 +101,47 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
             items={carouselItems}
             preset="cylinder"
             intro="rise"
-            cardWidth={268}
-            aspectRatio={1}
-            speed={6}
+            cardWidth={300}
+            cardHeight={410}
+            aspectRatio={0.73}
+            speed={3.8}
+            autoplay={true}
             captions={true}
-            gap={52}
-            tilt={-1}
-            curve={0.81}
-            parallax={0.63}
-            cornerRadius={23}
+            gap={48}
+            tilt={-1.5}
+            curve={0.65}
+            parallax={0.95}
+            cornerRadius={22}
             onSelect={(item) => setActiveCert(item.cert)}
             renderCard={(item, index, isCenter) => {
               const cert = item.cert as CertificationRecord;
               return (
                 <BorderGlow
-                  borderRadius="23px"
-                  glowRadius={260}
-                  glowIntensity={0.25}
-                  glowColor={isCenter ? '#DC505F' : '#D9DDE3'}
+                  borderRadius="22px"
+                  glowRadius={280}
+                  glowIntensity={0.28}
+                  glowColor={isCenter ? '#DC505F' : '#B8C0CC'}
                   style={{ width: '100%', height: '100%' }}
                 >
                   <div
                     style={{
                       width: '100%',
                       height: '100%',
-                      borderRadius: '23px',
+                      borderRadius: '22px',
                       background: isCenter
                         ? 'linear-gradient(145deg, rgba(18, 20, 26, 0.98) 0%, rgba(10, 11, 15, 0.98) 100%)'
                         : 'linear-gradient(145deg, rgba(14, 16, 22, 0.92) 0%, rgba(8, 9, 13, 0.96) 100%)',
                       border: isCenter
-                        ? '1px solid rgba(255, 255, 255, 0.22)'
+                        ? '1px solid rgba(255, 255, 255, 0.24)'
                         : '1px solid rgba(255, 255, 255, 0.10)',
-                      padding: '20px',
+                      padding: '22px',
                       boxSizing: 'border-box',
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
                       boxShadow: isCenter
-                        ? '0 24px 60px rgba(0, 0, 0, 0.9), 0 0 32px rgba(140, 21, 36, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
-                        : '0 12px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                        ? '0 24px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(220, 80, 95, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.20)'
+                        : '0 12px 30px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
                       transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
                     }}
                   >
@@ -153,14 +155,14 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                     >
                       <span
                         style={{
-                          padding: '2.5px 8px',
+                          padding: '3px 9px',
                           borderRadius: '12px',
                           backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                          border: '1px solid rgba(255, 255, 255, 0.12)',
-                          fontSize: '9.5px',
-                          color: '#D4D7DC',
+                          border: '1px solid rgba(255, 255, 255, 0.14)',
+                          fontSize: '10px',
+                          color: '#E0E3E8',
                           fontWeight: 600,
-                          letterSpacing: '0.06em',
+                          letterSpacing: '0.07em',
                           textTransform: 'uppercase',
                         }}
                       >
@@ -171,14 +173,14 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '4px',
+                          gap: '5px',
                           fontFamily: 'var(--font-body)',
                           fontSize: '11px',
                           color: 'var(--accent-emerald)',
                           fontWeight: 600,
                         }}
                       >
-                        <CheckCircle2 size={12} />
+                        <CheckCircle2 size={13} />
                         <span>Verified</span>
                       </div>
                     </div>
@@ -186,11 +188,15 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                     {/* Prominent Issuer Brand Logo */}
                     <div
                       style={{
-                        height: '56px',
+                        height: '74px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        padding: '4px 0',
+                        padding: '6px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        borderRadius: '14px',
+                        border: '1px solid rgba(255, 255, 255, 0.07)',
+                        margin: '10px 0',
                       }}
                     >
                       {cert.issuerLogo ? (
@@ -198,18 +204,18 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                           src={cert.issuerLogo}
                           alt={cert.issuerLogoAlt || `${cert.issuer} Brand Logo`}
                           style={{
-                            maxHeight: '48px',
-                            maxWidth: '180px',
+                            maxHeight: '52px',
+                            maxWidth: '200px',
                             objectFit: 'contain',
-                            filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.65))',
+                            filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.75))',
                           }}
                         />
                       ) : (
                         <div
                           style={{
-                            width: '44px',
-                            height: '44px',
-                            borderRadius: '8px',
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '10px',
                             backgroundColor: 'rgba(214, 168, 84, 0.1)',
                             border: '1px solid rgba(214, 168, 84, 0.25)',
                             display: 'flex',
@@ -218,7 +224,7 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                             color: 'var(--accent-gold)',
                           }}
                         >
-                          <Award size={20} />
+                          <Award size={24} />
                         </div>
                       )}
                     </div>
@@ -228,11 +234,11 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                       <h3
                         style={{
                           fontFamily: 'var(--font-display)',
-                          fontSize: '15px',
+                          fontSize: '16.5px',
                           fontWeight: 700,
-                          lineHeight: 1.25,
+                          lineHeight: 1.3,
                           color: '#FFFFFF',
-                          margin: '0 0 4px 0',
+                          margin: '0 0 6px 0',
                           display: '-webkit-box',
                           WebkitLineClamp: 2,
                           WebkitBoxOrient: 'vertical',
@@ -245,7 +251,7 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                       <div
                         style={{
                           fontFamily: 'var(--font-body)',
-                          fontSize: '11.5px',
+                          fontSize: '12.5px',
                           color: 'var(--text-secondary)',
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
@@ -259,7 +265,7 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                         <div
                           style={{
                             fontFamily: 'var(--font-body)',
-                            fontSize: '10px',
+                            fontSize: '10.5px',
                             color: 'var(--text-muted)',
                             marginTop: '2px',
                           }}
@@ -269,14 +275,43 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                       )}
                     </div>
 
+                    {/* Skill Tags preview */}
+                    {cert.skillsUsed && cert.skillsUsed.length > 0 && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '6px',
+                          marginTop: '8px',
+                        }}
+                      >
+                        {cert.skillsUsed.slice(0, 3).map((skill, sIdx) => (
+                          <span
+                            key={sIdx}
+                            style={{
+                              padding: '2.5px 7px',
+                              borderRadius: '8px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                              fontSize: '10px',
+                              color: '#A7B0A9',
+                            }}
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
                     {/* Bottom Action Pill */}
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        paddingTop: '10px',
+                        paddingTop: '12px',
                         borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                        marginTop: '8px',
                       }}
                     >
                       <button
@@ -288,18 +323,21 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '5px',
+                          gap: '6px',
                           background: 'none',
                           border: 'none',
                           color: '#FFFFFF',
                           fontFamily: 'var(--font-body)',
-                          fontSize: '11px',
+                          fontSize: '12px',
                           fontWeight: 600,
                           cursor: 'pointer',
                           padding: 0,
+                          transition: 'color 0.2s ease',
                         }}
+                        onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = '#DC505F')}
+                        onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = '#FFFFFF')}
                       >
-                        <Eye size={12} />
+                        <Eye size={13} />
                         <span>Inspect Credential</span>
                       </button>
 
@@ -315,13 +353,13 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                             gap: '4px',
                             color: '#6CE098',
                             fontFamily: 'var(--font-body)',
-                            fontSize: '11px',
+                            fontSize: '11.5px',
                             textDecoration: 'none',
                             fontWeight: 500,
                           }}
                         >
                           <span>Verify</span>
-                          <ExternalLink size={10} />
+                          <ExternalLink size={11} />
                         </a>
                       )}
                     </div>

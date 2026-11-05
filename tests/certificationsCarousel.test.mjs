@@ -85,9 +85,10 @@ describe('Certifications Issuer Branding & Circular Carousel Suite', () => {
     const content = fs.readFileSync(editorialPath, 'utf8');
     assert.match(content, /CircularCarousel/);
     assert.match(content, /BorderGlow/);
-    assert.match(content, /cardWidth=\{268\}/);
-    assert.match(content, /speed=\{6\}/);
-    assert.match(content, /gap=\{52\}/);
+    assert.match(content, /cardWidth=\{300\}/);
+    assert.match(content, /cardHeight=\{410\}/);
+    assert.match(content, /speed=\{3\.8\}/);
+    assert.match(content, /gap=\{48\}/);
     assert.match(content, /Inspect Credential/);
     assert.match(content, /activeCert/);
   });
