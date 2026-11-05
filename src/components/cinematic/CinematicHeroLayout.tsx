@@ -1,9 +1,8 @@
 import React from 'react';
-import { ArrowUpRight, ArrowDown } from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
 import { ProfileData, HomepageSettings } from '../../types/cms';
 import { ApMonogram } from '../brand/ApMonogram';
 import { HeroSignature } from '../brand/HeroSignature';
-import { SpecularButton } from '../reactbits';
 
 interface CinematicHeroLayoutProps {
   profile?: ProfileData;
@@ -87,7 +86,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           4. PRAKASH (Dominant display metallic silver gradient)
           5. BUSINESS. SYSTEMS. (Clean uppercase)
           6. Intelligence & Innovation. (Editorial italic)
-          7. Bottom-Right: SCROLL TO EXPLORE & LET'S CONNECT ↗
+          7. Bottom-Right: SCROLL TO EXPLORE
           ======================================================== */}
       <div
         style={{
@@ -250,13 +249,12 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
           </div>
         </div>
 
-        {/* BOTTOM RIGHT: SCROLL TO EXPLORE & LET'S CONNECT */}
+        {/* BOTTOM RIGHT: SCROLL TO EXPLORE */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '16px',
-            flexWrap: 'wrap',
+            justifyContent: 'flex-end',
             pointerEvents: 'auto',
           }}
         >
@@ -290,16 +288,6 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
               {scrollText}
             </span>
             <ArrowDown size={13} color="var(--text-muted)" style={{ opacity: 0.7 }} />
-          </div>
-
-          {/* Let's Connect ↗ (Specular Button) */}
-          <div>
-            <SpecularButton
-              onClick={() => scrollTo(ctaTarget)}
-              icon={<ArrowUpRight size={14} />}
-            >
-              {cta}
-            </SpecularButton>
           </div>
         </div>
       </div>
