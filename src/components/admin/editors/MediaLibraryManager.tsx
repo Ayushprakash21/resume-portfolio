@@ -13,9 +13,12 @@ import {
   AlertTriangle,
   X,
   Check,
+  Crop,
 } from 'lucide-react';
 import { MediaAsset } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
+import { ImageCropModal } from '../common/ImageCropModal';
+import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop';
 
 interface MediaLibraryManagerProps {
   media: MediaAsset[];
@@ -37,6 +40,25 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
   const [selectedAsset, setSelectedAsset] = useState<MediaAsset | null>(null);
   const [editCaption, setEditCaption] = useState('');
   const [editAltText, setEditAltText] = useState('');
+  const [cropTargetAsset, setCropTargetAsset] = useState<MediaAsset | null>(null);
+
+  const handleApplyCroppedAsset = async (croppedFile: File) => {
+    if (!cropTargetAsset) return;
+    try {
+      await cmsService.uploadMediaFile(
+        croppedFile,
+        cropTargetAsset.category,
+        `${cropTargetAsset.caption || cropTargetAsset.name} (Cropped)`,
+        cropTargetAsset.altText || cropTargetAsset.name
+      );
+      showNotification('Cropped image created and added to Media Library.', 'success');
+      onRefresh();
+    } catch (err: any) {
+      showNotification('Failed to save cropped image: ' + (err.message || 'Error'), 'error');
+    } finally {
+      setCropTargetAsset(null);
+    }
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -150,32 +172,56 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
           </p>
         </div>
 
-        <label
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 16px',
-            borderRadius: '6px',
-            backgroundColor: 'rgba(255, 255, 255, 0.08)',
-            border: 'none',
-            color: '#F4F3EE',
-            fontSize: '13px',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          <Upload size={14} />
-          {isUploading ? 'Uploading...' : 'Upload New Asset'}
-          <input
-            type="file"
-            multiple
-            accept="image/*,application/pdf"
-            onChange={handleUpload}
-            style={{ display: 'none' }}
-            disabled={isUploading}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ImageUploadWithCrop
+            category="photo"
+            buttonLabel="Upload & Crop Image"
+            buttonIcon={<Crop size={14} />}
+            modalTitle="Media Asset — Interactive Reposition & Crop"
+            contextHint="Drag, scale, and crop any image before adding to the Media Library."
+            onSuccess={() => {
+              showNotification('Asset uploaded and added to Media Library.', 'success');
+              onRefresh();
+            }}
+            showNotification={showNotification}
+            showEditButton={false}
+            buttonStyle={{
+              padding: '8px 14px',
+              backgroundColor: 'rgba(139, 30, 45, 0.25)',
+              border: '1px solid rgba(212, 56, 75, 0.4)',
+              color: '#FFFFFF',
+              fontSize: '13px',
+              fontWeight: 600,
+            }}
           />
-        </label>
+
+          <label
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              border: 'none',
+              color: '#F4F3EE',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            <Upload size={14} />
+            {isUploading ? 'Uploading...' : 'Direct Upload'}
+            <input
+              type="file"
+              multiple
+              accept="image/*,application/pdf"
+              onChange={handleUpload}
+              style={{ display: 'none' }}
+              disabled={isUploading}
+            />
+          </label>
+        </div>
       </div>
 
       {/* Controls Bar: Search, Category Filter, View Mode */}
@@ -390,22 +436,43 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
                     justifyContent: 'space-between',
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => handleOpenDetail(item)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      background: 'none',
-                      border: 'none',
-                      color: '#8294A6',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <Edit size={12} /> Inspect
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenDetail(item)}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        background: 'none',
+                        border: 'none',
+                        color: '#8294A6',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Edit size={12} /> Inspect
+                    </button>
+                    {item.type?.startsWith('image/') && (
+                      <button
+                        type="button"
+                        onClick={() => setCropTargetAsset(item)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          background: 'none',
+                          border: 'none',
+                          color: '#FF8888',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                        }}
+                        title="Crop / Reposition Image"
+                      >
+                        <Crop size={12} /> Crop
+                      </button>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => handleDelete(item)}
@@ -752,6 +819,18 @@ export const MediaLibraryManager: React.FC<MediaLibraryManagerProps> = ({
             </div>
           </div>
         </div>
+      )}
+      {/* Interactive Crop Modal for Selected Asset */}
+      {cropTargetAsset && (
+        <ImageCropModal
+          isOpen={!!cropTargetAsset}
+          imageSrc={cropTargetAsset.url}
+          fileName={cropTargetAsset.name}
+          title={`Crop & Reposition: ${cropTargetAsset.name}`}
+          contextHint="Click and drag to position the subject. Adjust aspect ratio or zoom level, then apply crop."
+          onClose={() => setCropTargetAsset(null)}
+          onApplyCrop={handleApplyCroppedAsset}
+        />
       )}
     </div>
   );

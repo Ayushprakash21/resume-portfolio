@@ -17,6 +17,7 @@ import { CertificationRecord, SkillRecord } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
 import { storageClient } from '../../../services/storage/storageClient';
 import { issuerService, IssuerCandidate, VERIFIED_ISSUERS_DIRECTORY } from '../../../services/issuerService';
+import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop';
 
 interface CertificationEditorModalProps {
   initialCertification: CertificationRecord | null;
@@ -774,30 +775,23 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
 
                 {/* Manual Upload & URL Fallbacks */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <label
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 14px',
-                      borderRadius: '6px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
-                      color: '#FFFFFF',
-                      fontSize: '12px',
-                      cursor: 'pointer',
+                  <ImageUploadWithCrop
+                    currentImageUrl={form.issuerLogo}
+                    category="logo"
+                    caption={`${form.issuer || 'Issuer'} Logo`}
+                    altText={`${form.issuer || 'Issuer'} Logo`}
+                    buttonLabel="Upload & Crop Logo"
+                    initialAspect={1}
+                    initialShape="rect"
+                    modalTitle="Issuer Logo — Drag, Position & Crop"
+                    contextHint="Center and crop the accreditation issuer logo in a crisp 1:1 frame."
+                    onSuccess={(url) => {
+                      updateField('issuerLogo', url);
+                      updateField('issuerLogoSource', 'upload');
+                      showNotification('Issuer logo updated and cropped.');
                     }}
-                  >
-                    <Upload size={13} />
-                    <span>{isUploadingLogo ? 'Uploading to R2...' : 'Upload Logo File (SVG/PNG)'}</span>
-                    <input
-                      type="file"
-                      accept=".svg,.png,.webp,.jpg,.jpeg"
-                      onChange={handleCustomLogoUpload}
-                      style={{ display: 'none' }}
-                      disabled={isUploadingLogo}
-                    />
-                  </label>
+                    showNotification={showNotification}
+                  />
 
                   {form.issuerLogo && (
                     <button

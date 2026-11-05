@@ -18,6 +18,7 @@ import {
 import { ProfileData } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
 import { LocationSelector } from '../common/LocationSelector';
+import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop';
 
 interface IntroductionEditorProps {
   initialProfile: ProfileData;
@@ -407,39 +408,28 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
                   }}
                 />
                 <div>
-                  <label
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '6px 12px',
-                      backgroundColor: 'rgba(244, 243, 238, 0.06)',
-                      border: '1px solid rgba(244, 243, 238, 0.12)',
-                      borderRadius: '4px',
-                      color: '#F4F3EE',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <Upload size={12} />
-                    {isUploadingPhoto ? 'Uploading...' : 'Change Photo'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileUpload(e, 'profile')}
-                      style={{ display: 'none' }}
-                      disabled={isUploadingPhoto}
-                    />
-                  </label>
+                  <ImageUploadWithCrop
+                    currentImageUrl={form.profilePhoto}
+                    category="photo"
+                    caption={`${form.name} Profile Photo`}
+                    altText={`${form.name} Profile Photo`}
+                    buttonLabel="Change Photo"
+                    initialAspect={1}
+                    initialShape="round"
+                    modalTitle="Profile Photograph — Drag, Position & Crop"
+                    contextHint="Click and drag your face to position it precisely within the circle. Zoom in/out to adjust framing."
+                    onSuccess={(url) => updateField('profilePhoto', url)}
+                    showNotification={showNotification}
+                  />
                   <div
                     style={{
                       fontFamily: 'var(--font-body)',
                       fontSize: '11px',
                       color: '#8E948D',
-                      marginTop: '4px',
+                      marginTop: '6px',
                     }}
                   >
-                    Recommended: Square 800×800px JPG/PNG
+                    Interactive drag, reposition, and circular zoom crop.
                   </div>
                 </div>
               </div>
@@ -476,39 +466,28 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
                   />
                 </div>
                 <div>
-                  <label
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '6px 12px',
-                      backgroundColor: 'rgba(244, 243, 238, 0.06)',
-                      border: '1px solid rgba(244, 243, 238, 0.12)',
-                      borderRadius: '4px',
-                      color: '#F4F3EE',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <ImageIcon size={12} />
-                    {isUploadingCover ? 'Uploading...' : 'Change Cover'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileUpload(e, 'cover')}
-                      style={{ display: 'none' }}
-                      disabled={isUploadingCover}
-                    />
-                  </label>
+                  <ImageUploadWithCrop
+                    currentImageUrl={form.coverImage}
+                    category="general"
+                    caption={`${form.name} Background Cover`}
+                    altText={`${form.name} Background Cover`}
+                    buttonLabel="Change Cover"
+                    initialAspect={16 / 9}
+                    initialShape="rect"
+                    modalTitle="Background Cover — Drag, Position & Crop"
+                    contextHint="Click and drag to position your background cover image. Supports 16:9 widescreen or custom ratio."
+                    onSuccess={(url) => updateField('coverImage', url)}
+                    showNotification={showNotification}
+                  />
                   <div
                     style={{
                       fontFamily: 'var(--font-body)',
                       fontSize: '11px',
                       color: '#8E948D',
-                      marginTop: '4px',
+                      marginTop: '6px',
                     }}
                   >
-                    Aspect ratio 3:1 or 16:9 landscape
+                    Landscape 16:9 or banner with interactive positioning.
                   </div>
                 </div>
               </div>

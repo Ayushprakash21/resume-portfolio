@@ -15,6 +15,7 @@ import {
   Layers,
   ChevronUp,
   ChevronDown,
+  Crop,
 } from 'lucide-react';
 import {
   ProjectRecord,
@@ -24,6 +25,8 @@ import {
 } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
 import { optimizeImageFile } from '../../../utils/imageOptimizer';
+import { ImageCropModal } from '../common/ImageCropModal';
+import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop';
 
 interface ProjectEditorModalProps {
   initialProject: ProjectRecord | null;
@@ -135,6 +138,26 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
   const [newFeatureInput, setNewFeatureInput] = useState('');
   const [newTechInput, setNewTechInput] = useState('');
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [cropTargetScreenshotIdx, setCropTargetScreenshotIdx] = useState<number | null>(null);
+
+  const handleApplyCroppedScreenshot = async (croppedFile: File) => {
+    if (cropTargetScreenshotIdx === null) return;
+    try {
+      const asset = await cmsService.uploadMediaFile(
+        croppedFile,
+        'screenshot',
+        `${form.name || 'Project'} Screenshot (Cropped)`
+      );
+      const updated = [...(form.screenshots || [])];
+      updated[cropTargetScreenshotIdx] = asset.url;
+      updateField('screenshots', updated);
+      showNotification('Screenshot cropped and updated.', 'success');
+    } catch (err: any) {
+      showNotification('Failed to update cropped screenshot: ' + (err.message || 'Error'), 'error');
+    } finally {
+      setCropTargetScreenshotIdx(null);
+    }
+  };
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
 
@@ -886,31 +909,22 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
                     </div>
                   </div>
 
-                  <label
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 14px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.16)',
-                      borderRadius: '6px',
-                      color: '#FFFFFF',
-                      fontSize: '12px',
-                      fontWeight: 500,
-                      cursor: 'pointer',
+                  <ImageUploadWithCrop
+                    currentImageUrl={form.logoUrl}
+                    category="logo"
+                    caption={`${form.name || 'Project'} Logo`}
+                    altText={`${form.name || 'Project'} Logo`}
+                    buttonLabel={form.logoUrl ? 'Replace Logo' : '+ Upload Logo'}
+                    initialAspect={1}
+                    initialShape="rect"
+                    modalTitle="Project Logo — Drag, Position & Crop"
+                    contextHint="Position and frame the project logo inside the squircle container. Drag and zoom as needed."
+                    onSuccess={(url) => {
+                      updateField('logoUrl', url);
+                      showNotification('Project logo updated successfully.');
                     }}
-                  >
-                    <Upload size={13} />
-                    <span>{isUploadingLogo ? 'Optimizing...' : form.logoUrl ? 'Replace Logo' : '+ Upload Logo'}</span>
-                    <input
-                      type="file"
-                      accept="image/png,image/svg+xml,image/webp,image/jpeg,.svg,.png,.webp,.jpg"
-                      onChange={handleLogoUpload}
-                      style={{ display: 'none' }}
-                      disabled={isUploadingLogo}
-                    />
-                  </label>
+                    showNotification={showNotification}
+                  />
                 </div>
 
                 {form.logoUrl ? (
@@ -1003,31 +1017,22 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
                     </div>
                   </div>
 
-                  <label
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 14px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.16)',
-                      borderRadius: '6px',
-                      color: '#FFFFFF',
-                      fontSize: '12px',
-                      fontWeight: 500,
-                      cursor: 'pointer',
+                  <ImageUploadWithCrop
+                    currentImageUrl={form.coverImage}
+                    category="screenshot"
+                    caption={`${form.name || 'Project'} Cover`}
+                    altText={`${form.name || 'Project'} Cover`}
+                    buttonLabel={form.coverImage ? 'Replace Cover' : '+ Upload Cover'}
+                    initialAspect={16 / 9}
+                    initialShape="rect"
+                    modalTitle="Project Cover Image — Drag, Position & Crop"
+                    contextHint="Click and drag to position your cover screenshot in 16:9 widescreen format."
+                    onSuccess={(url) => {
+                      updateField('coverImage', url);
+                      showNotification('Project cover image updated.');
                     }}
-                  >
-                    <Upload size={13} />
-                    <span>{isUploadingCover ? 'Uploading...' : form.coverImage ? 'Replace Cover' : '+ Upload Cover'}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleCoverUpload}
-                      style={{ display: 'none' }}
-                      disabled={isUploadingCover}
-                    />
-                  </label>
+                    showNotification={showNotification}
+                  />
                 </div>
 
                 {form.coverImage ? (
@@ -1622,6 +1627,22 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
 
                           <button
                             type="button"
+                            onClick={() => setCropTargetScreenshotIdx(scIdx)}
+                            title="Crop / Reposition Screenshot"
+                            style={{
+                              padding: '5px 8px',
+                              backgroundColor: 'rgba(212, 56, 75, 0.15)',
+                              border: '1px solid rgba(212, 56, 75, 0.35)',
+                              borderRadius: '4px',
+                              color: '#FF8888',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <Crop size={14} />
+                          </button>
+
+                          <button
+                            type="button"
                             onClick={() => handleRemoveScreenshot(scIdx)}
                             title="Delete Screenshot"
                             style={{
@@ -2115,6 +2136,20 @@ export const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({
           </div>
         </div>
       </div>
+
+      {cropTargetScreenshotIdx !== null && form.screenshots?.[cropTargetScreenshotIdx] && (
+        <ImageCropModal
+          isOpen={cropTargetScreenshotIdx !== null}
+          imageSrc={form.screenshots[cropTargetScreenshotIdx]}
+          fileName={`screenshot-${cropTargetScreenshotIdx + 1}.jpg`}
+          initialAspect={16 / 9}
+          initialShape="rect"
+          title={`Screenshot #${cropTargetScreenshotIdx + 1} — Drag, Position & Crop`}
+          contextHint="Position and scale the project screenshot. Use mouse drag or zoom slider."
+          onClose={() => setCropTargetScreenshotIdx(null)}
+          onApplyCrop={handleApplyCroppedScreenshot}
+        />
+      )}
     </div>
   );
 };

@@ -11,12 +11,15 @@ import {
   CheckCircle2,
   Save,
   AlertTriangle,
+  Crop,
 } from 'lucide-react';
 import { ExperienceRecord, ExperienceMediaItem, SkillRecord } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
 import { CompanySelector } from '../common/CompanySelector';
 import { LocationSelector } from '../common/LocationSelector';
 import { DateMonthYearPicker } from '../common/DateMonthYearPicker';
+import { ImageCropModal } from '../common/ImageCropModal';
+import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop';
 
 interface ExperienceEditorModalProps {
   initialExperience: ExperienceRecord | null;
@@ -115,6 +118,29 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
 
   // Media upload state
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [cropTargetMediaItem, setCropTargetMediaItem] = useState<ExperienceMediaItem | null>(null);
+
+  const handleApplyCroppedMediaItem = async (croppedFile: File) => {
+    if (!cropTargetMediaItem) return;
+    try {
+      const asset = await cmsService.uploadMediaFile(
+        croppedFile,
+        'screenshot',
+        `${form.employer || 'Work'} - ${croppedFile.name}`,
+        cropTargetMediaItem.altText || croppedFile.name
+      );
+
+      const updated = (form.mediaItems || []).map((m) =>
+        m.id === cropTargetMediaItem.id ? { ...m, url: asset.url } : m
+      );
+      updateField('mediaItems', updated);
+      showNotification('Attached media item cropped and updated.', 'success');
+    } catch (err: any) {
+      showNotification('Failed to update cropped media: ' + (err.message || 'Error'), 'error');
+    } finally {
+      setCropTargetMediaItem(null);
+    }
+  };
 
   const updateField = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -386,6 +412,70 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
                   value={form.employer}
                   onChange={(val) => updateField('employer', val)}
                   required={true}
+                />
+              </div>
+            </div>
+
+            {/* Employer Logo with Interactive Crop */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+                padding: '12px 14px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(18, 19, 24, 0.4)',
+                border: '1px solid rgba(244, 243, 238, 0.08)',
+              }}
+            >
+              <div
+                style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '8px',
+                  backgroundColor: '#0E1412',
+                  border: '1px solid rgba(244, 243, 238, 0.12)',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                {form.logoUrl ? (
+                  <img
+                    src={form.logoUrl}
+                    alt={form.employer || 'Company Logo'}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                ) : (
+                  <ImageIcon size={20} color="#8E948D" />
+                )}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#F4F3EE', marginBottom: '2px' }}>
+                  Company Mark / Brand Logo
+                </div>
+                <div style={{ fontSize: '11px', color: '#8E948D' }}>
+                  1:1 square crop with interactive centering and zoom.
+                </div>
+              </div>
+              <div>
+                <ImageUploadWithCrop
+                  currentImageUrl={form.logoUrl}
+                  category="logo"
+                  caption={`${form.employer || 'Employer'} Logo`}
+                  altText={`${form.employer || 'Employer'} Logo`}
+                  buttonLabel={form.logoUrl ? 'Replace Logo' : '+ Upload Logo'}
+                  initialAspect={1}
+                  initialShape="rect"
+                  modalTitle="Company Logo — Drag, Position & Crop"
+                  contextHint="Position the employer logo squarely in the center of the badge."
+                  onSuccess={(url) => {
+                    updateField('logoUrl', url);
+                    showNotification('Company logo updated.');
+                  }}
+                  showNotification={showNotification}
                 />
               </div>
             </div>
@@ -980,19 +1070,37 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
                           >
                             {med.title || 'Attachment'}
                           </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveMedia(med.id)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: '#E06C75',
-                              cursor: 'pointer',
-                              padding: '2px',
-                            }}
-                          >
-                            <Trash2 size={12} />
-                          </button>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            {med.type === 'image' && (
+                              <button
+                                type="button"
+                                onClick={() => setCropTargetMediaItem(med)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#FF8888',
+                                  cursor: 'pointer',
+                                  padding: '2px',
+                                }}
+                                title="Crop / Reposition Media"
+                              >
+                                <Crop size={12} />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveMedia(med.id)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#E06C75',
+                                cursor: 'pointer',
+                                padding: '2px',
+                              }}
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
                         </div>
                         <input
                           type="text"
@@ -1128,6 +1236,18 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
           </div>
         </div>
       </div>
+
+      {cropTargetMediaItem && (
+        <ImageCropModal
+          isOpen={!!cropTargetMediaItem}
+          imageSrc={cropTargetMediaItem.url}
+          fileName={cropTargetMediaItem.title || 'deliverable.jpg'}
+          title="Crop & Reposition Deliverable"
+          contextHint="Position and frame the deliverable image. Drag and zoom as needed."
+          onClose={() => setCropTargetMediaItem(null)}
+          onApplyCrop={handleApplyCroppedMediaItem}
+        />
+      )}
     </div>
   );
 };
