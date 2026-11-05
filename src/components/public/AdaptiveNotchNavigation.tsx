@@ -174,11 +174,7 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
   const notchHeight = isMobile ? 44 : 48;
   const filletRadius = isMobile ? 12 : 16;
   const cornerRadius = isMobile ? 14 : 18;
-
-  // Notch widths
-  const leftNotchWidth = isMobile ? 64 : isTablet ? 110 : 130;
-  const centerNotchWidth = isMobile ? Math.min(viewportWidth - (leftNotchWidth + 60), 280) : isTablet ? 390 : 440;
-  const rightNotchWidth = isMobile ? 48 : isTablet ? 110 : 130;
+  const centerNotchWidth = isMobile ? Math.min(viewportWidth - 120, 280) : isTablet ? 390 : 440;
 
   return (
     <header
@@ -218,57 +214,44 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
       />
 
       {/* ========================================================
-          1. LEFT BRAND NOTCH (Logo Notch)
-          Clean square boundary flush with left edge
+          1. AP BRAND LOGO (Relocated into top navigation layout,
+             no separate outer notch extension or layout wrapper)
           ======================================================== */}
-      <div
-        className="adaptive-notch-island left-brand-notch"
+      <a
+        href="#hero"
+        onClick={(e) => {
+          e.preventDefault();
+          handleItemClick(NAV_DESTINATIONS[0]);
+        }}
+        aria-label="Navigate to top"
+        className="left-brand-notch"
         style={{
           position: 'absolute',
-          top: 0,
-          left: 0,
-          width: `${leftNotchWidth}px`,
-          height: `${notchHeight}px`,
-          pointerEvents: 'auto',
+          top: isMobile ? '6px' : '8px',
+          left: isMobile ? '14px' : '24px',
+          zIndex: 10,
           display: 'flex',
           alignItems: 'center',
+          pointerEvents: 'auto',
+          textDecoration: 'none',
         }}
       >
-        {/* Content: Authentic AP Logo Asset */}
-        <a
-          href="#hero"
-          onClick={(e) => {
-            e.preventDefault();
-            handleItemClick(NAV_DESTINATIONS[0]);
-          }}
-          aria-label="Navigate to top"
+        <div
           style={{
-            position: 'relative',
-            zIndex: 2,
             display: 'flex',
             alignItems: 'center',
-            paddingLeft: isMobile ? '14px' : '20px',
-            textDecoration: 'none',
-            height: '100%',
+            justifyContent: 'center',
+            width: isMobile ? '28px' : '32px',
+            height: isMobile ? '28px' : '32px',
+            borderRadius: '7px',
+            backgroundColor: 'rgba(255, 255, 255, 0.04)',
+            border: '1px solid rgba(255, 255, 255, 0.14)',
+            boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
           }}
         >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: isMobile ? '28px' : '32px',
-              height: isMobile ? '28px' : '32px',
-              borderRadius: '7px',
-              backgroundColor: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.14)',
-              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-            }}
-          >
-            <ApMonogram width={isMobile ? 18 : 22} withGlow={false} />
-          </div>
-        </a>
-      </div>
+          <ApMonogram width={isMobile ? 18 : 22} withGlow={false} />
+        </div>
+      </a>
 
       {/* ========================================================
           2. CENTRAL NAVIGATION NOTCH (Main Destination Island)
@@ -453,63 +436,50 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
       </div>
 
       {/* ========================================================
-          3. RIGHT ACTION NOTCH (Action / Account Slot)
-          Clean square boundary flush with right screen edge
+          3. CONNECT QUICK ACTION (Relocated into top navigation layout,
+             no separate outer notch extension or layout wrapper)
           ======================================================== */}
       <div
-        className="adaptive-notch-island right-action-notch"
+        className="right-action-notch"
         style={{
           position: 'absolute',
-          top: 0,
-          right: 0,
-          width: `${rightNotchWidth}px`,
-          height: `${notchHeight}px`,
-          pointerEvents: 'auto',
+          top: isMobile ? '6px' : '8px',
+          right: isMobile ? '14px' : '24px',
+          zIndex: 10,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'flex-end',
+          pointerEvents: 'auto',
         }}
       >
-        {/* Content: Connect Quick Action with subtle graphite/crimson luxury treatment */}
-        <div
+        <a
+          href="#contact"
+          onClick={(e) => {
+            e.preventDefault();
+            handleItemClick(NAV_DESTINATIONS[3]);
+          }}
+          aria-label="Connect with Ayush"
+          className="notch-action-btn"
           style={{
-            position: 'relative',
-            zIndex: 2,
-            paddingRight: isMobile ? '12px' : '20px',
             display: 'flex',
             alignItems: 'center',
+            gap: isMobile ? '0' : '6px',
+            padding: isMobile ? '7px 8px' : '6px 12px',
+            minHeight: '32px',
+            background:
+              'linear-gradient(135deg, rgba(38, 7, 11, 0.65) 0%, rgba(18, 5, 8, 0.75) 100%)',
+            border: '1px solid rgba(200, 70, 85, 0.26)',
+            borderRadius: '9999px',
+            color: '#E4E4E7',
+            fontSize: '12px',
+            fontWeight: 500,
+            textDecoration: 'none',
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
           }}
         >
-          <a
-            href="#contact"
-            onClick={(e) => {
-              e.preventDefault();
-              handleItemClick(NAV_DESTINATIONS[3]);
-            }}
-            aria-label="Connect with Ayush"
-            className="notch-action-btn"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: isMobile ? '0' : '6px',
-              padding: isMobile ? '7px 8px' : '6px 12px',
-              minHeight: '32px',
-              background:
-                'linear-gradient(135deg, rgba(38, 7, 11, 0.65) 0%, rgba(18, 5, 8, 0.75) 100%)',
-              border: '1px solid rgba(200, 70, 85, 0.26)',
-              borderRadius: '9999px',
-              color: '#E4E4E7',
-              fontSize: '12px',
-              fontWeight: 500,
-              textDecoration: 'none',
-              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-            }}
-          >
-            {!isMobile && <span>Connect</span>}
-            <ArrowUpRight size={14} color="#D4D4D8" />
-          </a>
-        </div>
+          {!isMobile && <span>Connect</span>}
+          <ArrowUpRight size={14} color="#D4D4D8" />
+        </a>
       </div>
 
       {/* Embedded styles for keyboard accessibility and reduced-motion */}
