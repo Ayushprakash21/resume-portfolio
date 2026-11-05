@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Home, Briefcase, Layers, User } from 'lucide-react';
+import { Home, Layers, Briefcase, Award, GraduationCap, User } from 'lucide-react';
 
 export interface NavDestination {
   id: string;
   label: string;
   targetId: string;
-  icon: React.FC<{ size?: number; className?: string; strokeWidth?: number }>;
+  icon: React.FC<{ size?: number; className?: string; strokeWidth?: number; style?: React.CSSProperties; color?: string }>;
 }
 
 export const NAV_DESTINATIONS: NavDestination[] = [
   { id: 'home', label: 'Home', targetId: 'hero', icon: Home },
-  { id: 'work', label: 'Work', targetId: 'projects', icon: Briefcase },
   { id: 'experience', label: 'Experience', targetId: 'experience', icon: Layers },
+  { id: 'projects', label: 'Projects', targetId: 'projects', icon: Briefcase },
+  { id: 'accreditations', label: 'ACCREDITATIONS', targetId: 'certifications', icon: Award },
+  { id: 'academics', label: 'Academics', targetId: 'education', icon: GraduationCap },
   { id: 'contact', label: 'Contact', targetId: 'contact', icon: User },
 ];
 
@@ -106,17 +108,23 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           return;
         }
 
+        const contactEl = document.getElementById('contact');
+        const educationEl = document.getElementById('education');
+        const certificationsEl = document.getElementById('certifications');
         const projectsEl = document.getElementById('projects');
         const experienceEl = document.getElementById('experience');
-        const contactEl = document.getElementById('contact');
 
         const triggerLine = windowHeight * 0.42;
 
         // Check from bottom of page upwards:
         if (contactEl && contactEl.getBoundingClientRect().top <= triggerLine) {
           setActiveId('contact');
+        } else if (educationEl && educationEl.getBoundingClientRect().top <= triggerLine) {
+          setActiveId('academics');
+        } else if (certificationsEl && certificationsEl.getBoundingClientRect().top <= triggerLine) {
+          setActiveId('accreditations');
         } else if (projectsEl && projectsEl.getBoundingClientRect().top <= triggerLine) {
-          setActiveId('work');
+          setActiveId('projects');
         } else if (experienceEl && experienceEl.getBoundingClientRect().top <= triggerLine) {
           setActiveId('experience');
         } else {
@@ -169,15 +177,15 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
   const isMobile = viewportWidth <= 640;
   const isTablet = viewportWidth > 640 && viewportWidth <= 1024;
 
-  // Geometry dimensions: tight, balanced footprint for exactly four centered navigation links
+  // Geometry dimensions: balanced footprint for exactly six centered navigation links
   const notchHeight = isMobile ? 44 : 50;
   const filletRadius = isMobile ? 12 : 16;
   const cornerRadius = isMobile ? 14 : 18;
   const centerNotchWidth = isMobile
-    ? Math.min(viewportWidth - 24, 216)
+    ? Math.min(viewportWidth - 20, 310)
     : isTablet
-    ? 340
-    : 360;
+    ? 580
+    : 636;
 
   return (
     <header
@@ -219,9 +227,9 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
 
       {/* ========================================================
           CENTRAL NAVIGATION STRUCTURE (UNIFIED ADAPTIVE NOTCH)
-          Houses exactly four centered navigation destinations:
-          Home, Work, Experience, Contact.
-          AP logo, Connect button, and all separators completely removed.
+          Houses exactly six centered navigation destinations:
+          Home, Experience, Projects, ACCREDITATIONS, Academics, Contact.
+          Zero AP logo, zero Connect button, zero separators.
           ======================================================== */}
       <div
         className="adaptive-notch-island center-nav-notch"
@@ -236,7 +244,7 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: isMobile ? '0 6px' : '0 12px',
+          padding: isMobile ? '0 6px' : '0 10px',
         }}
       >
         <svg
@@ -322,7 +330,7 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
             justifyContent: 'space-between',
             width: '100%',
             height: '100%',
-            padding: isMobile ? '0 2px' : '0 6px',
+            padding: isMobile ? '0 2px' : '0 4px',
           }}
         >
           {/* Sliding active indicator capsule pill */}
@@ -352,6 +360,7 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
           {NAV_DESTINATIONS.map((dest) => {
             const Icon = dest.icon;
             const isActive = dest.id === activeId;
+            const isAccreditations = dest.id === 'accreditations';
 
             return (
               <button
@@ -364,16 +373,20 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
                 aria-selected={isActive}
                 aria-label={`Navigate to ${dest.label}`}
                 onClick={() => handleItemClick(dest)}
-                className={`notch-nav-item ${isActive ? 'is-active' : ''}`}
+                className={`notch-nav-item ${isActive ? 'is-active' : ''} ${isAccreditations ? 'is-accreditations' : ''}`}
                 style={{
                   position: 'relative',
                   zIndex: 2,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: isMobile ? '0px' : '6px',
-                  padding: isMobile ? '6px 7px' : '6px 11px',
-                  minWidth: isMobile ? '38px' : 'auto',
+                  gap: isMobile ? '0px' : '5px',
+                  padding: isMobile
+                    ? '6px 6px'
+                    : isTablet
+                    ? isAccreditations ? '5px 7px' : '5px 8px'
+                    : isAccreditations ? '6px 9px' : '6px 10px',
+                  minWidth: isMobile ? '36px' : 'auto',
                   minHeight: '38px',
                   background: 'transparent',
                   border: 'none',
@@ -382,17 +395,24 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
                   color: isActive ? '#FFFFFF' : '#9CA3AF',
                   fontFamily:
                     'var(--font-display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)',
-                  fontSize: isMobile ? '12px' : '13px',
-                  fontWeight: isActive ? 600 : 500,
-                  letterSpacing: '-0.01em',
+                  fontSize: isMobile
+                    ? '11px'
+                    : isAccreditations
+                    ? isTablet ? '10.5px' : '11px'
+                    : isTablet ? '11.5px' : '12px',
+                  fontWeight: isAccreditations ? 700 : isActive ? 600 : 500,
+                  letterSpacing: isAccreditations ? '0.05em' : '-0.01em',
+                  textTransform: isAccreditations ? 'uppercase' : 'none',
                   transition: 'color 0.2s ease',
                   WebkitTapHighlightColor: 'transparent',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 <Icon
-                  size={isMobile ? 16 : 15}
+                  size={isMobile ? 16 : 14}
                   strokeWidth={isActive ? 2.3 : 1.9}
                   className="notch-icon"
+                  style={isAccreditations && !isActive ? { color: '#E4E4E7' } : undefined}
                 />
                 {!isMobile && <span>{dest.label}</span>}
               </button>

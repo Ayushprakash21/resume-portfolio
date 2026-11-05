@@ -18,11 +18,13 @@ describe('Exact Adaptive Notch Navigation Suite', () => {
     assert.ok(!heroLayoutFile.includes('isMobileMenuOpen'), 'Hero must not track mobile menu open state');
   });
 
-  it('2. Exactly four destinations are configured (Home, Work, Experience, Contact) with genuine IDs', () => {
+  it('2. Exactly six destinations are configured in order (Home, Experience, Projects, ACCREDITATIONS, Academics, Contact) with genuine IDs', () => {
     const expectedDestinations = [
       { id: 'home', label: 'Home', targetId: 'hero' },
-      { id: 'work', label: 'Work', targetId: 'projects' },
       { id: 'experience', label: 'Experience', targetId: 'experience' },
+      { id: 'projects', label: 'Projects', targetId: 'projects' },
+      { id: 'accreditations', label: 'ACCREDITATIONS', targetId: 'certifications' },
+      { id: 'academics', label: 'Academics', targetId: 'education' },
       { id: 'contact', label: 'Contact', targetId: 'contact' },
     ];
 
@@ -83,7 +85,7 @@ describe('Exact Adaptive Notch Navigation Suite', () => {
     );
   });
 
-  it('5. Navigation contains exactly four centered destination links without unnecessary wordmark or logo', () => {
+  it('5. Navigation contains exactly six centered destination links without unnecessary wordmark or logo', () => {
     assert.ok(
       !notchNavFile.includes('ApMonogram'),
       'Navigation does not contain ApMonogram brand logo asset'
