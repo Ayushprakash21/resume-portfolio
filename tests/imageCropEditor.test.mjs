@@ -76,14 +76,13 @@ describe('Image Drag, Position, Zoom and Crop Editor Suite', () => {
     assert.ok(file.includes('ImageCropModal'), 'Must mount ImageCropModal');
   });
 
-  it('4. IntroductionEditor integrates ImageUploadWithCrop for profile photo and cover image', () => {
+  it('4. IntroductionEditor integrates ImageUploadWithCrop for profile photo with circular crop', () => {
     const file = fs.readFileSync('src/components/admin/editors/IntroductionEditor.tsx', 'utf-8');
 
     assert.ok(file.includes("import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop'"));
     assert.ok(file.includes('Profile Photograph — Drag, Position & Crop'));
-    assert.ok(file.includes('Background Cover — Drag, Position & Crop'));
     assert.ok(file.includes('initialAspect={1}'));
-    assert.ok(file.includes('initialAspect={16 / 9}'));
+    assert.ok(file.includes('initialShape="round"'));
   });
 
   it('5. ProjectEditorModal integrates ImageUploadWithCrop for logo, cover, and screenshots', () => {

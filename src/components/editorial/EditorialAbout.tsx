@@ -92,9 +92,6 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
           <div>
             <BorderGlow borderRadius="16px" glowRadius={340} glowIntensity={0.32}>
               <HoloCard
-                coverImageSrc={profile.coverImage}
-                coverImageAlt={`${profile.name} Background Cover`}
-                showCoverBanner={true}
                 imageSrc={profile.profilePhoto}
                 imageAlt={profile.name}
                 maxTilt={6}

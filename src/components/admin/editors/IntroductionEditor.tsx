@@ -70,7 +70,6 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [isUploadingCover, setIsUploadingCover] = useState(false);
 
   const updateField = <K extends keyof ProfileData>(key: K, value: ProfileData[K]) => {
     setForm((prev) => {
@@ -103,7 +102,7 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
 
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    type: 'profile' | 'cover'
+    type: 'profile' = 'profile'
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -118,26 +117,20 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
       return;
     }
 
-    if (type === 'profile') setIsUploadingPhoto(true);
-    else setIsUploadingCover(true);
+    setIsUploadingPhoto(true);
 
     try {
       const asset = await cmsService.uploadMediaFile(
         file,
-        type === 'profile' ? 'photo' : 'general',
-        `${form.name} ${type === 'profile' ? 'Profile Photo' : 'Background Cover'}`
+        'photo',
+        `${form.name} Profile Photo`
       );
-      if (type === 'profile') {
-        updateField('profilePhoto', asset.url);
-      } else {
-        updateField('coverImage', asset.url);
-      }
-      showNotification(`${type === 'profile' ? 'Profile photo' : 'Cover image'} uploaded successfully.`);
+      updateField('profilePhoto', asset.url);
+      showNotification('Profile photo uploaded successfully.');
     } catch (err: any) {
       showNotification('Upload failed: ' + (err.message || 'Unknown error'), 'error');
     } finally {
-      if (type === 'profile') setIsUploadingPhoto(false);
-      else setIsUploadingCover(false);
+      setIsUploadingPhoto(false);
     }
   };
 
@@ -382,7 +375,7 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
             Media &amp; Photographs
           </h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div style={{ maxWidth: '480px' }}>
             {/* Profile Photo */}
             <div>
               <label
@@ -436,64 +429,6 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
                     }}
                   >
                     Interactive drag, reposition, and circular zoom crop.
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Background / Cover Image */}
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '12px',
-                  color: '#A7B0A9',
-                  marginBottom: '8px',
-                }}
-              >
-                Background / Cover Image
-              </label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div
-                  style={{
-                    width: '120px',
-                    height: '60px',
-                    borderRadius: '4px',
-                    overflow: 'hidden',
-                    border: '1px solid rgba(244, 243, 238, 0.12)',
-                    backgroundColor: '#1F2A23',
-                  }}
-                >
-                  <img
-                    src={form.coverImage || form.profilePhoto}
-                    alt="Cover preview"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                </div>
-                <div>
-                  <ImageUploadWithCrop
-                    currentImageUrl={form.coverImage}
-                    category="general"
-                    caption={`${form.name} Background Cover`}
-                    altText={`${form.name} Background Cover`}
-                    buttonLabel="Change Cover"
-                    initialAspect={16 / 9}
-                    initialShape="rect"
-                    modalTitle="Background Cover — Drag, Position & Crop"
-                    contextHint="Click and drag to position your background cover image. Supports 16:9 widescreen or custom ratio."
-                    onSuccess={(url) => updateField('coverImage', url)}
-                    showNotification={showNotification}
-                  />
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '11px',
-                      color: '#8E948D',
-                      marginTop: '6px',
-                    }}
-                  >
-                    Landscape 16:9 or banner with interactive positioning.
                   </div>
                 </div>
               </div>
@@ -1199,59 +1134,66 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
           <AdminModalBody padding="24px">
             <div
               style={{
-                position: 'relative',
-                height: '140px',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                backgroundColor: '#1E2822',
-                marginBottom: '50px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '20px',
+                padding: '20px',
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '10px',
+                marginBottom: '24px',
               }}
             >
-              <img
-                src={form.coverImage || form.profilePhoto}
-                alt="Cover"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
               <img
                 src={form.profilePhoto}
                 alt={form.name}
                 style={{
-                  position: 'absolute',
-                  bottom: '-35px',
-                  left: '24px',
                   width: '84px',
                   height: '84px',
                   borderRadius: '50%',
                   objectFit: 'cover',
-                  border: '3px solid #0A0B0E',
+                  border: '2px solid rgba(255, 255, 255, 0.15)',
                   backgroundColor: '#0A0B0E',
+                  flexShrink: 0,
                 }}
               />
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-              <h3
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '22px',
-                  fontWeight: 700,
-                  color: '#F4F3EE',
-                  margin: 0,
-                }}
-              >
-                {form.name}
-              </h3>
-              {form.pronouns && (
-                <span
+              <div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                  <h3
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: '22px',
+                      fontWeight: 700,
+                      color: '#F4F3EE',
+                      margin: 0,
+                    }}
+                  >
+                    {form.name}
+                  </h3>
+                  {form.pronouns && (
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-body)',
+                        fontSize: '12px',
+                        color: '#8E948D',
+                      }}
+                    >
+                      ({form.pronouns})
+                    </span>
+                  )}
+                </div>
+                <div
                   style={{
                     fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    color: '#8E948D',
+                    fontSize: '13px',
+                    color: '#C2C9C4',
+                    marginTop: '4px',
+                    lineHeight: 1.4,
                   }}
                 >
-                  ({form.pronouns})
-                </span>
-              )}
+                  {form.headline}
+                </div>
+              </div>
             </div>
 
             <p

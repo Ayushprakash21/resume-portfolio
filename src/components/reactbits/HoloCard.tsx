@@ -4,10 +4,6 @@ interface HoloCardProps {
   children?: React.ReactNode;
   imageSrc?: string;
   imageAlt?: string;
-  coverImageSrc?: string;
-  coverImageAlt?: string;
-  coverObjectPosition?: string;
-  showCoverBanner?: boolean;
   className?: string;
   maxTilt?: number;
   hoverScale?: number;
@@ -21,10 +17,6 @@ export const HoloCard: React.FC<HoloCardProps> = ({
   children,
   imageSrc,
   imageAlt = 'Founder Portrait',
-  coverImageSrc,
-  coverImageAlt = 'Profile Cover Banner',
-  coverObjectPosition,
-  showCoverBanner,
   className = '',
   maxTilt = 6,
   hoverScale = 1.015,
@@ -38,27 +30,12 @@ export const HoloCard: React.FC<HoloCardProps> = ({
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const [imgError, setImgError] = useState(false);
-  const [coverImgError, setCoverImgError] = useState(false);
 
   useEffect(() => {
     setImgError(false);
   }, [imageSrc]);
 
-  useEffect(() => {
-    setCoverImgError(false);
-  }, [coverImageSrc]);
-
   const effectiveImageSrc = (!imgError && imageSrc) ? imageSrc : '/images/creator/creator_1793142386775_044ada53_wall.png';
-  const hasCoverBanner = Boolean(showCoverBanner || coverImageSrc !== undefined);
-  const isDuplicateOfPortrait = Boolean(
-    coverImageSrc && imageSrc && coverImageSrc.trim() === imageSrc.trim()
-  );
-  const effectiveCoverSrc = (
-    !coverImgError &&
-    coverImageSrc &&
-    coverImageSrc.trim() !== '' &&
-    !isDuplicateOfPortrait
-  ) ? coverImageSrc : null;
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -120,138 +97,22 @@ export const HoloCard: React.FC<HoloCardProps> = ({
           willChange: 'transform',
         }}
       >
-        {/* Wide, Shallow Landscape Cover Banner (16:5 / ~3:1 Display Ratio) */}
-        {hasCoverBanner && (
-          <div
-            data-testid="holo-card-cover-banner"
-            style={{
-              position: 'relative',
-              width: '100%',
-              aspectRatio: '16 / 5',
-              overflow: 'hidden',
-              backgroundColor: '#0F1015',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            }}
-          >
-            {effectiveCoverSrc ? (
-              <img
-                src={effectiveCoverSrc}
-                alt={coverImageAlt || 'Profile Cover Banner'}
-                onError={() => setCoverImgError(true)}
-                data-testid="profile-cover-image"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'block',
-                  objectFit: 'cover',
-                  objectPosition: coverObjectPosition || 'center 35%',
-                  filter: 'contrast(102%) brightness(96%)',
-                }}
-              />
-            ) : (
-              <div
-                data-testid="profile-cover-fallback"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  background: 'linear-gradient(135deg, #1C1E24 0%, #111215 50%, #20232B 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '0 clamp(16px, 3vw, 22px)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'radial-gradient(ellipse 65% 90% at 50% 0%, rgba(217, 221, 227, 0.12) 0%, transparent 75%)',
-                    pointerEvents: 'none',
-                  }}
-                />
-                <div
-                  style={{
-                    position: 'relative',
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '11px',
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
-                    color: 'rgba(217, 221, 227, 0.55)',
-                    fontWeight: 600,
-                  }}
-                >
-                  AYUSH PRAKASH
-                </div>
-                <div
-                  style={{
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '9.5px',
-                      letterSpacing: '0.08em',
-                      color: 'rgba(217, 221, 227, 0.4)',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    EXECUTIVE PROFILE
-                  </span>
-                  <div
-                    style={{
-                      width: '5px',
-                      height: '5px',
-                      borderRadius: '50%',
-                      backgroundColor: 'rgba(217, 221, 227, 0.4)',
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-            {/* Subtle gradient vignette at bottom to smoothly transition */}
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 0%, rgba(9, 9, 11, 0.45) 100%)',
-                pointerEvents: 'none',
-              }}
-            />
-          </div>
-        )}
-
-        {/* Primary Portrait Photo displayed prominently below banner */}
+        {/* Base Image with guaranteed fallback */}
         {effectiveImageSrc ? (
-          <div
+          <img
+            src={effectiveImageSrc}
+            alt={imageAlt}
+            onError={() => setImgError(true)}
+            data-testid="profile-portrait-image"
             style={{
-              position: 'relative',
               width: '100%',
-              overflow: 'hidden',
-              backgroundColor: '#09090B',
+              height: 'auto',
+              display: 'block',
+              aspectRatio: '4 / 5',
+              objectFit: 'cover',
+              filter: 'grayscale(25%) contrast(106%) brightness(96%)',
             }}
-          >
-            <img
-              src={effectiveImageSrc}
-              alt={imageAlt}
-              onError={() => setImgError(true)}
-              data-testid="profile-portrait-image"
-              style={{
-                width: '100%',
-                height: 'auto',
-                aspectRatio: '4 / 5',
-                display: 'block',
-                objectFit: 'cover',
-                objectPosition: 'center top',
-                filter: 'grayscale(15%) contrast(106%) brightness(96%)',
-              }}
-            />
-          </div>
+          />
         ) : null}
 
         {/* Children if custom content */}
