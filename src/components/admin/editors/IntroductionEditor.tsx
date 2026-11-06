@@ -57,7 +57,7 @@ export const IntroductionEditor: React.FC<IntroductionEditorProps> = ({
       location: base.location || 'Indore, Madhya Pradesh, India',
       isLocationVisible: base.isLocationVisible !== undefined ? base.isLocationVisible : true,
       profilePhoto: base.profilePhoto || '/images/creator/creator_1793142386775_044ada53_wall.png',
-      coverImage: base.coverImage || '/images/creator/creator_1793142386775_044ada53_wall.png',
+      coverImage: base.coverImage || '/images/hero/dark-sovereign-throne.png',
       email: base.email || 'ayushprakash0021@gmail.com',
       phone: base.phone || '+91 (Available on request)',
       linkedinUrl: base.linkedinUrl || 'https://www.linkedin.com/in/ayushprakash',

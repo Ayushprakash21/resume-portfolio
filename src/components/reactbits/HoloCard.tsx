@@ -1,9 +1,12 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 
 interface HoloCardProps {
   children?: React.ReactNode;
   imageSrc?: string;
   imageAlt?: string;
+  coverImageSrc?: string;
+  coverImageAlt?: string;
+  showCoverBanner?: boolean;
   className?: string;
   maxTilt?: number;
   hoverScale?: number;
@@ -17,6 +20,9 @@ export const HoloCard: React.FC<HoloCardProps> = ({
   children,
   imageSrc,
   imageAlt = 'Founder Portrait',
+  coverImageSrc,
+  coverImageAlt = 'Profile Cover Banner',
+  showCoverBanner,
   className = '',
   maxTilt = 6,
   hoverScale = 1.015,
@@ -30,8 +36,19 @@ export const HoloCard: React.FC<HoloCardProps> = ({
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [coverImgError, setCoverImgError] = useState(false);
 
-  const effectiveImageSrc = (!imgError && imageSrc) ? imageSrc : '/images/creator/ayush-profile.jpg';
+  useEffect(() => {
+    setImgError(false);
+  }, [imageSrc]);
+
+  useEffect(() => {
+    setCoverImgError(false);
+  }, [coverImageSrc]);
+
+  const effectiveImageSrc = (!imgError && imageSrc) ? imageSrc : '/images/creator/creator_1793142386775_044ada53_wall.png';
+  const hasCoverBanner = Boolean(showCoverBanner || coverImageSrc !== undefined);
+  const effectiveCoverSrc = (!coverImgError && coverImageSrc && coverImageSrc.trim() !== '') ? coverImageSrc : null;
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -93,21 +110,110 @@ export const HoloCard: React.FC<HoloCardProps> = ({
           willChange: 'transform',
         }}
       >
+        {/* Landscape Cover Banner */}
+        {hasCoverBanner && (
+          <div
+            data-testid="holo-card-cover-banner"
+            style={{
+              position: 'relative',
+              width: '100%',
+              height: 'clamp(120px, 14vw, 150px)',
+              overflow: 'hidden',
+              backgroundColor: '#0F1015',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+          >
+            {effectiveCoverSrc ? (
+              <img
+                src={effectiveCoverSrc}
+                alt={coverImageAlt}
+                onError={() => setCoverImgError(true)}
+                data-testid="profile-cover-image"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'block',
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                  filter: 'contrast(104%) brightness(96%)',
+                }}
+              />
+            ) : (
+              <div
+                data-testid="profile-cover-fallback"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  background: 'linear-gradient(135deg, #181920 0%, #121318 45%, #221217 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    opacity: 0.12,
+                    backgroundImage: 'radial-gradient(rgba(244, 243, 238, 0.4) 1px, transparent 1px)',
+                    backgroundSize: '16px 16px',
+                  }}
+                />
+                <span
+                  style={{
+                    position: 'relative',
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '10.5px',
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(244, 243, 238, 0.4)',
+                    fontWeight: 600,
+                  }}
+                >
+                  Executive Identity &bull; AP
+                </span>
+              </div>
+            )}
+            {/* Subtle gradient vignette at bottom to smoothly transition */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.15) 0%, rgba(9, 9, 11, 0.6) 100%)',
+                pointerEvents: 'none',
+              }}
+            />
+          </div>
+        )}
+
         {/* Base Image with guaranteed fallback */}
         {effectiveImageSrc ? (
-          <img
-            src={effectiveImageSrc}
-            alt={imageAlt}
-            onError={() => setImgError(true)}
+          <div
             style={{
+              position: 'relative',
               width: '100%',
-              height: 'auto',
-              display: 'block',
-              aspectRatio: '4 / 5',
-              objectFit: 'cover',
-              filter: 'grayscale(25%) contrast(106%) brightness(96%)',
+              overflow: 'hidden',
+              backgroundColor: '#09090B',
             }}
-          />
+          >
+            <img
+              src={effectiveImageSrc}
+              alt={imageAlt}
+              onError={() => setImgError(true)}
+              data-testid="profile-portrait-image"
+              style={{
+                width: '100%',
+                height: hasCoverBanner ? 'clamp(270px, 30vw, 340px)' : 'auto',
+                aspectRatio: hasCoverBanner ? undefined : '4 / 5',
+                display: 'block',
+                objectFit: 'cover',
+                objectPosition: 'center top',
+                filter: 'grayscale(20%) contrast(106%) brightness(96%)',
+              }}
+            />
+          </div>
         ) : null}
 
         {/* Children if custom content */}

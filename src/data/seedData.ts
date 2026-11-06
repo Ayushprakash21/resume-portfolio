@@ -33,7 +33,7 @@ export const DEFAULT_PROFILE: ProfileData = {
   city: 'Indore',
   location: 'Indore, Madhya Pradesh, India',
   profilePhoto: '/images/creator/creator_1793142386775_044ada53_wall.png',
-  coverImage: '/images/creator/creator_1793142386775_044ada53_wall.png',
+  coverImage: '/images/hero/dark-sovereign-throne.png',
   email: 'ayushprakash0021@gmail.com',
   phone: '+91 9993619227',
   linkedinUrl: 'https://www.linkedin.com/in/ayushprakash21',
