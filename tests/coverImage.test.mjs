@@ -23,9 +23,12 @@ describe('Public Introduction Cover Image & HoloCard Integration Suite', () => {
     assert.ok(src.includes('coverImageSrc?: string'), 'HoloCard props must declare coverImageSrc');
     assert.ok(src.includes('showCoverBanner?: boolean'), 'HoloCard props must declare showCoverBanner');
     assert.ok(src.includes('effectiveCoverSrc'), 'HoloCard must compute effectiveCoverSrc');
+    assert.ok(src.includes("aspectRatio: '16 / 5'"), 'HoloCard must use 16:5 / 3:1 aspect ratio for shallow banner');
+    assert.ok(src.includes('isDuplicateOfPortrait'), 'HoloCard must detect duplicate of main portrait to prevent repetitive images');
     assert.ok(src.includes('data-testid="profile-cover-image"'), 'HoloCard must render profile-cover-image');
     assert.ok(src.includes('data-testid="profile-cover-fallback"'), 'HoloCard must render elegant fallback when cover missing/broken');
     assert.ok(src.includes('data-testid="profile-portrait-image"'), 'HoloCard must render portrait photo as separate image');
+    assert.ok(src.includes("aspectRatio: '4 / 5'"), 'Primary portrait must maintain full prominent 4:5 aspect ratio');
     assert.ok(src.includes("objectFit: 'cover'"), 'HoloCard must use object-fit: cover');
   });
 
