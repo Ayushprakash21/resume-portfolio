@@ -141,32 +141,7 @@ interface CmsStore {
 }
 
 function initCertifications(): CertificationRecord[] {
-  const stored = safeStorageGet<CertificationRecord[]>(STORAGE_KEYS.certifications, DEFAULT_CERTIFICATIONS);
-  // Ensure default certifications have their verified logos populated
-  const defaultMap = new Map(DEFAULT_CERTIFICATIONS.map((c) => [c.id, c]));
-  let modified = false;
-
-  const upgraded = stored.map((cert) => {
-    const def = defaultMap.get(cert.id);
-    if (def && (!cert.issuerLogo || !cert.issuerWebsite)) {
-      modified = true;
-      return {
-        ...cert,
-        issuerWebsite: cert.issuerWebsite || def.issuerWebsite,
-        issuerDomain: cert.issuerDomain || def.issuerDomain,
-        issuerLogo: cert.issuerLogo || def.issuerLogo,
-        issuerLogoSource: cert.issuerLogoSource || def.issuerLogoSource,
-        issuerLogoFormat: cert.issuerLogoFormat || def.issuerLogoFormat,
-        issuerLogoAlt: cert.issuerLogoAlt || def.issuerLogoAlt,
-      };
-    }
-    return cert;
-  });
-
-  if (modified) {
-    safeStorageSet(STORAGE_KEYS.certifications, upgraded);
-  }
-  return upgraded;
+  return safeStorageGet<CertificationRecord[]>(STORAGE_KEYS.certifications, DEFAULT_CERTIFICATIONS);
 }
 
 function initIssuers(): IssuerRecord[] {
@@ -182,15 +157,7 @@ function initIssuers(): IssuerRecord[] {
 }
 
 function initSkills(): SkillRecord[] {
-  const stored = safeStorageGet<SkillRecord[]>(STORAGE_KEYS.skills, DEFAULT_SKILLS);
-  const existingIds = new Set(stored.map((s) => s.id));
-  const missing = DEFAULT_SKILLS.filter((s) => !existingIds.has(s.id));
-  if (missing.length > 0) {
-    const merged = [...stored, ...missing];
-    safeStorageSet(STORAGE_KEYS.skills, merged);
-    return merged;
-  }
-  return stored;
+  return safeStorageGet<SkillRecord[]>(STORAGE_KEYS.skills, DEFAULT_SKILLS);
 }
 
 const store: CmsStore = {
@@ -461,14 +428,9 @@ function initFirestoreSync() {
           const list: CertificationRecord[] = [];
           snap.forEach((d) => {
             const data = d.data();
-            const defaultMatch = DEFAULT_CERTIFICATIONS.find((def) => def.id === d.id);
             list.push({
-              ...(defaultMatch || {}),
               ...data,
               id: d.id,
-              issuerLogo: data.issuerLogo || defaultMatch?.issuerLogo || '',
-              issuerLogoAlt: data.issuerLogoAlt || defaultMatch?.issuerLogoAlt || '',
-              issuerWebsite: data.issuerWebsite || defaultMatch?.issuerWebsite || '',
             } as CertificationRecord);
           });
           list.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
@@ -509,6 +471,7 @@ function initFirestoreSync() {
           snap.forEach((d) => {
             list.push({ ...d.data(), id: d.id } as EducationRecord);
           });
+          list.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
           store.education = list;
           safeStorageSet(STORAGE_KEYS.education, list);
           notifyListeners();

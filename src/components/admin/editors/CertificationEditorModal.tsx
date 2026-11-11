@@ -84,11 +84,11 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
         issuerLogoSource: initialCertification.issuerLogoSource || 'directory',
         issuerLogoFormat: initialCertification.issuerLogoFormat || 'svg',
         issuerLogoAlt: initialCertification.issuerLogoAlt || '',
-        issueMonth: initialCertification.issueMonth || 'January',
-        issueYear: initialCertification.issueYear || '2024',
-        completionDate: initialCertification.completionDate || 'Jan 2024',
-        expirationMonth: initialCertification.expirationMonth || 'December',
-        expirationYear: initialCertification.expirationYear || '2027',
+        issueMonth: initialCertification.issueMonth || '',
+        issueYear: initialCertification.issueYear || '',
+        completionDate: initialCertification.completionDate || '',
+        expirationMonth: initialCertification.expirationMonth || '',
+        expirationYear: initialCertification.expirationYear || '',
         expiryDate: initialCertification.expiryDate || '',
         doesNotExpire: initialCertification.doesNotExpire ?? true,
         credentialId: initialCertification.credentialId || '',
@@ -97,8 +97,8 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
         skillsUsed: initialCertification.skillsUsed || [],
         certificateImage: initialCertification.certificateImage || '',
         certificatePdfUrl: initialCertification.certificatePdfUrl || '',
-        category: initialCertification.category || 'Applied Artificial Intelligence',
-        highlightTag: initialCertification.highlightTag || 'CERTIFIED CREDENTIAL',
+        category: initialCertification.category || 'Project Coordination',
+        highlightTag: initialCertification.highlightTag || 'CREDENTIAL',
         displayOrder: initialCertification.displayOrder || 1,
         status: initialCertification.status || 'published',
       };
@@ -113,11 +113,11 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
       issuerLogoSource: 'directory',
       issuerLogoFormat: 'svg',
       issuerLogoAlt: '',
-      issueMonth: 'January',
-      issueYear: new Date().getFullYear().toString(),
-      completionDate: 'Jan ' + new Date().getFullYear(),
-      expirationMonth: 'December',
-      expirationYear: (new Date().getFullYear() + 3).toString(),
+      issueMonth: '',
+      issueYear: '',
+      completionDate: '',
+      expirationMonth: '',
+      expirationYear: '',
       expiryDate: '',
       doesNotExpire: true,
       credentialId: '',
@@ -126,8 +126,8 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
       skillsUsed: [],
       certificateImage: '',
       certificatePdfUrl: '',
-      category: 'Applied Artificial Intelligence',
-      highlightTag: 'ACCREDITATION',
+      category: 'Project Coordination',
+      highlightTag: 'CREDENTIAL',
       displayOrder: 1,
       status: 'published',
     };
@@ -266,19 +266,20 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
   };
 
   const handleSubmit = async (targetStatus: 'published' | 'draft') => {
-    if (!form.title.trim() || !form.issuer.trim()) {
-      showNotification('Certification name and Issuing organization are required.', 'error');
+    if (!form.title.trim()) {
+      showNotification('Certification name is required.', 'error');
       return;
     }
 
-    const computedCompletionDate = form.issueMonth?.trim()
-      ? `${form.issueMonth} ${form.issueYear}`
-      : form.issueYear?.trim() || form.completionDate || 'Certified';
+    const computedCompletionDate =
+      form.issueMonth?.trim() && form.issueYear?.trim()
+        ? `${form.issueMonth.trim()} ${form.issueYear.trim()}`
+        : form.issueYear?.trim() || form.issueMonth?.trim() || form.completionDate?.trim() || '';
     const computedExpiryDate = form.doesNotExpire
-      ? 'Does not expire'
-      : form.expirationMonth?.trim()
-      ? `${form.expirationMonth} ${form.expirationYear}`
-      : form.expirationYear?.trim() || 'Does not expire';
+      ? ''
+      : form.expirationMonth?.trim() && form.expirationYear?.trim()
+      ? `${form.expirationMonth.trim()} ${form.expirationYear.trim()}`
+      : form.expirationYear?.trim() || '';
 
     const requiresConfirm =
       (!form.issueMonth?.trim() && !!form.issueYear?.trim()) ||

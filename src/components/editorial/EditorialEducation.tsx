@@ -56,7 +56,7 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
             overflowWrap: 'break-word',
           }}
         >
-          Engineering foundation &amp; quantitative systems training.
+          Business administration, commerce &amp; computer applications foundation.
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -118,11 +118,24 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
                     fontSize: '15px',
                     color: 'var(--text-primary)',
                     fontWeight: 500,
-                    marginBottom: '8px',
+                    marginBottom: edu.associatedCollege ? '4px' : '8px',
                   }}
                 >
                   {edu.institution}
                 </div>
+
+                {edu.associatedCollege && (
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '13.5px',
+                      color: 'var(--text-secondary)',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    Associated College: {edu.associatedCollege}
+                  </div>
+                )}
 
                 {edu.highlights && edu.highlights.length > 0 && (
                   <div

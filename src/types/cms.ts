@@ -227,6 +227,7 @@ export interface SkillRecord {
 export interface EducationRecord {
   id: string;
   institution: string;
+  associatedCollege?: string;
   degree: string;
   fieldOfStudy: string;
   startYear: string;

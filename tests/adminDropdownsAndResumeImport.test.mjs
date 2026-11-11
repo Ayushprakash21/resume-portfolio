@@ -45,37 +45,34 @@ test('2. Experience Module: contains exactly the 7 authentic resume positions wi
   const synergy = DEFAULT_EXPERIENCES.find((e) => e.employer?.includes('SynergyTop'));
   assert.ok(synergy, 'SynergyTop experience must exist');
   assert.equal(synergy.jobTitle, 'Associate Project Manager');
-  assert.equal(synergy.startYear, '2023');
-  assert.equal(synergy.endYear, '2023');
-  assert.equal(synergy.requiresDateConfirmation, true);
+  assert.equal(synergy.startDate, 'February 2023');
+  assert.equal(synergy.endDate, 'July 2023');
 
   const accenture = DEFAULT_EXPERIENCES.find((e) => e.employer?.includes('Accenture'));
   assert.ok(accenture, 'Accenture experience must exist');
   assert.equal(accenture.jobTitle, 'Business & Technology Delivery Associate');
-  assert.equal(accenture.startYear, '2021');
-  assert.equal(accenture.endYear, '2023');
+  assert.equal(accenture.startDate, 'December 2021');
+  assert.equal(accenture.endDate, 'February 2023');
 
   const tp = DEFAULT_EXPERIENCES.find((e) => e.employer?.includes('Teleperformance'));
   assert.ok(tp, 'Teleperformance experience must exist');
   assert.equal(tp.jobTitle, 'Customer Service Associate');
-  assert.equal(tp.startYear, '2021');
-  assert.equal(tp.endYear, '2021');
-  assert.equal(tp.requiresDateConfirmation, true);
+  assert.equal(tp.startDate, 'September 2021');
+  assert.equal(tp.endDate, 'November 2021');
 
   const toppr = DEFAULT_EXPERIENCES.find((e) => e.employer?.includes('Toppr'));
   assert.ok(toppr, 'Toppr experience must exist');
   assert.equal(toppr.jobTitle, 'Business Development Associate');
-  assert.equal(toppr.startYear, '2021');
-  assert.equal(toppr.endYear, '2021');
+  assert.equal(toppr.startDate, 'July 2021');
+  assert.equal(toppr.endDate, '');
   assert.equal(toppr.requiresDateConfirmation, true);
 
   const icici = DEFAULT_EXPERIENCES.find((e) => e.employer?.includes('ICICI Bank'));
   assert.ok(icici, 'ICICI Bank experience must exist');
   assert.equal(icici.jobTitle, 'Deputy Manager - Relationship Manager');
-  assert.equal(icici.startYear, '2021');
-  assert.equal(icici.endYear, '2021');
+  assert.equal(icici.startDate, 'February 2021');
+  assert.equal(icici.endDate, 'April 2021');
   assert.ok(icici.location.includes('Anand'));
-  assert.equal(icici.requiresDateConfirmation, true);
 });
 
 test('3. Education Module: contains MBA and B.Com with authentic non-fabricated dates', () => {
@@ -84,6 +81,7 @@ test('3. Education Module: contains MBA and B.Com with authentic non-fabricated 
   const mba = DEFAULT_EDUCATION.find((e) => e.degree?.includes('MBA'));
   assert.ok(mba, 'MBA record must exist');
   assert.ok(mba.institution.includes('Devi Ahilya'));
+  assert.equal(mba.associatedCollege, 'IPS Academy, Indore');
   assert.equal(mba.fieldOfStudy, 'IT & Marketing');
   assert.equal(mba.endYear, '2021');
   assert.equal(mba.requiresDateConfirmation, true);
@@ -91,6 +89,7 @@ test('3. Education Module: contains MBA and B.Com with authentic non-fabricated 
   const bcom = DEFAULT_EDUCATION.find((e) => e.degree?.includes('B.Com'));
   assert.ok(bcom, 'B.Com record must exist');
   assert.ok(bcom.institution.includes('Rani Durgavati'));
+  assert.equal(bcom.associatedCollege, 'GS College, Jabalpur');
   assert.equal(bcom.fieldOfStudy, 'Computer Applications');
   assert.equal(bcom.endYear, '2018');
   assert.equal(bcom.requiresDateConfirmation, true);
@@ -99,11 +98,11 @@ test('3. Education Module: contains MBA and B.Com with authentic non-fabricated 
 test('4. Skills Module: structured into 5 authoritative resume categories', () => {
   const categories = Array.from(new Set(DEFAULT_SKILLS.map((s) => s.category)));
   const expectedCategories = [
-    'Supply Chain Operations',
-    'Project Management and Coordination',
+    'Supply Chain',
+    'Project Coordination',
     'Business Operations',
-    'Enterprise Systems and Reporting',
-    'AI and Product Development',
+    'Systems and Tools',
+    'AI and Development',
   ];
 
   for (const cat of expectedCategories) {
@@ -114,22 +113,23 @@ test('4. Skills Module: structured into 5 authoritative resume categories', () =
 
   const skillNames = DEFAULT_SKILLS.map((s) => s.name);
   assert.ok(skillNames.includes('Order Management'));
-  assert.ok(skillNames.includes('Fulfilment Coordination'));
+  assert.ok(skillNames.includes('Fulfillment Coordination'));
   assert.ok(skillNames.includes('SLA and Turnaround Monitoring'));
   assert.ok(skillNames.includes('Project Scheduling'));
   assert.ok(skillNames.includes('Milestone Tracking'));
-  assert.ok(skillNames.includes('ERP/SAP (working exposure)'));
+  assert.ok(skillNames.includes('ERP / SAP (Working Exposure)'));
   assert.ok(skillNames.includes('OpenText Vendor Invoice Management (VIM)'));
   assert.ok(skillNames.includes('Claude'));
   assert.ok(skillNames.includes('Prompt Engineering'));
 });
 
-test('5. Certifications Module: includes all 7 authentic resume certifications', () => {
-  assert.equal(DEFAULT_CERTIFICATIONS.length, 7);
+test('5. Certifications Module: includes all 8 authentic resume certifications without invented metadata', () => {
+  assert.equal(DEFAULT_CERTIFICATIONS.length, 8);
 
   const certTitles = DEFAULT_CERTIFICATIONS.map((c) => c.title);
   assert.ok(certTitles.includes('Google Project Management Certificate'));
   assert.ok(certTitles.includes('Supply Chain Management'));
+  assert.ok(certTitles.includes('Business & Data Analytics'));
   assert.ok(certTitles.includes('Generative AI Certified Professional'));
   assert.ok(certTitles.includes('Claude Certified Architect - Professional'));
   assert.ok(certTitles.includes('Claude Certified Architect - Foundations'));
@@ -141,10 +141,10 @@ test('5. Certifications Module: includes all 7 authentic resume certifications',
   assert.equal(claudeCert?.issueYear, '2026');
   assert.equal(claudeCert?.issueMonth, 'October');
 
-  const poiCert = DEFAULT_CERTIFICATIONS.find((c) => c.title === 'Supply Chain Management');
-  assert.equal(poiCert?.issuer, 'Professional Operations Institute');
-  assert.ok(!poiCert?.verificationUrl, 'Verification URL should be omitted or empty when not present in resume');
-  assert.equal(poiCert?.requiresDateConfirmation, true);
+  const scmCert = DEFAULT_CERTIFICATIONS.find((c) => c.title === 'Supply Chain Management');
+  assert.equal(scmCert?.issuer, '');
+  assert.ok(!scmCert?.verificationUrl, 'Verification URL should be omitted when not present in resume');
+  assert.equal(scmCert?.requiresDateConfirmation, true);
 });
 
 test('6. Projects Module: Orion-9 and ApplyWise / ApplyVise AI preserved with live links & media', () => {

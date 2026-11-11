@@ -378,8 +378,8 @@ test('MASTER ACCEPTANCE SUITE: AYUSH PRAKASH — AP PERSONAL BRAND IDENTITY & BL
     assert.ok(projComp.includes('fontStyle: \'italic\''), 'Subtitle must be italicized');
 
     const seed = fs.readFileSync('src/data/seedData.ts', 'utf-8');
-    assert.ok(seed.includes('AI-Powered Autonomous Supply Chain Operating System'), 'Orion-9 has exact configured subtitle');
-    assert.ok(seed.includes('AI-Powered Career Intelligence & Job Application Platform'), 'ApplyVise AI has exact configured subtitle');
+    assert.ok(seed.includes('Supply Chain Operating System'), 'Orion-9 has exact configured subtitle');
+    assert.ok(seed.includes('Intelligent Career & Recruitment Platform'), 'ApplyWise AI has exact configured subtitle');
   });
 
   // Test 25: Compact Individual Project Detail Pages

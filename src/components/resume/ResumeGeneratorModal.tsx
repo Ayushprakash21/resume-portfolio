@@ -956,9 +956,11 @@ export const ResumeGeneratorModal: React.FC<ResumeGeneratorModalProps> = ({
                           </span>
                           <span style={{ fontSize: '12px', color: '#666666' }}>{c.date}</span>
                         </div>
-                        <div style={{ fontSize: '12px', color: '#555555' }}>
-                          {c.issuer} {c.credentialId ? `| ID: ${c.credentialId}` : ''}
-                        </div>
+                        {(c.issuer || c.credentialId) && (
+                          <div style={{ fontSize: '12px', color: '#555555' }}>
+                            {[c.issuer, c.credentialId ? `ID: ${c.credentialId}` : ''].filter(Boolean).join(' | ')}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

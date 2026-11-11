@@ -100,7 +100,7 @@ export function extractResumeData(
     includeCertifications: true,
     includeContactInfo: {
       email: true,
-      phone: false,
+      phone: true,
       location: true,
       linkedin: true,
       github: true,
@@ -113,7 +113,7 @@ export function extractResumeData(
   const fullName = profile.name || `${profile.firstName || 'Ayush'} ${profile.lastName || 'Prakash'}`.trim();
 
   // Headline
-  const headline = profile.headline || 'Operations & Systems Specialist | AI & Enterprise Architecture';
+  const headline = profile.headline || 'Supply Chain Operations | Project Coordination | Business Operations';
 
   // Summary
   let summary = '';
@@ -121,11 +121,14 @@ export function extractResumeData(
     if (cfg.customSummary && cfg.customSummary.trim()) {
       summary = cfg.customSummary.trim();
     } else {
+      const bioLen = profile.bio?.trim().length || 0;
+      const sumLen = about.summary?.trim().length || 0;
       summary =
+        (bioLen >= sumLen ? profile.bio : about.summary) ||
+        profile.bio ||
         about.summary ||
         about.quote ||
-        profile.bio ||
-        'Experienced professional bridging enterprise systems, supply chain intelligence, and applied AI technologies. Track record of designing scalable operating frameworks and digital architectures.';
+        '';
     }
   }
 
@@ -253,8 +256,11 @@ export function extractResumeData(
       .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
       .map((ed) => {
         const period = ed.startYear && ed.endYear ? `${ed.startYear} – ${ed.endYear}` : ed.endYear || '';
+        const fullInstitution = ed.associatedCollege
+          ? `${ed.institution} (${ed.associatedCollege})`
+          : ed.institution;
         return {
-          institution: ed.institution,
+          institution: fullInstitution,
           degree: ed.degree,
           fieldOfStudy: ed.fieldOfStudy,
           period,
@@ -644,16 +650,20 @@ export function generatePdf(data: ATSResumeData): jsPDF {
         doc.setTextColor(80, 80, 80);
         doc.text(cert.date, pageWidth - marginX, currentY, { align: 'right' });
       }
-      currentY += 3.8;
-
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(70, 70, 70);
-      const issuerText = cert.credentialId
-        ? `${cert.issuer}  \u2022  Credential ID: ${cert.credentialId}`
-        : cert.issuer;
-      doc.text(issuerText, marginX, currentY);
-      currentY += 4.2;
+      const issuerParts = [
+        cert.issuer,
+        cert.credentialId ? `Credential ID: ${cert.credentialId}` : '',
+      ].filter(Boolean);
+      if (issuerParts.length > 0) {
+        currentY += 3.8;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(70, 70, 70);
+        doc.text(issuerParts.join('  \u2022  '), marginX, currentY);
+        currentY += 4.2;
+      } else {
+        currentY += 4.5;
+      }
     });
   }
 
@@ -1093,21 +1103,23 @@ export async function generateDocxBlob(data: ATSResumeData): Promise<Blob> {
         })
       );
 
-      const certIssuer = c.credentialId ? `${c.issuer} | ID: ${c.credentialId}` : c.issuer;
-      children.push(
-        new Paragraph({
-          spacing: { before: 0, after: 40 },
-          children: [
-            new TextRun({
-              text: certIssuer,
-              italics: true,
-              size: 18,
-              color: '555555',
-              font: 'Calibri',
-            }),
-          ],
-        })
-      );
+      const certIssuer = [c.issuer, c.credentialId ? `ID: ${c.credentialId}` : ''].filter(Boolean).join(' | ');
+      if (certIssuer) {
+        children.push(
+          new Paragraph({
+            spacing: { before: 0, after: 40 },
+            children: [
+              new TextRun({
+                text: certIssuer,
+                italics: true,
+                size: 18,
+                color: '555555',
+                font: 'Calibri',
+              }),
+            ],
+          })
+        );
+      }
     });
   }
 

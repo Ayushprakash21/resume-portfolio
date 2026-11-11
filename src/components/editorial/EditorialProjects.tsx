@@ -87,7 +87,7 @@ export const EditorialProjects: React.FC<EditorialProjectsProps> = ({
               margin: 0,
             }}
           >
-            Engineered systems, architectural prototypes, and autonomous platforms built with zero-trust protocols and applied artificial intelligence.
+            Personal AI-powered platforms designed for supply chain operations and career intelligence.
           </p>
         </div>
 

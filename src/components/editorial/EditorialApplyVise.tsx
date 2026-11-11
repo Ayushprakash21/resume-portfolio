@@ -93,7 +93,7 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
             >
               <img
                 src={logoSrc}
-                alt="ApplyVise AI Logo"
+                alt={`${project?.name || 'ApplyWise AI'} Logo`}
                 style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               />
             </div>
@@ -110,7 +110,7 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
                   lineHeight: 1.1,
                 }}
               >
-                ApplyVise AI
+                {project?.name || 'ApplyWise AI'}
               </h2>
               <div
                 style={{
@@ -122,7 +122,7 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
                   marginTop: '4px',
                 }}
               >
-                AI-Powered Career Intelligence &amp; Job Application Platform
+                {project?.subtitle || 'Intelligent Career & Recruitment Platform'}
               </div>
             </div>
           </div>
@@ -138,7 +138,8 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
               margin: '0 0 24px 0',
             }}
           >
-            An intelligent career platform designed to replace opaque ATS rejections with transparent resume diagnostics, high-accuracy job requirement alignment, and structured application intelligence without fabricated suitability claims.
+            {project?.description ||
+              'AI-powered career intelligence platform designed to help people discover, evaluate and pursue job opportunities. Combines job matching, AI-driven resume optimization, application assistance, career insights and recruitment intelligence.'}
           </p>
 
           {/* Action Links with Specular Buttons */}
@@ -280,7 +281,8 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
                   marginBottom: '20px',
                 }}
               >
-                Client-side vector similarity combined with Gemini 1.5 structured schema extraction, deterministic AST parsing, and Cloudflare D1 distributed SQLite caching.
+                {project?.contentBlocks?.architecture ||
+                  'TypeScript web architecture uniting job matching workflows, AI-driven resume optimization, application assistance, career insights, and recruitment intelligence.'}
               </p>
               <ApplyViseCareerFlow />
             </div>
@@ -455,7 +457,7 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
             <Cpu size={13} />
             <span>Technology Stack:</span>
           </div>
-          {(project?.technologyStack || ['React 19', 'TypeScript', 'Google Gemini API', 'Vector Embeddings', 'Cloudflare D1 SQL']).map((tech, idx) => (
+          {(project?.technologyStack || ['TypeScript']).map((tech, idx) => (
             <span
               key={idx}
               style={{

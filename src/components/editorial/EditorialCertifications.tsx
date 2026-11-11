@@ -40,8 +40,8 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
   const carouselItems = publishedCertifications.map((cert) => ({
     src: cert.issuerLogo || '',
     title: cert.title,
-    subtitle: `${cert.issuer} • ${cert.completionDate}`,
-    alt: cert.issuerLogoAlt || `${cert.issuer} Verified Credential`,
+    subtitle: [cert.issuer || 'Issuer not listed', cert.completionDate].filter(Boolean).join(' • '),
+    alt: cert.issuerLogoAlt || `${cert.issuer || 'Credential'} Certificate`,
     cert,
   }));
 
@@ -96,7 +96,7 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
             overflowWrap: 'break-word',
           }}
         >
-          Verified accreditations in cloud infrastructure, machine learning systems, and enterprise logistics.
+          Certifications in project management, supply chain, business analytics, and Claude AI.
         </h2>
 
         <p
@@ -109,7 +109,7 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
             margin: '0 0 36px 0',
           }}
         >
-          Curated industry certifications backed by official authorities. Drag horizontally or use arrow controls to rotate the accreditation cylinder.
+          Professional certifications listed on my resume across operations, project delivery, data analytics, and Anthropic Claude credentials. Drag horizontally or use arrow controls to rotate.
         </p>
 
         {/* ========================================================
@@ -196,12 +196,12 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                           gap: '5px',
                           fontFamily: 'var(--font-body)',
                           fontSize: '11px',
-                          color: 'var(--accent-emerald)',
+                          color: cert.verificationUrl || cert.credentialId ? 'var(--accent-emerald)' : 'var(--accent-silver)',
                           fontWeight: 600,
                         }}
                       >
                         <CheckCircle2 size={13} />
-                        <span>Verified</span>
+                        <span>{cert.verificationUrl || cert.credentialId ? 'Verified' : 'Credential'}</span>
                       </div>
                     </div>
 
@@ -278,7 +278,7 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                           textOverflow: 'ellipsis',
                         }}
                       >
-                        {cert.issuer} &bull; {cert.completionDate}
+                        {[cert.issuer || 'Issuer not specified', cert.completionDate].filter(Boolean).join(' • ')}
                       </div>
 
                       {cert.credentialId && (
@@ -490,7 +490,7 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                       color: '#FFFFFF',
                     }}
                   >
-                    {activeCert.issuer}
+                    {activeCert.issuer || 'Credential Record'}
                   </div>
                 )}
               </div>
@@ -502,12 +502,12 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                   gap: '5px',
                   fontFamily: 'var(--font-body)',
                   fontSize: '11px',
-                  color: 'var(--accent-emerald)',
+                  color: activeCert.verificationUrl || activeCert.credentialId ? 'var(--accent-emerald)' : 'var(--accent-silver)',
                   fontWeight: 600,
                 }}
               >
                 <CheckCircle2 size={13} />
-                <span>Verified Authority</span>
+                <span>{activeCert.verificationUrl || activeCert.credentialId ? 'Verified Authority' : 'Resume Credential'}</span>
               </div>
             </div>
 
@@ -559,7 +559,7 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                   Issuing Organization
                 </div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '13.5px', color: '#F4F3EE', fontWeight: 600, marginTop: '2px' }}>
-                  {activeCert.issuer}
+                  {activeCert.issuer || 'Unavailable in resume'}
                 </div>
               </div>
 
@@ -568,27 +568,25 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                   Issue Date
                 </div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '13.5px', color: '#F4F3EE', marginTop: '2px' }}>
-                  {activeCert.completionDate}
+                  {activeCert.completionDate || 'Unavailable in resume'}
                 </div>
               </div>
 
-              {activeCert.credentialId && (
-                <div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: '#8E948D' }}>
-                    Credential ID
-                  </div>
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12.5px', color: '#D4D7DC', marginTop: '2px' }}>
-                    {activeCert.credentialId}
-                  </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: '#8E948D' }}>
+                  Credential ID
                 </div>
-              )}
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12.5px', color: '#D4D7DC', marginTop: '2px' }}>
+                  {activeCert.credentialId || 'Unavailable in resume'}
+                </div>
+              </div>
 
               <div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: '#8E948D' }}>
                   Expiration
                 </div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '12.5px', color: '#D4D7DC', marginTop: '2px' }}>
-                  {activeCert.doesNotExpire ? 'Does not expire' : activeCert.expiryDate || 'N/A'}
+                  {activeCert.expiryDate || 'Unavailable in resume'}
                 </div>
               </div>
             </div>

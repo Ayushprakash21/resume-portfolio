@@ -56,7 +56,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
             overflowWrap: 'break-word',
           }}
         >
-          A disciplined track record in supply chain operations, process mapping, and operational systems execution.
+          Career history across supply chain operations, project coordination, business technology delivery, and banking operations.
         </h2>
 
         {/* Editorial Timeline Items */}
@@ -89,7 +89,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                   <span>
                     {exp.isCurrent || exp.endDate === 'Present'
                       ? `${exp.startDate} — Present`
-                      : exp.startDate === exp.endDate
+                      : !exp.endDate || exp.startDate === exp.endDate
                       ? exp.startDate
                       : `${exp.startDate} — ${exp.endDate}`}
                   </span>
@@ -172,16 +172,32 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
 
               {/* Right Column: Narrative & Key Responsibilities */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <p
-                  style={{
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '16px',
-                    lineHeight: 1.7,
-                    color: 'var(--text-secondary)',
-                  }}
-                >
-                  {exp.description}
-                </p>
+                {exp.description && (
+                  <p
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '16px',
+                      lineHeight: 1.7,
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    {exp.description}
+                  </p>
+                )}
+
+                {(!exp.description && (!exp.responsibilities || exp.responsibilities.length === 0)) && (
+                  <p
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '14px',
+                      lineHeight: 1.6,
+                      color: 'var(--text-muted)',
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    {exp.jobTitle} at {exp.employer}.
+                  </p>
+                )}
 
                 {exp.responsibilities && exp.responsibilities.length > 0 && (
                   <div style={{ marginTop: '4px' }}>

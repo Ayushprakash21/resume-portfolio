@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Github, Linkedin, Copy, Check, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mail, Phone, Github, Linkedin, Copy, Check, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cmsService } from '../../services/cmsService';
 import { ProfileData } from '../../types/cms';
 import { BorderGlow, SpecularButton } from '../reactbits';
@@ -163,12 +163,34 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                     fontSize: '20px',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
-                    marginBottom: '20px',
+                    marginBottom: profile.phone ? '8px' : '20px',
                     wordBreak: 'break-all',
                   }}
                 >
                   {profile.email}
                 </div>
+
+                {profile.phone && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '14px',
+                      color: 'var(--text-secondary)',
+                      marginBottom: '20px',
+                    }}
+                  >
+                    <Phone size={14} color="var(--accent-silver)" />
+                    <a
+                      href={`tel:${profile.phone.replace(/\s+/g, '')}`}
+                      style={{ color: 'inherit', textDecoration: 'none' }}
+                    >
+                      {profile.phone}
+                    </a>
+                  </div>
+                )}
 
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                   <SpecularButton

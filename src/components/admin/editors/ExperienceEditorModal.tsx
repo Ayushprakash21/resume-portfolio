@@ -82,8 +82,8 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
         endMonth: initialExperience.endMonth || '',
         endYear: initialExperience.endYear || '',
         startDate: initialExperience.startDate || '',
-        endDate: initialExperience.endDate || 'Present',
-        isCurrent: initialExperience.isCurrent ?? true,
+        endDate: initialExperience.endDate !== undefined ? initialExperience.endDate : (initialExperience.isCurrent ? 'Present' : ''),
+        isCurrent: initialExperience.isCurrent ?? false,
         requiresDateConfirmation: initialExperience.requiresDateConfirmation ?? false,
         dateConfirmationNotes: initialExperience.dateConfirmationNotes || '',
         description: initialExperience.description || '',
@@ -248,12 +248,12 @@ export const ExperienceEditorModal: React.FC<ExperienceEditorModalProps> = ({
     }
 
     const computedStartDate = form.startMonth?.trim()
-      ? `${form.startMonth.slice(0, 3)} ${form.startYear}`
+      ? `${form.startMonth.trim()} ${form.startYear?.trim() || ''}`.trim()
       : form.startYear?.trim() || '';
     const computedEndDate = form.isCurrent
       ? 'Present'
       : form.endMonth?.trim()
-      ? `${form.endMonth.slice(0, 3)} ${form.endYear}`
+      ? `${form.endMonth.trim()} ${form.endYear?.trim() || ''}`.trim()
       : form.endYear?.trim() || '';
 
     const requiresConfirm =

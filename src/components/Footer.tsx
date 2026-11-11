@@ -71,7 +71,7 @@ export const Footer: React.FC<FooterProps> = ({ profile }) => {
           {/* Social Links & Back to Top */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <SpecularButton
-              href="https://www.linkedin.com/in/ayushprakash"
+              href={profile?.linkedinUrl || 'https://www.linkedin.com/in/ayushprakash21'}
               target="_blank"
               rel="noopener noreferrer"
               size="sm"
@@ -83,7 +83,7 @@ export const Footer: React.FC<FooterProps> = ({ profile }) => {
             </SpecularButton>
 
             <SpecularButton
-              href="https://github.com/Ayushprakash21"
+              href={profile?.githubUrl || 'https://github.com/Ayushprakash21'}
               target="_blank"
               rel="noopener noreferrer"
               size="sm"
@@ -95,7 +95,7 @@ export const Footer: React.FC<FooterProps> = ({ profile }) => {
             </SpecularButton>
 
             <SpecularButton
-              href="mailto:ayushprakash0021@gmail.com"
+              href={`mailto:${profile?.email || 'ayushprakash0021@gmail.com'}`}
               size="sm"
               variant="secondary"
               icon={<Mail size={13} />}

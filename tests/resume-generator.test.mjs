@@ -32,39 +32,40 @@ test('Resume Generator: extractResumeData correctly compiles authoritative CMS d
 
   // Full name & headline
   assert.equal(data.fullName, 'Ayush Prakash');
-  assert.ok(data.headline.includes('AI & Automation'));
+  assert.equal(data.headline, 'Supply Chain Operations | Project Coordination | Business Operations');
 
   // Location is Indore, Madhya Pradesh, India
   assert.equal(data.contact.location, 'Indore, Madhya Pradesh, India');
 
-  // Contact privacy settings
+  // Contact info settings
   assert.equal(data.contact.email, 'ayushprakash0021@gmail.com');
-  assert.equal(data.contact.phone, undefined); // Phone excluded by default privacy setting
+  assert.equal(data.contact.phone, '+91 9993619227');
   assert.ok(data.contact.linkedin);
   assert.ok(data.contact.github);
   assert.ok(data.contact.portfolio);
 
   // Summary
-  assert.ok(data.summary.length > 20);
+  assert.ok(data.summary.includes('Operations professional with over five years'));
 
-  // Experience
-  assert.ok(data.experience.length > 0);
-  assert.ok(data.experience[0].employer);
-  assert.ok(data.experience[0].jobTitle);
-  assert.ok(data.experience[0].bullets.length > 0);
+  // Experience (all 7 employers)
+  assert.equal(data.experience.length, 7);
+  assert.equal(data.experience[0].employer, 'Tata Consultancy Services (TCS)');
+  assert.equal(data.experience[0].jobTitle, 'Senior Process Associate - Supply Chain Operations');
+  assert.equal(data.experience[0].bullets.length, 5);
 
-  // Projects
-  assert.ok(data.projects.length > 0);
-  assert.ok(data.projects[0].name);
+  // Projects (both personal projects)
+  assert.equal(data.projects.length, 2);
+  assert.equal(data.projects[0].name, 'Orion-9');
+  assert.equal(data.projects[1].name, 'ApplyWise AI');
 
-  // Skills
-  assert.ok(data.skills.length > 0);
+  // Skills (all 5 categories)
+  assert.equal(data.skills.length, 5);
   assert.ok(data.skills[0].category);
   assert.ok(data.skills[0].skills.length > 0);
 
-  // Education & Certs
-  assert.ok(data.education.length > 0);
-  assert.ok(data.certifications.length > 0);
+  // Education & Certs (exact counts)
+  assert.equal(data.education.length, 2);
+  assert.equal(data.certifications.length, 8);
 });
 
 test('Resume Generator: PDF generation produces valid vector text PDF without throwing', () => {

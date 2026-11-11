@@ -115,7 +115,7 @@ export const EditorialOrion9: React.FC<EditorialOrion9Props> = ({ project }) => 
                   lineHeight: 1.1,
                 }}
               >
-                Orion-9
+                {project?.name || 'Orion-9'}
               </h2>
               <div
                 style={{
@@ -127,7 +127,7 @@ export const EditorialOrion9: React.FC<EditorialOrion9Props> = ({ project }) => 
                   marginTop: '4px',
                 }}
               >
-                AI-Powered Autonomous Supply Chain Operating System
+                {project?.subtitle || 'Supply Chain Operating System'}
               </div>
             </div>
           </div>
@@ -143,7 +143,8 @@ export const EditorialOrion9: React.FC<EditorialOrion9Props> = ({ project }) => 
               margin: '0 0 24px 0',
             }}
           >
-            Orion-9 bridges real-time warehouse execution, freight route intelligence, and dynamic supplier procurement. Engineered with zero-trust cryptographic event verification to eradicate operational blind spots between ground dispatch and enterprise ERP tiers.
+            {project?.description ||
+              'AI-powered supply chain operating system designed to bring enterprise supply chain operations into one platform.'}
           </p>
 
           {/* Action Links with Specular Buttons */}
@@ -409,16 +410,13 @@ export const EditorialOrion9: React.FC<EditorialOrion9Props> = ({ project }) => 
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                &bull; Full-stack administrative dashboard with multi-tenant org routing
+                &bull; Administrative UI prototype and multi-tenant branding configuration views
               </li>
               <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                &bull; Cloudflare R2 media and branding asset management pipeline
+                &bull; Portal authentication flow and Cloudflare R2 media asset views
               </li>
               <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                &bull; Vendor authentication and session lifecycle with Firestore
-              </li>
-              <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                &bull; Real-time freight node status tracking and event logs
+                &bull; Supply chain workflow conceptual UI and control tower screens
               </li>
             </ul>
           </div>
@@ -440,13 +438,13 @@ export const EditorialOrion9: React.FC<EditorialOrion9Props> = ({ project }) => 
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                &bull; Automated freight delay anomaly prediction heuristic
+                &bull; Direct ERP system integrations and real-time operational monitoring
               </li>
               <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                &bull; Direct SAP ERP &amp; Oracle SCM connector integration layer
+                &bull; Predictive disruption alerting and risk identification workflows
               </li>
               <li style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                &bull; Autonomous inventory re-order triggering based on warehouse safety stock thresholds
+                &bull; Specialized AI agents, digital twins, and autonomous control tower decision support
               </li>
             </ul>
           </div>
@@ -460,7 +458,7 @@ export const EditorialOrion9: React.FC<EditorialOrion9Props> = ({ project }) => 
             <Cpu size={13} />
             <span>Technology Stack:</span>
           </div>
-          {(project?.technologyStack || ['TypeScript', 'Cloudflare Workers', 'Three.js', 'React 19', 'Mutual TLS', 'Edge Protocol']).map((tech, idx) => (
+          {(project?.technologyStack || ['TypeScript']).map((tech, idx) => (
             <span
               key={idx}
               style={{

@@ -27,6 +27,11 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
     });
 
     const domainLabels: Record<string, string> = {
+      'Supply Chain': 'Operations & Fulfillment Domain',
+      'Project Coordination': 'Delivery & Governance Domain',
+      'Business Operations': 'Process & Reporting Domain',
+      'Systems and Tools': 'Enterprise Platforms Domain',
+      'AI and Development': 'Applied AI & Development Domain',
       'Supply Chain & Logistics Systems': 'Operations & Logistics Domain',
       'Business Operations & Strategy': 'Enterprise Strategy Domain',
       'AI & Applied Product Innovation': 'Applied Intelligence Domain',
@@ -95,7 +100,7 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
             overflowWrap: 'break-word',
           }}
         >
-          Specialized expertise spanning physical supply pipelines, enterprise software, and applied machine intelligence.
+          Core capabilities across supply chain operations, project coordination, business operations, and enterprise tools.
         </h2>
 
         <p
@@ -108,7 +113,7 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
             margin: '0 0 32px 0',
           }}
         >
-          Disciplined engineering systems and strategic competencies across supply operations, distributed cloud architecture, and machine intelligence. Drag horizontally or use arrow keys to navigate.
+          Five specialized skill groups combining operational execution, project coordination, enterprise systems, and applied AI. Drag horizontally or use arrow keys to navigate.
         </p>
 
         {/* ========================================================

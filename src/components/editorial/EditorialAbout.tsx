@@ -16,21 +16,19 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
 }) => {
   const headline =
     aboutSettings?.heading ||
-    'Operating at the intersection of enterprise logistics, physical workflows, and autonomous digital systems.';
+    'Supply chain operations, project coordination, and business operations across enterprise IT services and consulting.';
   const quote =
     aboutSettings?.quote ||
-    'Modern supply chains fail not from a lack of data, but from fragmented operational visibility between physical warehouses and enterprise software.';
-  const detailedText =
-    aboutSettings?.detailedText ||
-    'My operational background centers on orchestrating freight schedules, streamlining procurement pipelines, and translating on-the-ground warehouse hurdles into reliable software architectures. Through building independent platforms like Orion-9 and ApplyVise AI, I connect the rigor of supply chain execution with human-centric software.';
-  const physicalHeading = aboutSettings?.physicalOpsHeading || 'Physical Operations';
+    'Operations professional bridging end-to-end fulfillment coordination, structured project delivery, and AI-enabled workflow design.';
+  const detailedText = aboutSettings?.detailedText || '';
+  const physicalHeading = aboutSettings?.physicalOpsHeading || 'Supply Chain & Project Delivery';
   const physicalText =
     aboutSettings?.physicalOpsText ||
-    'Freight logistics, inventory replenishment, vendor coordination, and warehouse workflows.';
-  const digitalHeading = aboutSettings?.digitalPlatformsHeading || 'Digital Platforms';
+    'Order management, fulfillment coordination, exception handling, process audits, SOP updates, and multi-project coordination.';
+  const digitalHeading = aboutSettings?.digitalPlatformsHeading || 'Enterprise Systems & AI';
   const digitalText =
     aboutSettings?.digitalPlatformsText ||
-    'Enterprise SaaS, applied language models, ATS parsing systems, and distributed cloud backends.';
+    'OpenText Vendor Invoice Management (VIM), ERP/SAP (working exposure), analytical reporting, and personal AI projects (Orion-9, ApplyWise AI).';
   const resumeBtn = profile.resumeButtonText || 'Download Curriculum Vitae';
   return (
     <section
@@ -153,9 +151,11 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
               {profile.bio}
             </p>
 
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '15px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
-              {detailedText}
-            </p>
+            {detailedText && detailedText.trim() !== profile.bio.trim() && (
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: '15px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
+                {detailedText}
+              </p>
+            )}
 
             {/* Core Competencies Overview */}
             <div

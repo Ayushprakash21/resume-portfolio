@@ -41,6 +41,7 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
     if (initialEducation) {
       return {
         institution: initialEducation.institution || '',
+        associatedCollege: initialEducation.associatedCollege || '',
         degree: initialEducation.degree || '',
         fieldOfStudy: initialEducation.fieldOfStudy || '',
         startYear: initialEducation.startYear || '',
@@ -57,18 +58,19 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
     }
     return {
       institution: '',
-      degree: 'Master of Business Administration (MBA)',
-      fieldOfStudy: 'IT & Marketing',
+      associatedCollege: '',
+      degree: '',
+      fieldOfStudy: '',
       startYear: '',
-      endYear: '2021',
+      endYear: '',
       grade: '',
       description: '',
       skillsUsed: [],
       logoUrl: '',
       highlights: [],
       displayOrder: 1,
-      requiresDateConfirmation: true,
-      dateConfirmationNotes: 'Start year not specified in source resume; displays with completion year.',
+      requiresDateConfirmation: false,
+      dateConfirmationNotes: '',
     };
   });
 
@@ -145,6 +147,19 @@ export const EducationEditorModal: React.FC<EducationEditorModalProps> = ({
                 required={true}
               />
             </div>
+
+            {/* Associated College / Affiliated Institute */}
+            <AdminFormField
+              label="Associated College / Institute (Optional)"
+              helpText="Specify affiliated college (e.g. IPS Academy, Indore or GS College, Jabalpur) under the awarding university."
+            >
+              <AdminInput
+                type="text"
+                value={form.associatedCollege || ''}
+                onChange={(e) => updateField('associatedCollege', e.target.value)}
+                placeholder="e.g. IPS Academy, Indore"
+              />
+            </AdminFormField>
 
             {/* Degree and Field of Study (2-column grid with generous width) */}
             <div className="admin-grid-2col">
