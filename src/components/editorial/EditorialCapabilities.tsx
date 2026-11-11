@@ -73,7 +73,7 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
         </div>
 
         {/* Editorial Section Heading */}
-        <h2 className="public-heading-editorial" style={{ maxWidth: '960px' }}>
+        <h2 className="public-heading-editorial">
           Core capabilities across supply chain operations, project coordination, business operations, and enterprise tools.
         </h2>
 

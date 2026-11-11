@@ -136,7 +136,7 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                 <div
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: 'clamp(18px, 1.4vw, 22px)',
+                    fontSize: 'var(--type-card-title)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
                     marginBottom: profile.phone ? '8px' : '20px',
@@ -277,7 +277,7 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
             <div
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: '20px',
+                fontSize: 'var(--type-card-title)',
                 fontWeight: 600,
                 color: 'var(--text-primary)',
                 marginBottom: '8px',

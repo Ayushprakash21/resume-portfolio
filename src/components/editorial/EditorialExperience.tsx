@@ -101,7 +101,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                 <div
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: 'clamp(20px, 1.5vw, 23px)',
+                    fontSize: 'var(--type-card-title)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
                     lineHeight: 1.25,
@@ -114,7 +114,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                 <div
                   style={{
                     fontFamily: 'var(--font-body)',
-                    fontSize: '15.5px',
+                    fontSize: 'var(--type-body-sm)',
                     color: 'var(--text-secondary)',
                     marginBottom: '12px',
                   }}

@@ -398,8 +398,8 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
                   fontSize: isMobile
                     ? '11px'
                     : isAccreditations
-                    ? isTablet ? '10.5px' : '11px'
-                    : isTablet ? '11.5px' : '12px',
+                    ? isTablet ? '11px' : '12px'
+                    : isTablet ? '12px' : '13px',
                   fontWeight: isAccreditations ? 700 : isActive ? 600 : 500,
                   letterSpacing: isAccreditations ? '0.05em' : '-0.01em',
                   textTransform: isAccreditations ? 'uppercase' : 'none',

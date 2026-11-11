@@ -112,8 +112,8 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
             <p
               style={{
                 fontFamily: 'var(--font-serif)',
-                fontSize: 'clamp(19px, 1.5vw, 22px)',
-                lineHeight: 1.42,
+                fontSize: 'var(--type-subheading)',
+                lineHeight: 1.48,
                 color: 'var(--text-primary)',
                 fontStyle: 'italic',
                 fontWeight: 400,
@@ -122,12 +122,12 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
               &ldquo;{quote}&rdquo;
             </p>
 
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--type-body)', lineHeight: 1.65, color: 'var(--text-secondary)' }}>
               {profile.bio}
             </p>
 
             {detailedText && detailedText.trim() !== profile.bio.trim() && (
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: '15.5px', lineHeight: 1.65, color: 'var(--text-secondary)' }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--type-body-sm)', lineHeight: 1.65, color: 'var(--text-secondary)' }}>
                 {detailedText}
               </p>
             )}
@@ -146,7 +146,7 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '6px' }}>
                   {physicalHeading}
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--text-primary)', lineHeight: 1.55 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '14.5px', color: 'var(--text-primary)', lineHeight: 1.55 }}>
                   {physicalText}
                 </div>
               </div>
@@ -155,7 +155,7 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '6px' }}>
                   {digitalHeading}
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--text-primary)', lineHeight: 1.55 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '14.5px', color: 'var(--text-primary)', lineHeight: 1.55 }}>
                   {digitalText}
                 </div>
               </div>

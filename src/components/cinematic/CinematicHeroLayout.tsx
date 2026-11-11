@@ -123,8 +123,8 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
               className="hero-intro"
               style={{
                 fontFamily: 'var(--font-body)',
-                fontSize: 'clamp(14px, 1.1vw, 16px)',
-                lineHeight: 1.6,
+                fontSize: 'clamp(14px, 1.05vw, 15.5px)',
+                lineHeight: 1.65,
                 fontWeight: 400,
                 color: '#E8ECF2',
                 letterSpacing: '0.01em',
@@ -152,19 +152,19 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             />
           </div>
 
-          {/* 3. & 4. DOMINANT HERO IDENTITY: AYUSH / PRAKASH (112–150px DESKTOP) */}
+          {/* 3. & 4. DOMINANT HERO IDENTITY: AYUSH / PRAKASH (76-104px DESKTOP) */}
           <div
             className="hero-founder-name hero-name"
             style={{
               display: 'flex',
               flexDirection: 'column',
-              lineHeight: 0.88,
-              letterSpacing: '-0.035em',
+              lineHeight: 0.90,
+              letterSpacing: '-0.03em',
               textTransform: 'uppercase',
               fontFamily: 'var(--font-display, Orenza, sans-serif)',
-              fontWeight: 800,
-              fontSize: 'clamp(54px, 8.6vw, 138px)',
-              margin: '0 0 16px 0',
+              fontWeight: 700,
+              fontSize: 'var(--type-hero)',
+              margin: '0 0 14px 0',
               userSelect: 'none',
               overflowWrap: 'break-word',
               wordBreak: 'break-word',
@@ -220,8 +220,8 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             <div
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(1.15rem, 2.5vw, 2.1rem)',
-                lineHeight: 1.1,
+                fontSize: 'var(--type-hero-tagline)',
+                lineHeight: 1.15,
                 fontWeight: 600,
                 letterSpacing: '-0.01em',
                 color: 'var(--text-primary)',
@@ -235,8 +235,8 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             <div
               style={{
                 fontFamily: 'var(--font-serif)',
-                fontSize: 'clamp(1.15rem, 2.3vw, 1.95rem)',
-                lineHeight: 1.15,
+                fontSize: 'var(--type-hero-subtagline)',
+                lineHeight: 1.18,
                 fontWeight: 400,
                 fontStyle: 'italic',
                 color: 'var(--accent-silver)',

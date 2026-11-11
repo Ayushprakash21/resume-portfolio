@@ -70,7 +70,7 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
           </span>
         </div>
 
-        <h2 className="public-heading-editorial" style={{ maxWidth: '920px' }}>
+        <h2 className="public-heading-editorial">
           Certifications in project management, supply chain, business analytics, and Claude AI.
         </h2>
 

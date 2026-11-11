@@ -239,8 +239,8 @@
 
 .capabilities-card__title {
   font-family: var(--font-display);
-  font-size: clamp(20px, 1.8vw, 24px);
-  font-weight: 700;
+  font-size: var(--type-card-title);
+  font-weight: 600;
   color: #FFFFFF;
   line-height: 1.25;
   margin: 0 0 16px 0;

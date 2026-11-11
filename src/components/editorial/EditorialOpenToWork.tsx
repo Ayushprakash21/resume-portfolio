@@ -183,7 +183,7 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
                 <h3
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: '18px',
+                    fontSize: 'var(--type-card-title)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
                     letterSpacing: '-0.01em',
@@ -263,7 +263,7 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
                 <h3
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: '18px',
+                    fontSize: 'var(--type-card-title)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
                     letterSpacing: '-0.01em',
@@ -386,7 +386,7 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
                 <h3
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: '18px',
+                    fontSize: 'var(--type-card-title)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
                     letterSpacing: '-0.01em',

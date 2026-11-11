@@ -31,10 +31,7 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
           </span>
         </div>
 
-        <h2
-          className="public-heading-editorial public-heading-editorial--standalone"
-          style={{ maxWidth: '880px' }}
-        >
+        <h2 className="public-heading-editorial public-heading-editorial--standalone">
           Business administration, commerce &amp; computer applications foundation.
         </h2>
 
@@ -70,7 +67,7 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
                 <h3
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: 'clamp(20px, 1.45vw, 22px)',
+                    fontSize: 'var(--type-card-title)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
                     marginBottom: '6px',
