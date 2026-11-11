@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { Layers, CheckCircle2, ChevronRight, Sparkles } from 'lucide-react';
 import { SkillRecord } from '../../types/cms';
 import { ConcaveCarousel } from '../reactbits';
 
@@ -83,168 +82,48 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
         </p>
 
         {/* ========================================================
-            LAYERED 3D SPECIALIZED EXPERTISE CAROUSEL
-            Inspired by Orion-9 telemetry layered composition
+            APPLE-STYLE HORIZONTAL CAPABILITIES CAROUSEL
+            Centered active panel, subtle flanking cards, zero overlap
             ======================================================== */}
         <ConcaveCarousel
           items={capabilityGroups}
           startIndex={0}
-          curvature={0.5}
-          tilt={0}
-          reflection={0.08}
+          gap={28}
           autoplay="step"
           interval={4.5}
-          renderItem={(group, index, isActive) => {
+          renderItem={(group) => {
             return (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: '100%',
-                  width: '100%',
-                  background: isActive
-                    ? 'linear-gradient(145deg, rgba(16, 18, 24, 0.96) 0%, rgba(9, 10, 14, 0.98) 100%)'
-                    : 'linear-gradient(145deg, rgba(13, 15, 20, 0.92) 0%, rgba(8, 9, 12, 0.96) 100%)',
-                  padding: 'clamp(24px, 3.2vw, 32px)',
-                  boxSizing: 'border-box',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  borderRadius: '20px',
-                  border: isActive
-                    ? '1px solid rgba(255, 255, 255, 0.18)'
-                    : '1px solid rgba(255, 255, 255, 0.08)',
-                  boxShadow: isActive
-                    ? '0 24px 60px rgba(0, 0, 0, 0.85), 0 0 35px rgba(140, 21, 36, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
-                    : '0 16px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
-                  transition: 'border-color 0.4s ease, box-shadow 0.4s ease',
-                }}
-              >
+              <div className="capabilities-card">
                 {/* Card Top Row: Domain Pill & Counter */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '12px',
-                    marginBottom: '14px',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '11px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.12em',
-                      color: 'var(--accent-silver)',
-                      fontWeight: 600,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      borderRadius: '6px',
-                      padding: '4px 10px',
-                    }}
-                  >
+                <div className="capabilities-card__header">
+                  <div className="capabilities-card__badge">
                     <span>{group.domainLabel}</span>
                   </div>
 
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 500,
-                      color: '#94A3B8',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
+                  <span className="capabilities-card__count">
                     {group.skills.length} Capabilities
                   </span>
                 </div>
 
                 {/* Card Title */}
-                <h3
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 'clamp(20px, 1.8vw, 24px)',
-                    fontWeight: 700,
-                    color: '#FFFFFF',
-                    lineHeight: 1.25,
-                    margin: '0 0 18px 0',
-                    letterSpacing: '-0.01em',
-                  }}
-                >
+                <h3 className="capabilities-card__title">
                   {group.category}
                 </h3>
 
                 {/* Subtle Divider */}
-                <div
-                  style={{
-                    height: '1px',
-                    width: '100%',
-                    background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%)',
-                    marginBottom: '18px',
-                  }}
-                />
+                <div className="capabilities-card__divider" />
 
-                {/* Scrollable Capabilities List with Descriptions */}
-                <div
-                  className="concave-carousel__panel-content"
-                  style={{
-                    flex: 1,
-                    minHeight: 0,
-                    overflowY: 'auto',
-                    paddingRight: '6px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
-                  }}
-                >
+                {/* Natural Two-Column Capabilities Grid (Zero Internal Scrollbars) */}
+                <div className="capabilities-card__grid">
                   {group.skills.map((sk) => (
-                    <div
-                      key={sk.id}
-                      style={{
-                        padding: '10px 14px',
-                        borderRadius: '10px',
-                        background: 'rgba(255, 255, 255, 0.035)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        transition: 'background-color 0.2s ease, border-color 0.2s ease',
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-body)',
-                          fontSize: '13px',
-                          fontWeight: 600,
-                          color: '#F1F5F9',
-                          marginBottom: sk.description ? '4px' : '0',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: '4px',
-                            height: '4px',
-                            borderRadius: '50%',
-                            backgroundColor: 'var(--accent-silver)',
-                            display: 'inline-block',
-                          }}
-                        />
-                        {sk.name}
+                    <div key={sk.id} className="capabilities-card__item">
+                      <div className="capabilities-card__item-name">
+                        <span className="capabilities-card__item-dot" />
+                        <span>{sk.name}</span>
                       </div>
 
                       {sk.description && (
-                        <p
-                          style={{
-                            fontFamily: 'var(--font-body)',
-                            fontSize: '12px',
-                            lineHeight: 1.5,
-                            color: 'var(--text-secondary)',
-                            margin: 0,
-                            paddingLeft: '10px',
-                          }}
-                        >
+                        <p className="capabilities-card__item-desc">
                           {sk.description}
                         </p>
                       )}
