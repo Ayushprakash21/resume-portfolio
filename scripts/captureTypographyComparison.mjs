@@ -99,23 +99,26 @@ async function main() {
       }
     }
 
-    console.log('\n--- Heading Font Sizes by Viewport ---');
+    console.log('\n--- Heading Font Sizes & Line Heights by Viewport ---');
     console.table(
       Object.fromEntries(
         SECTIONS.map((id) => [
           id,
           Object.fromEntries(
-            [320, 390, 768, 1024, 1440, 1920].map((w) => [
-              `${w}px`,
-              report[w]?.sections[id]?.fontSize ? `${report[w].sections[id].fontSize.toFixed(1)}px` : '-',
-            ])
+            [320, 390, 768, 1024, 1440, 1920].map((w) => {
+              const s = report[w]?.sections[id];
+              if (!s?.fontSize) return [`${w}px`, '-'];
+              const lhPx = parseFloat(s.lineHeight);
+              const lhRatio = Number.isFinite(lhPx) ? (lhPx / s.fontSize).toFixed(2) : s.lineHeight;
+              return [`${w}px`, `${s.fontSize.toFixed(1)}px (lh:${lhRatio})`];
+            })
           ),
         ])
       )
     );
 
-    // 2. Capture Screenshots at 1440px and 390px for key sections
-    const shotSections = ['about', 'experience', 'education', 'capabilities', 'projects', 'opentowork', 'contact'];
+    // 2. Capture Screenshots at 1440px and 390px for ALL EIGHT sections
+    const shotSections = ['about', 'opentowork', 'experience', 'capabilities', 'projects', 'certifications', 'education', 'contact'];
     for (const vw of [1440, 390]) {
       await page.setViewportSize({ width: vw, height: vw === 1440 ? 900 : 844 });
       await page.waitForTimeout(300);
@@ -130,7 +133,7 @@ async function main() {
         }, secId);
         if (scrolled) {
           await page.waitForTimeout(350);
-          const fileName = `typo_${MODE}_${vw}px_${secId}.png`;
+          const fileName = `typo2_${MODE}_${vw}px_${secId}.png`;
           await page.screenshot({ path: path.join(ARTIFACTS_DIR, fileName) });
         }
       }

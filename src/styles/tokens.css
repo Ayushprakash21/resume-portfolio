@@ -59,9 +59,9 @@
 
   /* Typography Scale */
   --type-hero: clamp(3.2rem, 7vw, 6.2rem);
-  --type-editorial-large: clamp(46px, 3.5vw, 52px);
-  --type-section-heading: clamp(42px, 3.2vw, 48px);
-  --type-project-heading: clamp(36px, 3.05vw, 46px);
+  --type-editorial-large: clamp(38px, 2.986vw, 44px);
+  --type-section-heading: clamp(36px, 2.85vw, 42px);
+  --type-project-heading: clamp(36px, 2.85vw, 42px);
   --type-card-title: clamp(20px, 1.5vw, 24px);
   --type-subheading: clamp(18px, 1.35vw, 21px);
   --type-body: 16px;
