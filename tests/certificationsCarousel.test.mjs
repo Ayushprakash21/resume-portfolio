@@ -3,6 +3,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  isDeprecatedOrBrokenLogoUrl,
+  getIssuerMonogram,
+  resolveCertificationLogoPipeline,
+  issuerService,
+} from '../src/services/issuerService.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,6 +37,7 @@ describe('Certifications Issuer Branding & Circular Carousel Suite', () => {
 
   it('2. Issuer logo SVG assets are present in public/issuers/', () => {
     const requiredLogos = [
+      'google.svg',
       'anthropic.svg',
       'google-cloud.svg',
       'deeplearning-ai.svg',
@@ -105,5 +112,89 @@ describe('Certifications Issuer Branding & Circular Carousel Suite', () => {
     assert.match(cmsContent, /getIssuers/);
     assert.match(cmsContent, /saveIssuer/);
     assert.match(cmsContent, /findIssuer/);
+  });
+
+  it('7. Logo resolution pipeline enforces priority order, blocks dead Clearbit URLs, and falls back to clean monograms', () => {
+    assert.equal(isDeprecatedOrBrokenLogoUrl('https://logo.clearbit.com/google.com'), true);
+    assert.equal(isDeprecatedOrBrokenLogoUrl('blob:https://example.com/abc'), true);
+    assert.equal(isDeprecatedOrBrokenLogoUrl('/issuers/google.svg'), false);
+    assert.equal(isDeprecatedOrBrokenLogoUrl('/api/storage/files/public/certifications/logo.png'), false);
+
+    // 1. Explicit R2 upload takes priority over directory SVG
+    const uploadedFirst = resolveCertificationLogoPipeline({
+      issuer: 'Google',
+      issuerDomain: 'google.com',
+      issuerLogo: '/api/storage/files/public/certifications/custom_google.png',
+      issuerLogoSource: 'upload',
+      issuerLogoAlt: 'Uploaded Google',
+      title: 'Google PM',
+      highlightTag: 'GOOGLE',
+    });
+    assert.equal(uploadedFirst.primaryUrl, '/api/storage/files/public/certifications/custom_google.png');
+    assert.equal(uploadedFirst.primarySource, 'upload');
+    assert.equal(uploadedFirst.verified, true);
+    assert.equal(uploadedFirst.candidates[1]?.url, '/issuers/google.svg');
+
+    // 2. Dead Clearbit URL on Google auto-recovers to verified Google SVG (not Google Cloud)
+    const googleClearbitRecovery = resolveCertificationLogoPipeline({
+      issuer: 'Google',
+      issuerDomain: 'google.com',
+      issuerLogo: 'https://logo.clearbit.com/google.com',
+      issuerLogoSource: 'clearbit',
+      title: 'Google Project Management Certificate',
+      highlightTag: 'GOOGLE CERTIFICATE',
+    });
+    assert.equal(googleClearbitRecovery.hasDeprecatedUrl, true);
+    assert.equal(googleClearbitRecovery.primaryUrl, '/issuers/google.svg');
+    assert.equal(googleClearbitRecovery.primarySource, 'directory');
+
+    // 3. Empty issuerLogo on Anthropic resolves to verified Anthropic SVG
+    const anthropicEmpty = resolveCertificationLogoPipeline({
+      issuer: 'Anthropic',
+      issuerLogo: '',
+      title: 'Claude Certified Architect - Professional',
+      highlightTag: 'ANTHROPIC',
+    });
+    assert.equal(anthropicEmpty.primaryUrl, '/issuers/anthropic.svg');
+    assert.equal(anthropicEmpty.verified, true);
+
+    // 4. Rutgers University with dead Clearbit URL falls back cleanly to RU monogram (unverified)
+    const rutgersFallback = resolveCertificationLogoPipeline({
+      issuer: 'Rutgers University',
+      issuerDomain: 'rutgersuniversity.com',
+      issuerLogo: 'https://logo.clearbit.com/rutgersuniversity.com',
+      issuerLogoSource: 'clearbit',
+      title: 'Supply Chain Management Specialization',
+      highlightTag: 'SUPPLY CHAIN',
+    });
+    assert.equal(rutgersFallback.hasDeprecatedUrl, true);
+    assert.equal(rutgersFallback.primaryUrl, null);
+    assert.equal(rutgersFallback.primarySource, 'monogram');
+    assert.equal(rutgersFallback.monogram.initials, 'RU');
+    assert.equal(rutgersFallback.monogram.label, 'RUTGERS UNIVERSITY');
+
+    // 5. Missing issuer derives clean discipline monogram from credential title
+    const noIssuer = getIssuerMonogram('', 'Business & Data Analytics', 'ANALYTICS');
+    assert.equal(noIssuer.initials, 'BDA');
+    assert.equal(noIssuer.hasExplicitIssuer, false);
+  });
+
+  it('8. issuerService search no longer emits dead Clearbit URLs', async () => {
+    const googleCandidates = await issuerService.resolveLogoCandidates('Google');
+    assert.ok(googleCandidates.length >= 1);
+    assert.equal(googleCandidates[0].logoUrl, '/issuers/google.svg');
+    assert.equal(googleCandidates[0].verified, true);
+    assert.ok(!googleCandidates.some((c) => c.logoUrl.includes('clearbit.com')), 'Must never emit dead clearbit.com URLs');
+
+    const rutgersCandidates = await issuerService.resolveLogoCandidates('Rutgers University');
+    assert.ok(!rutgersCandidates.some((c) => c.logoUrl.includes('clearbit.com')));
+  });
+
+  it('9. Worker R2 handler infers image Content-Type headers and preserves private/ restriction', () => {
+    const workerContent = fs.readFileSync(path.join(rootDir, 'src/worker/index.ts'), 'utf8');
+    assert.match(workerContent, /inferContentType/);
+    assert.match(workerContent, /image\/svg\+xml/);
+    assert.match(workerContent, /X-Content-Type-Options.*nosniff/);
+    assert.match(workerContent, /objectKey\.startsWith\('private\/'\)/);
   });
 });

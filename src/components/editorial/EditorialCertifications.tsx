@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Award, CheckCircle2, ExternalLink, X, Eye, FileText } from 'lucide-react';
-import { CertificationRecord } from '../../types/cms';
+import { CheckCircle2, ExternalLink, X, Eye, FileText } from 'lucide-react';
+import { CertificationRecord, IssuerRecord } from '../../types/cms';
 import CircularCarousel from '../reactbits/CircularCarousel';
 import { BorderGlow } from '../reactbits';
+import { CertificationLogoMark } from './CertificationLogoMark';
+import { cmsService } from '../../services/cmsService';
+import { resolveCertificationLogoPipeline } from '../../services/issuerService';
 
 interface EditorialCertificationsProps {
   certifications: CertificationRecord[];
@@ -10,6 +13,14 @@ interface EditorialCertificationsProps {
 
 export const EditorialCertifications: React.FC<EditorialCertificationsProps> = ({ certifications }) => {
   const [activeCert, setActiveCert] = useState<CertificationRecord | null>(null);
+  const [cmsIssuers, setCmsIssuers] = useState<IssuerRecord[]>(() => cmsService.getIssuers());
+
+  useEffect(() => {
+    const unsubscribe = cmsService.subscribe(() => {
+      setCmsIssuers(cmsService.getIssuers());
+    });
+    return unsubscribe;
+  }, []);
 
   // Lock body scroll and register Escape listener when modal is active
   useEffect(() => {
@@ -36,14 +47,17 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
     (c) => c.status === 'published'
   );
 
-  // Map real fields to CircularCarousel item format
-  const carouselItems = publishedCertifications.map((cert) => ({
-    src: cert.issuerLogo || '',
-    title: cert.title,
-    subtitle: [cert.issuer || 'Issuer not listed', cert.completionDate].filter(Boolean).join(' • '),
-    alt: cert.issuerLogoAlt || `${cert.issuer || 'Credential'} Certificate`,
-    cert,
-  }));
+  // Map real fields to CircularCarousel item format with resolved brand logos
+  const carouselItems = publishedCertifications.map((cert) => {
+    const resolved = resolveCertificationLogoPipeline(cert, cmsIssuers);
+    return {
+      src: resolved.primaryUrl || '',
+      title: cert.title,
+      subtitle: [cert.issuer || 'Issuer not listed', cert.completionDate].filter(Boolean).join(' • '),
+      alt: cert.issuerLogoAlt || `${cert.issuer || 'Credential'} Certificate`,
+      cert,
+    };
+  });
 
   return (
     <section
@@ -171,49 +185,12 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                       </div>
                     </div>
 
-                    {/* Prominent Issuer Brand Logo */}
-                    <div
-                      style={{
-                        height: '74px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '6px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                        borderRadius: '14px',
-                        border: '1px solid rgba(255, 255, 255, 0.07)',
-                        margin: '10px 0',
-                      }}
-                    >
-                      {cert.issuerLogo ? (
-                        <img
-                          src={cert.issuerLogo}
-                          alt={cert.issuerLogoAlt || `${cert.issuer} Brand Logo`}
-                          style={{
-                            maxHeight: '52px',
-                            maxWidth: '200px',
-                            objectFit: 'contain',
-                            filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.75))',
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: '48px',
-                            height: '48px',
-                            borderRadius: '10px',
-                            backgroundColor: 'rgba(214, 168, 84, 0.1)',
-                            border: '1px solid rgba(214, 168, 84, 0.25)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'var(--accent-gold)',
-                          }}
-                        >
-                          <Award size={24} />
-                        </div>
-                      )}
-                    </div>
+                    {/* Prominent Issuer Brand Logo (with directory resolution, error recovery & monogram fallback) */}
+                    <CertificationLogoMark
+                      cert={cert}
+                      cmsIssuers={cmsIssuers}
+                      variant="card"
+                    />
 
                     {/* Credential Name & Organization */}
                     <div>
@@ -428,38 +405,11 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                 marginBottom: '20px',
               }}
             >
-              <div
-                style={{
-                  height: '42px',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                {activeCert.issuerLogo ? (
-                  <img
-                    src={activeCert.issuerLogo}
-                    alt={activeCert.issuer}
-                    style={{
-                      maxHeight: '38px',
-                      maxWidth: '180px',
-                      objectFit: 'contain',
-                    }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      color: '#FFFFFF',
-                    }}
-                  >
-                    {activeCert.issuer || 'Credential Record'}
-                  </div>
-                )}
-              </div>
+              <CertificationLogoMark
+                cert={activeCert}
+                cmsIssuers={cmsIssuers}
+                variant="modal"
+              />
 
               <div
                 style={{

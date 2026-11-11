@@ -128,6 +128,28 @@ function sanitizeKey(key: string): string {
     .replace(/^\/+/, '');
 }
 
+const EXTENSION_MIME_MAP: Record<string, string> = {
+  svg: 'image/svg+xml',
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  webp: 'image/webp',
+  gif: 'image/gif',
+  avif: 'image/avif',
+  ico: 'image/x-icon',
+  pdf: 'application/pdf',
+  json: 'application/json',
+};
+
+function inferContentType(objectKey: string, providedType?: string | null): string {
+  if (providedType && providedType !== 'application/octet-stream') {
+    return providedType;
+  }
+  const cleanPath = objectKey.split('?')[0].split('#')[0];
+  const ext = cleanPath.split('.').pop()?.toLowerCase() || '';
+  return EXTENSION_MIME_MAP[ext] || 'application/octet-stream';
+}
+
 /**
  * Handle Cloudflare R2 Storage API requests
  */
@@ -260,7 +282,7 @@ export async function handleStorageRequest(request: Request, env: StorageEnv): P
       const cleanFileName = sanitizeKey(file.name || `file_${Date.now()}.bin`);
       const randomSuffix = crypto.randomUUID().slice(0, 8);
       const objectKey = `${visibility}/${cleanCategory}/${Date.now()}_${randomSuffix}_${cleanFileName}`;
-      const contentType = file.type || 'application/octet-stream';
+      const contentType = inferContentType(cleanFileName, file.type);
       const fileBuffer = await file.arrayBuffer();
 
       await r2.put(objectKey, fileBuffer, {
@@ -371,7 +393,16 @@ export async function handleStorageRequest(request: Request, env: StorageEnv): P
     }
 
     const rawKey = pathname.slice('/api/storage/files/'.length);
-    const objectKey = decodeURIComponent(rawKey);
+    const decodedKey = decodeURIComponent(rawKey).replace(/^\/+/, '');
+
+    if (!decodedKey || decodedKey.includes('..')) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid object key.' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    const objectKey = decodedKey;
 
     if (objectKey.startsWith('private/') || objectKey.includes('/private/')) {
       return new Response(
@@ -391,10 +422,11 @@ export async function handleStorageRequest(request: Request, env: StorageEnv): P
       }
 
       const headers = new Headers();
-      headers.set('Content-Type', object.httpMetadata?.contentType || 'application/octet-stream');
+      headers.set('Content-Type', inferContentType(objectKey, object.httpMetadata?.contentType));
       headers.set('ETag', object.httpEtag);
       headers.set('Content-Length', object.size.toString());
       headers.set('Cache-Control', 'public, max-age=86400, s-maxage=604800');
+      headers.set('X-Content-Type-Options', 'nosniff');
       const filename = object.customMetadata?.originalName || objectKey.split('/').pop() || 'asset';
       headers.set('Content-Disposition', `inline; filename="${filename}"`);
       headers.set('Access-Control-Allow-Origin', '*');

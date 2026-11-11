@@ -173,7 +173,7 @@ export interface CertificationRecord {
   issuerDomain?: string;
   issuerLogo?: string;
   issuerLogoKey?: string;
-  issuerLogoSource?: 'directory' | 'clearbit' | 'upload' | 'url';
+  issuerLogoSource?: 'directory' | 'clearbit' | 'upload' | 'url' | 'monogram';
   issuerLogoFormat?: 'svg' | 'png' | 'webp';
   issuerLogoAlt?: string;
   issueMonth?: string;
@@ -207,7 +207,7 @@ export interface IssuerRecord {
   logoObjectKey?: string;
   logoUrl: string;
   logoFormat?: 'svg' | 'png' | 'webp';
-  logoSource: 'directory' | 'clearbit' | 'upload' | 'url';
+  logoSource: 'directory' | 'clearbit' | 'upload' | 'url' | 'monogram';
   altText: string;
   verifiedByAdmin: boolean;
   createdAt?: string;
@@ -348,7 +348,7 @@ export interface MediaAsset {
   type: string;
   sizeBytes: number;
   uploadedAt: string;
-  category: 'certificate' | 'screenshot' | 'resume' | 'photo' | 'general' | 'logo' | 'work-sample';
+  category: 'certificate' | 'certification-logo' | 'screenshot' | 'resume' | 'photo' | 'general' | 'logo' | 'work-sample';
   caption?: string;
   altText?: string;
   dimensions?: string;

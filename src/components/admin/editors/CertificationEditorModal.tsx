@@ -16,7 +16,12 @@ import {
 import { CertificationRecord, SkillRecord } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
 import { storageClient } from '../../../services/storage/storageClient';
-import { issuerService, IssuerCandidate, VERIFIED_ISSUERS_DIRECTORY } from '../../../services/issuerService';
+import {
+  issuerService,
+  IssuerCandidate,
+  isDeprecatedOrBrokenLogoUrl,
+} from '../../../services/issuerService';
+import { CertificationLogoMark } from '../../editorial/CertificationLogoMark';
 import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop';
 import { SkillsMultiSelector } from '../common/SkillsMultiSelector';
 import {
@@ -51,6 +56,7 @@ const MONTHS = [
 ];
 
 const POPULAR_ISSUERS = [
+  'Google',
   'Anthropic',
   'Google Cloud',
   'DeepLearning.AI',
@@ -137,6 +143,12 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
   const [issuerCandidates, setIssuerCandidates] = useState<IssuerCandidate[]>([]);
   const [isSearchingIssuer, setIsSearchingIssuer] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [previewLogoStatus, setPreviewLogoStatus] = useState<{
+    renderedAs: 'image' | 'monogram';
+    activeUrl: string | null;
+    verified: boolean;
+    failedUrls: string[];
+  }>({ renderedAs: 'monogram', activeUrl: null, verified: false, failedUrls: [] });
   const [skillSearchQuery, setSkillSearchQuery] = useState('');
   const [isUploadingDoc, setIsUploadingDoc] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -151,7 +163,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
 
     setIsSearchingIssuer(true);
     try {
-      const candidates = await issuerService.resolveLogoCandidates(query);
+      const candidates = await issuerService.resolveLogoCandidates(query, cmsService.getIssuers());
       setIssuerCandidates(candidates);
     } catch (e) {
       console.warn('[Issuer Search Error]:', e);
@@ -163,7 +175,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
   // Pre-load candidates on open if editing
   useEffect(() => {
     if (form.issuer) {
-      issuerService.resolveLogoCandidates(form.issuer).then((res) => {
+      issuerService.resolveLogoCandidates(form.issuer, cmsService.getIssuers()).then((res) => {
         setIssuerCandidates(res);
       });
     }
@@ -180,23 +192,29 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
       issuerDomain: cand.domain,
       issuerWebsite: cand.website,
       issuerLogo: cand.logoUrl,
+      issuerLogoKey: '',
       issuerLogoSource: cand.source,
       issuerLogoFormat: cand.logoFormat,
       issuerLogoAlt: cand.altText,
     }));
     setIssuerSearchQuery(cand.name);
-    showNotification(`Selected verified logo for ${cand.name}`);
+    showNotification(
+      cand.verified
+        ? `Selected verified logo for ${cand.name}`
+        : `Selected unverified external icon for ${cand.name} — confirm preview before publishing.`
+    );
   };
 
   const handleCustomLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
 
     setIsUploadingLogo(true);
     try {
-      // Upload logo directly to Cloudflare R2
+      // Upload logo directly to Cloudflare R2 under certifications/
       const stored = await storageClient.uploadFile(file, {
-        category: 'branding',
+        category: 'certifications',
         customFileName: `issuer_${Date.now()}_${file.name.replace(/\s+/g, '_')}`,
         visibility: 'public',
       });
@@ -214,7 +232,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
         issuerLogoAlt: `${prev.issuer || 'Issuer'} Official Logo`,
       }));
 
-      showNotification(`Logo uploaded to Cloudflare R2 successfully.`);
+      showNotification(`Logo uploaded to Cloudflare R2 (${stored.objectKey}).`);
     } catch (err: any) {
       showNotification('Logo upload failed: ' + (err.message || 'Error'), 'error');
     } finally {
@@ -285,8 +303,15 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
       (!form.issueMonth?.trim() && !!form.issueYear?.trim()) ||
       (!form.issueYear && !form.issueMonth);
 
+    const hasBrokenUrl = !!form.issuerLogo && isDeprecatedOrBrokenLogoUrl(form.issuerLogo);
+    const cleanedLogo = hasBrokenUrl ? '' : (form.issuerLogo || '').trim();
+    const cleanedSource = cleanedLogo ? (form.issuerLogoSource || 'url') : 'monogram';
+
     const payload = {
       ...form,
+      issuerLogo: cleanedLogo,
+      issuerLogoKey: cleanedLogo ? (form.issuerLogoKey || initialCertification?.issuerLogoKey || '') : '',
+      issuerLogoSource: cleanedSource as any,
       completionDate: computedCompletionDate,
       expiryDate: computedExpiryDate,
       requiresDateConfirmation: requiresConfirm,
@@ -301,7 +326,9 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
         onSave({ ...payload, id: initialCertification.id });
         showNotification(
           targetStatus === 'published'
-            ? 'Certification updated and published with verified issuer logo.'
+            ? cleanedSource === 'monogram'
+              ? 'Certification updated and published (using clean issuer monogram).'
+              : 'Certification updated and published.'
             : 'Certification draft saved.'
         );
       } else {
@@ -309,7 +336,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
         onSave(created);
         showNotification(
           targetStatus === 'published'
-            ? 'Certification added and published with verified issuer logo.'
+            ? 'Certification added and published.'
             : 'Certification draft saved.'
         );
       }
@@ -653,86 +680,136 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
               >
                 {/* Current Logo Preview */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div
-                    style={{
-                      width: '64px',
-                      height: '64px',
-                      borderRadius: '8px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '8px',
-                      overflow: 'hidden',
+                  <CertificationLogoMark
+                    cert={{
+                      id: initialCertification?.id || 'preview',
+                      title: form.title,
+                      issuer: form.issuer,
+                      issuerDomain: form.issuerDomain,
+                      issuerLogo: form.issuerLogo,
+                      issuerLogoSource: form.issuerLogoSource,
+                      issuerLogoAlt: form.issuerLogoAlt,
+                      highlightTag: form.highlightTag,
                     }}
-                  >
-                    {form.issuerLogo ? (
-                      <img
-                        src={form.issuerLogo}
-                        alt={form.issuerLogoAlt || form.issuer}
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '100%',
-                          objectFit: 'contain',
-                        }}
-                      />
-                    ) : (
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-display)',
-                          fontSize: '14px',
-                          fontWeight: 700,
-                          color: '#A7B0A9',
-                        }}
-                      >
-                        {form.issuer ? form.issuer.slice(0, 3).toUpperCase() : 'LOGO'}
-                      </span>
-                    )}
-                  </div>
+                    cmsIssuers={cmsService.getIssuers()}
+                    variant="admin"
+                    onStatusChange={setPreviewLogoStatus}
+                  />
 
                   <div>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#F4F3EE' }}>
                       {form.issuer || 'No organization selected'}
                     </div>
                     <div style={{ fontSize: '11px', color: '#8E948D', marginTop: '2px' }}>
-                      {form.issuerDomain ? `Domain: ${form.issuerDomain}` : 'Search above or upload custom'}
+                      {form.issuerDomain ? `Domain: ${form.issuerDomain}` : 'Search above, upload SVG/PNG to R2, or use monogram'}
                     </div>
-                    {form.issuerLogo && (
-                      <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '5px' }}>
+                      {form.issuerLogo && isDeprecatedOrBrokenLogoUrl(form.issuerLogo) ? (
                         <span
                           style={{
-                            padding: '1px 6px',
+                            padding: '1px 7px',
                             borderRadius: '4px',
                             fontSize: '10px',
-                            backgroundColor: 'rgba(220, 80, 95, 0.2)',
-                            color: '#FFFFFF',
+                            backgroundColor: 'rgba(220, 80, 95, 0.22)',
+                            color: '#F38B96',
+                            fontWeight: 600,
                           }}
                         >
-                          Source: {form.issuerLogoSource || 'directory'}
+                          Deprecated Clearbit URL — Select verified SVG, upload to R2, or clear for monogram
                         </span>
+                      ) : previewLogoStatus.failedUrls.length > 0 && previewLogoStatus.renderedAs === 'monogram' ? (
                         <span
                           style={{
-                            padding: '1px 6px',
+                            padding: '1px 7px',
+                            borderRadius: '4px',
+                            fontSize: '10px',
+                            backgroundColor: 'rgba(214, 168, 84, 0.2)',
+                            color: '#E8CE7D',
+                            fontWeight: 600,
+                          }}
+                        >
+                          Logo URL failed to load — Designed Monogram active
+                        </span>
+                      ) : previewLogoStatus.renderedAs === 'image' ? (
+                        <>
+                          <span
+                            style={{
+                              padding: '1px 7px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              backgroundColor: previewLogoStatus.verified
+                                ? 'rgba(74, 180, 120, 0.16)'
+                                : 'rgba(255, 255, 255, 0.08)',
+                              color: previewLogoStatus.verified ? '#6CE098' : '#D4D7DC',
+                            }}
+                          >
+                            {previewLogoStatus.verified
+                              ? form.issuerLogoSource === 'upload'
+                                ? 'Verified R2 Upload'
+                                : 'Verified Directory SVG'
+                              : 'External URL (Unverified)'}
+                          </span>
+                          <span
+                            style={{
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                              color: '#A7B0A9',
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            {form.issuerLogoFormat || 'svg'}
+                          </span>
+                        </>
+                      ) : (
+                        <span
+                          style={{
+                            padding: '1px 7px',
                             borderRadius: '4px',
                             fontSize: '10px',
                             backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                            color: '#A7B0A9',
-                            textTransform: 'uppercase',
+                            color: '#C1C4BE',
                           }}
                         >
-                          {form.issuerLogoFormat || 'svg'}
+                          Designed Issuer Monogram Active (No Uploaded Image)
                         </span>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 {/* Manual Upload & URL Fallbacks */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <label
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.07)',
+                      border: '1px solid rgba(255, 255, 255, 0.16)',
+                      color: '#F4F3EE',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      cursor: isUploadingLogo ? 'wait' : 'pointer',
+                    }}
+                  >
+                    <Upload size={13} />
+                    <span>{isUploadingLogo ? 'Uploading...' : 'Direct SVG / PNG'}</span>
+                    <input
+                      type="file"
+                      accept=".svg,image/svg+xml,image/png,image/webp,image/jpeg"
+                      onChange={handleCustomLogoUpload}
+                      disabled={isUploadingLogo}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+
                   <ImageUploadWithCrop
                     currentImageUrl={form.issuerLogo}
-                    category="logo"
+                    category="certification-logo"
                     caption={`${form.issuer || 'Issuer'} Logo`}
                     altText={`${form.issuer || 'Issuer'} Logo`}
                     buttonLabel="Upload & Crop Logo"
@@ -740,10 +817,16 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     initialShape="rect"
                     modalTitle="Issuer Logo — Drag, Position & Crop"
                     contextHint="Center and crop the accreditation issuer logo in a crisp 1:1 frame."
-                    onSuccess={(url) => {
-                      updateField('issuerLogo', url);
-                      updateField('issuerLogoSource', 'upload');
-                      showNotification('Issuer logo updated and cropped.');
+                    onSuccess={(url, asset) => {
+                      setForm((prev) => ({
+                        ...prev,
+                        issuerLogo: url,
+                        issuerLogoKey: asset?.objectKey || prev.issuerLogoKey || '',
+                        issuerLogoSource: 'upload',
+                        issuerLogoFormat: url.toLowerCase().endsWith('.webp') ? 'webp' : 'png',
+                        issuerLogoAlt: `${prev.issuer || 'Issuer'} Official Logo`,
+                      }));
+                      showNotification('Issuer logo cropped and saved to Cloudflare R2.');
                     }}
                     showNotification={showNotification}
                   />
@@ -754,7 +837,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                       onClick={() => {
                         updateField('issuerLogo', '');
                         updateField('issuerLogoKey', '');
-                        updateField('issuerLogoSource', 'directory');
+                        updateField('issuerLogoSource', 'monogram');
                       }}
                       style={{
                         padding: '8px 12px',
@@ -1196,30 +1279,20 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                   </div>
 
                   {/* Logo Center */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '64px', margin: '6px 0' }}>
-                    {form.issuerLogo ? (
-                      <img
-                        src={form.issuerLogo}
-                        alt={form.issuerLogoAlt || form.issuer}
-                        style={{
-                          maxHeight: '48px',
-                          maxWidth: '180px',
-                          objectFit: 'contain',
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          fontSize: '18px',
-                          fontWeight: 700,
-                          color: '#FFFFFF',
-                          fontFamily: 'var(--font-display)',
-                        }}
-                      >
-                        {form.issuer || 'Issuer Name'}
-                      </div>
-                    )}
-                  </div>
+                  <CertificationLogoMark
+                    cert={{
+                      id: initialCertification?.id || 'live-preview',
+                      title: form.title,
+                      issuer: form.issuer,
+                      issuerDomain: form.issuerDomain,
+                      issuerLogo: form.issuerLogo,
+                      issuerLogoSource: form.issuerLogoSource,
+                      issuerLogoAlt: form.issuerLogoAlt,
+                      highlightTag: form.highlightTag,
+                    }}
+                    cmsIssuers={cmsService.getIssuers()}
+                    variant="card"
+                  />
 
                   {/* Details */}
                   <div>

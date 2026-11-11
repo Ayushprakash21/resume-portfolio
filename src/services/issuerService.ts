@@ -1,4 +1,4 @@
-import { IssuerRecord } from '../types/cms';
+import { CertificationRecord, IssuerRecord } from '../types/cms';
 
 export interface IssuerCandidate {
   id: string;
@@ -7,16 +7,50 @@ export interface IssuerCandidate {
   website: string;
   logoUrl: string;
   logoFormat: 'svg' | 'png' | 'webp';
-  source: 'directory' | 'clearbit' | 'upload' | 'url';
+  source: 'directory' | 'clearbit' | 'upload' | 'url' | 'monogram';
   altText: string;
   badge: string;
   verified: boolean;
+}
+
+export interface ResolvedLogoCandidate {
+  url: string;
+  source: 'upload' | 'directory' | 'url';
+  verified: boolean;
+  altText: string;
+}
+
+export interface IssuerMonogramMeta {
+  initials: string;
+  label: string;
+  sublabel: string;
+  hasExplicitIssuer: boolean;
+}
+
+export interface CertificationLogoResolution {
+  candidates: ResolvedLogoCandidate[];
+  primaryUrl: string | null;
+  primarySource: 'upload' | 'directory' | 'url' | 'monogram';
+  verified: boolean;
+  hasDeprecatedUrl: boolean;
+  monogram: IssuerMonogramMeta;
 }
 
 /**
  * Curated Directory of Verified Industry Accreditation Bodies & Tech Issuers
  */
 export const VERIFIED_ISSUERS_DIRECTORY: Omit<IssuerRecord, 'createdAt' | 'updatedAt'>[] = [
+  {
+    id: 'iss-google',
+    issuerName: 'Google',
+    issuerDomain: 'google.com',
+    issuerWebsite: 'https://grow.google',
+    logoUrl: '/issuers/google.svg',
+    logoFormat: 'svg',
+    logoSource: 'directory',
+    altText: 'Google Official Brand Logo',
+    verifiedByAdmin: true,
+  },
   {
     id: 'iss-anthropic',
     issuerName: 'Anthropic',
@@ -118,15 +152,278 @@ export const VERIFIED_ISSUERS_DIRECTORY: Omit<IssuerRecord, 'createdAt' | 'updat
   },
 ];
 
+const KNOWN_ISSUER_DOMAIN_MAP: Record<string, string> = {
+  anthropic: 'anthropic.com',
+  claude: 'anthropic.com',
+  'google cloud': 'cloud.google.com',
+  google: 'google.com',
+  deeplearning: 'deeplearning.ai',
+  'deeplearning.ai': 'deeplearning.ai',
+  poi: 'poi-operations.org',
+  'operations institute': 'poi-operations.org',
+  aws: 'aws.amazon.com',
+  amazon: 'aws.amazon.com',
+  microsoft: 'microsoft.com',
+  coursera: 'coursera.org',
+  ibm: 'ibm.com',
+  cisco: 'cisco.com',
+  rutgers: 'rutgers.edu',
+  stanford: 'stanford.edu',
+  harvard: 'harvard.edu',
+  mit: 'mit.edu',
+  nvidia: 'nvidia.com',
+  meta: 'about.meta.com',
+  oracle: 'oracle.com',
+  databricks: 'databricks.com',
+  snowflake: 'snowflake.com',
+  linux: 'linuxfoundation.org',
+  kubernetes: 'kubernetes.io',
+  docker: 'docker.com',
+};
+
+/**
+ * Returns true if the supplied logo URL is empty, malformed, ephemeral,
+ * or points to the deprecated Clearbit Logo API (logo.clearbit.com).
+ */
+export function isDeprecatedOrBrokenLogoUrl(url?: string | null): boolean {
+  if (!url) return true;
+  const trimmed = url.trim();
+  if (!trimmed || trimmed === 'undefined' || trimmed === 'null') return true;
+  if (trimmed.startsWith('blob:')) return true;
+  const lower = trimmed.toLowerCase();
+  if (lower.includes('logo.clearbit.com')) return true;
+  // Relative paths, data URIs (when non-empty), or http(s) URLs are structurally acceptable
+  if (trimmed.startsWith('/') || trimmed.startsWith('https://') || trimmed.startsWith('http://') || trimmed.startsWith('data:image/')) {
+    return false;
+  }
+  return true;
+}
+
+function normalizeDomain(domain?: string): string {
+  if (!domain) return '';
+  return domain
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .split('/')[0];
+}
+
+/**
+ * Derives a clean, deterministic typographic monogram for any issuer or credential.
+ */
+export function getIssuerMonogram(
+  issuer?: string,
+  title?: string,
+  highlightTag?: string
+): IssuerMonogramMeta {
+  const rawIssuer = (issuer || '').trim();
+  const hasExplicitIssuer = rawIssuer.length > 0;
+  const sourceText = rawIssuer || (title || '').trim() || (highlightTag || '').trim() || 'Accreditation';
+
+  const stopWords = new Set(
+    hasExplicitIssuer
+      ? ['of', 'the', 'and', 'for', 'in', 'on', 'with', '&', '-']
+      : ['of', 'the', 'and', 'for', 'in', 'on', 'with', '&', '-', 'certified', 'certificate', 'specialization', 'professional', 'associate', 'foundations']
+  );
+  const tokens = sourceText
+    .replace(/[^a-zA-Z0-9\s.&]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length > 0 && !stopWords.has(w.toLowerCase()));
+
+  const meaningful = tokens.length > 0 ? tokens : sourceText.split(/\s+/).filter(Boolean);
+
+  let initials = 'CR';
+  if (meaningful.length === 1) {
+    const word = meaningful[0].replace(/[^a-zA-Z0-9]/g, '');
+    initials = word.length <= 3 ? word.toUpperCase() : word.slice(0, 2).toUpperCase();
+  } else if (meaningful.length >= 2) {
+    initials = meaningful
+      .slice(0, 3)
+      .map((w) => w[0])
+      .join('')
+      .toUpperCase();
+  }
+
+  return {
+    initials,
+    label: sourceText.toUpperCase(),
+    sublabel: hasExplicitIssuer ? 'ISSUING ORGANIZATION' : 'CREDENTIAL',
+    hasExplicitIssuer,
+  };
+}
+
+/**
+ * Finds the best verified directory entry for a certification issuer or domain.
+ */
+export function resolveIssuerDirectoryEntry(
+  issuerName?: string,
+  issuerDomain?: string,
+  cmsIssuers: IssuerRecord[] = []
+): Omit<IssuerRecord, 'createdAt' | 'updatedAt'> | undefined {
+  const nameLower = (issuerName || '').trim().toLowerCase();
+  const domainLower = normalizeDomain(issuerDomain);
+
+  const searchPools: Omit<IssuerRecord, 'createdAt' | 'updatedAt'>[][] = [
+    cmsIssuers.filter((iss) => !isDeprecatedOrBrokenLogoUrl(iss.logoUrl)),
+    VERIFIED_ISSUERS_DIRECTORY,
+  ];
+
+  for (const pool of searchPools) {
+    if (pool.length === 0) continue;
+
+    // 1. Exact case-insensitive issuer name match (prevents "Google" matching "Google Cloud")
+    if (nameLower) {
+      const exactName = pool.find((item) => item.issuerName.trim().toLowerCase() === nameLower);
+      if (exactName) return exactName;
+    }
+
+    // 2. Exact domain match
+    if (domainLower) {
+      const exactDomain = pool.find((item) => normalizeDomain(item.issuerDomain) === domainLower);
+      if (exactDomain) return exactDomain;
+    }
+  }
+
+  // 3. Alias / known brand boundary matches in curated directory
+  if (nameLower) {
+    const sorted = [...VERIFIED_ISSUERS_DIRECTORY].sort(
+      (a, b) => b.issuerName.length - a.issuerName.length
+    );
+    for (const item of sorted) {
+      const target = item.issuerName.toLowerCase();
+      if (nameLower === target || nameLower.includes(target)) {
+        return item;
+      }
+    }
+    if (nameLower === 'aws') {
+      return VERIFIED_ISSUERS_DIRECTORY.find((i) => i.id === 'iss-aws');
+    }
+    if (nameLower === 'poi') {
+      return VERIFIED_ISSUERS_DIRECTORY.find((i) => i.id === 'iss-poi');
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Resolves ordered logo candidates for a certification following strict priority:
+ * 1. Explicitly uploaded issuer logo associated with the certification
+ * 2. Existing verified issuer logo from CMS issuer directory
+ * 3. Previously stored and valid issuer logo URL
+ * 4. Verified official brand asset from built-in directory
+ * 5. Designed text-based issuer monogram as final fallback
+ */
+export function resolveCertificationLogoPipeline(
+  cert: Pick<
+    CertificationRecord,
+    'issuer' | 'issuerDomain' | 'issuerLogo' | 'issuerLogoSource' | 'issuerLogoAlt' | 'title' | 'highlightTag'
+  >,
+  cmsIssuers: IssuerRecord[] = []
+): CertificationLogoResolution {
+  const candidates: ResolvedLogoCandidate[] = [];
+  const seenUrls = new Set<string>();
+
+  const pushCandidate = (cand: ResolvedLogoCandidate) => {
+    if (!cand.url || isDeprecatedOrBrokenLogoUrl(cand.url) || seenUrls.has(cand.url)) return;
+    seenUrls.add(cand.url);
+    candidates.push(cand);
+  };
+
+  const hasDeprecatedUrl = !!cert.issuerLogo && isDeprecatedOrBrokenLogoUrl(cert.issuerLogo);
+  const storedIsValid = !isDeprecatedOrBrokenLogoUrl(cert.issuerLogo);
+  const altFallback = cert.issuerLogoAlt || `${cert.issuer || cert.title || 'Issuer'} Official Logo`;
+
+  // Priority 1: Explicitly uploaded issuer logo associated with the certification (or R2 storage path)
+  const isExplicitUpload =
+    cert.issuerLogoSource === 'upload' ||
+    (!!cert.issuerLogo && cert.issuerLogo.startsWith('/api/storage/files/'));
+  if (storedIsValid && isExplicitUpload && cert.issuerLogo) {
+    pushCandidate({
+      url: cert.issuerLogo,
+      source: 'upload',
+      verified: true,
+      altText: altFallback,
+    });
+  }
+
+  // Priority 2: Existing verified issuer logo from CMS issuer directory
+  const cmsMatch = resolveIssuerDirectoryEntry(
+    cert.issuer,
+    cert.issuerDomain,
+    cmsIssuers.filter((i) => i.verifiedByAdmin && i.logoSource !== 'clearbit')
+  );
+  if (cmsMatch && !isDeprecatedOrBrokenLogoUrl(cmsMatch.logoUrl)) {
+    pushCandidate({
+      url: cmsMatch.logoUrl,
+      source: cmsMatch.logoSource === 'upload' ? 'upload' : 'directory',
+      verified: !!cmsMatch.verifiedByAdmin,
+      altText: cmsMatch.altText || altFallback,
+    });
+  }
+
+  // Priority 3: Previously stored and valid issuer logo URL
+  if (storedIsValid && cert.issuerLogo) {
+    const inferredSource: 'upload' | 'directory' | 'url' =
+      cert.issuerLogoSource === 'directory' || cert.issuerLogo.startsWith('/issuers/')
+        ? 'directory'
+        : cert.issuerLogoSource === 'upload'
+        ? 'upload'
+        : 'url';
+    pushCandidate({
+      url: cert.issuerLogo,
+      source: inferredSource,
+      verified: inferredSource === 'directory' || inferredSource === 'upload',
+      altText: altFallback,
+    });
+  }
+
+  // Priority 4: Reliable official issuer brand asset from curated SVG directory
+  const builtInMatch = resolveIssuerDirectoryEntry(cert.issuer, cert.issuerDomain, []);
+  if (builtInMatch && !isDeprecatedOrBrokenLogoUrl(builtInMatch.logoUrl)) {
+    pushCandidate({
+      url: builtInMatch.logoUrl,
+      source: 'directory',
+      verified: true,
+      altText: builtInMatch.altText || altFallback,
+    });
+  }
+
+  // Priority 5: Deterministic designed issuer monogram metadata (always available)
+  const monogram = getIssuerMonogram(cert.issuer, cert.title, cert.highlightTag);
+  const first = candidates[0] || null;
+
+  return {
+    candidates,
+    primaryUrl: first ? first.url : null,
+    primarySource: first ? first.source : 'monogram',
+    verified: first ? first.verified : false,
+    hasDeprecatedUrl,
+    monogram,
+  };
+}
+
 class IssuerService {
   /**
    * Search internal verified issuer directory
    */
-  public searchDirectory(query: string): IssuerRecord[] {
+  public searchDirectory(query: string, cmsIssuers: IssuerRecord[] = []): IssuerRecord[] {
     const q = query.trim().toLowerCase();
-    if (!q) return VERIFIED_ISSUERS_DIRECTORY as IssuerRecord[];
+    const combined: IssuerRecord[] = [];
+    const seen = new Set<string>();
 
-    return (VERIFIED_ISSUERS_DIRECTORY as IssuerRecord[]).filter(
+    for (const item of [...cmsIssuers, ...(VERIFIED_ISSUERS_DIRECTORY as IssuerRecord[])]) {
+      if (isDeprecatedOrBrokenLogoUrl(item.logoUrl)) continue;
+      const key = `${item.issuerName.toLowerCase()}::${item.logoUrl}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      combined.push(item);
+    }
+
+    if (!q) return combined;
+
+    return combined.filter(
       (iss) =>
         iss.issuerName.toLowerCase().includes(q) ||
         (iss.issuerDomain && iss.issuerDomain.toLowerCase().includes(q))
@@ -134,17 +431,26 @@ class IssuerService {
   }
 
   /**
-   * Resolve logo candidates across verified directory, domain matching, and official CDNs
+   * Resolve logo candidates across CMS directory, verified local vector SVG assets,
+   * and optional website icon fallback (never emitting dead Clearbit URLs).
    */
-  public async resolveLogoCandidates(issuerQuery: string): Promise<IssuerCandidate[]> {
+  public async resolveLogoCandidates(
+    issuerQuery: string,
+    cmsIssuers: IssuerRecord[] = []
+  ): Promise<IssuerCandidate[]> {
     const query = issuerQuery.trim();
     if (!query) return [];
 
     const candidates: IssuerCandidate[] = [];
     const lower = query.toLowerCase();
 
-    // 1. Check verified local SVG directory
-    const matchedDirectory = this.searchDirectory(query);
+    // 1. Check CMS + verified local SVG directory (sorted with exact match first)
+    const matchedDirectory = this.searchDirectory(query, cmsIssuers).sort((a, b) => {
+      const aExact = a.issuerName.toLowerCase() === lower ? -1 : 0;
+      const bExact = b.issuerName.toLowerCase() === lower ? -1 : 0;
+      return aExact - bExact;
+    });
+
     for (const item of matchedDirectory) {
       candidates.push({
         id: `dir-${item.id}`,
@@ -153,76 +459,28 @@ class IssuerService {
         website: item.issuerWebsite || `https://${item.issuerDomain}`,
         logoUrl: item.logoUrl,
         logoFormat: item.logoFormat || 'svg',
-        source: 'directory',
+        source: item.logoSource === 'upload' ? 'upload' : 'directory',
         altText: item.altText,
-        badge: 'Official Vector SVG',
-        verified: true,
+        badge: item.logoSource === 'upload' ? 'Verified R2 Upload' : 'Official Vector SVG',
+        verified: !!item.verifiedByAdmin,
       });
     }
 
-    // 2. Derive domain if user typed a domain or known brand
+    // 2. Derive canonical domain if user typed a domain or known institution/company
     let guessedDomain = '';
     if (query.includes('.')) {
-      guessedDomain = query.replace(/^https?:\/\//, '').split('/')[0];
+      guessedDomain = normalizeDomain(query);
     } else {
-      const domainMap: Record<string, string> = {
-        anthropic: 'anthropic.com',
-        'google cloud': 'cloud.google.com',
-        google: 'google.com',
-        deeplearning: 'deeplearning.ai',
-        'deeplearning.ai': 'deeplearning.ai',
-        poi: 'poi-operations.org',
-        'operations institute': 'poi-operations.org',
-        aws: 'aws.amazon.com',
-        amazon: 'aws.amazon.com',
-        microsoft: 'microsoft.com',
-        coursera: 'coursera.org',
-        ibm: 'ibm.com',
-        cisco: 'cisco.com',
-        stanford: 'stanford.edu',
-        harvard: 'harvard.edu',
-        mit: 'mit.edu',
-        nvidia: 'nvidia.com',
-        meta: 'about.meta.com',
-        oracle: 'oracle.com',
-        databricks: 'databricks.com',
-        snowflake: 'snowflake.com',
-        linux: 'linuxfoundation.org',
-        kubernetes: 'kubernetes.io',
-        docker: 'docker.com',
-      };
-
-      for (const [key, dom] of Object.entries(domainMap)) {
+      for (const [key, dom] of Object.entries(KNOWN_ISSUER_DOMAIN_MAP)) {
         if (lower.includes(key)) {
           guessedDomain = dom;
           break;
         }
       }
-
-      if (!guessedDomain && query.length >= 3) {
-        // Fallback guess: sanitizedquery.com
-        guessedDomain = `${query.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`;
-      }
     }
 
-    // 3. Add external Clearbit resolution if domain was resolved and not already first in candidates
-    if (guessedDomain && !candidates.some((c) => c.domain === guessedDomain && c.source === 'clearbit')) {
-      candidates.push({
-        id: `clearbit-${guessedDomain}`,
-        name: query,
-        domain: guessedDomain,
-        website: `https://${guessedDomain}`,
-        logoUrl: `https://logo.clearbit.com/${guessedDomain}`,
-        logoFormat: 'png',
-        source: 'clearbit',
-        altText: `${query} Brand Logo (via ${guessedDomain})`,
-        badge: 'Clearbit Domain Match',
-        verified: false,
-      });
-    }
-
-    // 4. Add high-res Google Favicon as resilient backup
-    if (guessedDomain && !candidates.some((c) => c.id === `favicon-${guessedDomain}`)) {
+    // 3. Offer domain icon candidate ONLY as an explicitly unverified external fallback when no verified SVG exists
+    if (guessedDomain && candidates.length === 0) {
       candidates.push({
         id: `favicon-${guessedDomain}`,
         name: query,
@@ -230,9 +488,9 @@ class IssuerService {
         website: `https://${guessedDomain}`,
         logoUrl: `https://www.google.com/s2/favicons?domain=${guessedDomain}&sz=128`,
         logoFormat: 'png',
-        source: 'clearbit',
-        altText: `${query} Official Website Icon`,
-        badge: 'High-Res Domain Icon',
+        source: 'url',
+        altText: `${query} Website Icon (Unverified)`,
+        badge: 'Website Favicon (Unverified — Verify Visually)',
         verified: false,
       });
     }

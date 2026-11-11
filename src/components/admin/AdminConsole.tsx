@@ -55,6 +55,8 @@ import { OpenToWorkEditor } from './editors/OpenToWorkEditor';
 import { ExperienceEditorModal } from './editors/ExperienceEditorModal';
 import { ProjectEditorModal } from './editors/ProjectEditorModal';
 import { CertificationEditorModal } from './editors/CertificationEditorModal';
+import { CertificationLogoMark } from '../editorial/CertificationLogoMark';
+import { resolveCertificationLogoPipeline } from '../../services/issuerService';
 import { EducationEditorModal } from './editors/EducationEditorModal';
 import { SkillsManager } from './editors/SkillsManager';
 import { ResumeManager } from './editors/ResumeManager';
@@ -1251,8 +1253,40 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
               </button>
             </div>
 
+            {(() => {
+              const allIssuers = cmsService.getIssuers();
+              const missingLogoCount = certifications.filter((c) => {
+                const res = resolveCertificationLogoPipeline(c, allIssuers);
+                return res.hasDeprecatedUrl || !res.primaryUrl;
+              }).length;
+
+              return missingLogoCount > 0 ? (
+                <div
+                  style={{
+                    marginBottom: '16px',
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(214, 168, 84, 0.1)',
+                    border: '1px solid rgba(214, 168, 84, 0.3)',
+                    color: '#E8CE7D',
+                    fontSize: '12.5px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                  }}
+                >
+                  <span>
+                    Logo Diagnostics: {missingLogoCount} credential(s) have no verified image logo or reference a deprecated URL and are safely displaying the designed issuer monogram on the public site.
+                  </span>
+                </div>
+              ) : null;
+            })()}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {certifications.map((cert) => (
+              {certifications.map((cert) => {
+                const logoDiag = resolveCertificationLogoPipeline(cert, cmsService.getIssuers());
+                return (
                 <div
                   key={cert.id}
                   style={{
@@ -1267,51 +1301,14 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                   }}
                 >
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                    {cert.issuerLogo ? (
-                      <div
-                        style={{
-                          width: '52px',
-                          height: '52px',
-                          borderRadius: '8px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                          border: '1px solid rgba(255, 255, 255, 0.12)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '6px',
-                          flexShrink: 0,
-                          overflow: 'hidden',
-                        }}
-                      >
-                        <img
-                          src={cert.issuerLogo}
-                          alt={cert.issuer}
-                          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          width: '52px',
-                          height: '52px',
-                          borderRadius: '8px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#A7B0A9',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {cert.issuer ? cert.issuer.slice(0, 3).toUpperCase() : 'CRT'}
-                      </div>
-                    )}
+                    <CertificationLogoMark
+                      cert={cert}
+                      cmsIssuers={cmsService.getIssuers()}
+                      variant="admin"
+                    />
 
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <span style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 600, color: '#F4F3EE' }}>
                           {cert.title}
                         </span>
@@ -1327,6 +1324,36 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                         >
                           ● {cert.status}
                         </span>
+                        {logoDiag.hasDeprecatedUrl && (
+                          <span
+                            style={{
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              backgroundColor: 'rgba(220, 80, 95, 0.16)',
+                              color: '#F38B96',
+                              fontSize: '11px',
+                              fontWeight: 500,
+                              border: '1px solid rgba(220, 80, 95, 0.35)',
+                            }}
+                          >
+                            ⚠ Deprecated Logo URL Replaced
+                          </span>
+                        )}
+                        {!logoDiag.hasDeprecatedUrl && !logoDiag.primaryUrl && (
+                          <span
+                            style={{
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.07)',
+                              color: '#C1C4BE',
+                              fontSize: '11px',
+                              fontWeight: 500,
+                              border: '1px solid rgba(255, 255, 255, 0.12)',
+                            }}
+                          >
+                            Monogram Fallback
+                          </span>
+                        )}
                         {cert.requiresDateConfirmation && (
                           <span
                             title={cert.dateConfirmationNotes || 'Issue date not specified in resume; flagged for confirmation'}
@@ -1346,7 +1373,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                       </div>
 
                       <div style={{ fontSize: '13px', color: '#8294A6', marginTop: '2px' }}>
-                        {cert.issuer} &bull; Issued {cert.completionDate}
+                        {cert.issuer || 'Issuer not listed'}{cert.completionDate ? ` • Issued ${cert.completionDate}` : ''}
                       </div>
 
                       {cert.credentialId && (
@@ -1388,7 +1415,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

@@ -32,7 +32,7 @@ import {
   IssuerRecord,
   ExtractionJob,
 } from '../types/cms.ts';
-import { VERIFIED_ISSUERS_DIRECTORY } from './issuerService';
+import { VERIFIED_ISSUERS_DIRECTORY, isDeprecatedOrBrokenLogoUrl } from './issuerService';
 import { LinkedInImportAudit, LinkedInParsedRecord } from '../types/linkedin';
 import {
   DEFAULT_PROFILE,
@@ -146,10 +146,11 @@ function initCertifications(): CertificationRecord[] {
 }
 
 function initIssuers(): IssuerRecord[] {
-  const stored = safeStorageGet<IssuerRecord[]>(STORAGE_KEYS.issuers, VERIFIED_ISSUERS_DIRECTORY as IssuerRecord[]);
+  const rawStored = safeStorageGet<IssuerRecord[]>(STORAGE_KEYS.issuers, VERIFIED_ISSUERS_DIRECTORY as IssuerRecord[]);
+  const stored = rawStored.filter((iss) => !isDeprecatedOrBrokenLogoUrl(iss.logoUrl));
   const existingIds = new Set(stored.map((iss) => iss.id));
   const missing = (VERIFIED_ISSUERS_DIRECTORY as IssuerRecord[]).filter((iss) => !existingIds.has(iss.id));
-  if (missing.length > 0) {
+  if (missing.length > 0 || stored.length !== rawStored.length) {
     const merged = [...stored, ...missing];
     safeStorageSet(STORAGE_KEYS.issuers, merged);
     return merged;
@@ -443,6 +444,34 @@ function initFirestoreSync() {
       (err) => console.warn('[CMS Firestore] Certifications sync notice:', err)
     );
     activeUnsubscribers.push(unsubCertifications);
+
+    // 10b. Issuers Brand Directory Collection
+    const unsubIssuers = onSnapshot(
+      collection(db, 'issuers'),
+      (snap) => {
+        if (!snap.empty) {
+          const validFromDb: IssuerRecord[] = [];
+          snap.forEach((d) => {
+            const data = d.data() as IssuerRecord;
+            if (!isDeprecatedOrBrokenLogoUrl(data.logoUrl)) {
+              validFromDb.push({ ...data, id: d.id });
+            }
+          });
+          const seen = new Set(validFromDb.map((i) => i.id));
+          const merged = [
+            ...validFromDb,
+            ...(VERIFIED_ISSUERS_DIRECTORY as IssuerRecord[]).filter((v) => !seen.has(v.id)),
+          ];
+          store.issuers = merged;
+          safeStorageSet(STORAGE_KEYS.issuers, merged);
+          notifyListeners();
+        }
+      },
+      () => {
+        // Silent fallback to curated directory if unauthenticated read is restricted
+      }
+    );
+    activeUnsubscribers.push(unsubIssuers);
 
     // 11. Skills Collection
     const unsubSkills = onSnapshot(
@@ -1006,7 +1035,7 @@ export const cmsService = {
       await setDoc(doc(db, 'certifications', newRecord.id), sanitizeForFirestore(newRecord));
     }
 
-    if (newRecord.issuer && newRecord.issuerLogo) {
+    if (newRecord.issuer && newRecord.issuerLogo && !isDeprecatedOrBrokenLogoUrl(newRecord.issuerLogo)) {
       this.saveIssuer({
         issuerName: newRecord.issuer,
         issuerDomain: newRecord.issuerDomain || '',
@@ -1016,7 +1045,7 @@ export const cmsService = {
         logoFormat: newRecord.issuerLogoFormat || 'svg',
         logoSource: newRecord.issuerLogoSource || 'directory',
         altText: newRecord.issuerLogoAlt || `${newRecord.issuer} Official Brand Logo`,
-        verifiedByAdmin: true,
+        verifiedByAdmin: newRecord.issuerLogoSource === 'directory' || newRecord.issuerLogoSource === 'upload',
       }).catch((e) => console.warn('[saveIssuer notice]:', e));
     }
 
@@ -1027,8 +1056,16 @@ export const cmsService = {
   },
 
   async updateCertification(id: string, updates: Partial<CertificationRecord>): Promise<void> {
+    const existing = store.certifications.find((c) => c.id === id);
+    const sanitizedUpdates: Partial<CertificationRecord> = { ...updates };
+
+    // Protect an existing valid uploaded/directory logo against accidental undefined clobbering
+    if (sanitizedUpdates.issuerLogo === undefined && existing?.issuerLogo) {
+      delete sanitizedUpdates.issuerLogo;
+    }
+
     const payload = {
-      ...updates,
+      ...sanitizedUpdates,
       updatedAt: new Date().toISOString(),
     };
 
@@ -1041,7 +1078,7 @@ export const cmsService = {
       const merged = { ...store.certifications[idx], ...payload };
       store.certifications[idx] = merged;
 
-      if (merged.issuer && merged.issuerLogo) {
+      if (merged.issuer && merged.issuerLogo && !isDeprecatedOrBrokenLogoUrl(merged.issuerLogo)) {
         this.saveIssuer({
           issuerName: merged.issuer,
           issuerDomain: merged.issuerDomain || '',
@@ -1051,7 +1088,7 @@ export const cmsService = {
           logoFormat: merged.issuerLogoFormat || 'svg',
           logoSource: merged.issuerLogoSource || 'directory',
           altText: merged.issuerLogoAlt || `${merged.issuer} Official Brand Logo`,
-          verifiedByAdmin: true,
+          verifiedByAdmin: merged.issuerLogoSource === 'directory' || merged.issuerLogoSource === 'upload',
         }).catch((e) => console.warn('[saveIssuer notice]:', e));
       }
 
@@ -1990,6 +2027,8 @@ export const cmsService = {
         ? 'resumes'
         : category === 'photo'
         ? 'profile'
+        : category === 'certification-logo' || category === 'certificate'
+        ? 'certifications'
         : category === 'logo' || category === 'screenshot'
         ? 'projects'
         : 'media';
