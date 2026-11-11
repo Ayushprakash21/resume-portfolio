@@ -44,7 +44,7 @@ jobs:
         run: npm run build
 
       - name: Run unit & integration test suite
-        run: node --test tests/*.test.mjs
+        run: node --import tsx --test tests/*.test.mjs
 
       - name: Record UTC build timestamp
         id: meta
