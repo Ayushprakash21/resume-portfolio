@@ -234,6 +234,17 @@ export interface EducationRecord {
   endYear: string;
   grade?: string;
   description?: string;
+  // About This Qualification (optional academic details)
+  courseOverview?: string;
+  specialization?: string;
+  subjects?: string[];
+  relevantCoursework?: string[];
+  academicFocus?: string;
+  learningOutcomes?: string[];
+  projectsResearch?: string;
+  academicAchievements?: string[];
+  additionalNotes?: string;
+  status?: 'published' | 'draft';
   skillsUsed?: string[];
   logoUrl?: string;
   highlights: string[];

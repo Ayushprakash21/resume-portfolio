@@ -297,6 +297,7 @@ export interface AdminModalFooterProps {
   onDelete?: () => void;
   cancelText?: string;
   saveText?: string;
+  savingText?: string;
   deleteText?: string;
   isSaving?: boolean;
   isDeleting?: boolean;
@@ -312,6 +313,7 @@ export const AdminModalFooter: React.FC<AdminModalFooterProps> = ({
   onDelete,
   cancelText = 'Cancel',
   saveText = 'Save Changes',
+  savingText = 'Saving...',
   deleteText = 'Delete',
   isSaving = false,
   isDeleting = false,
@@ -319,13 +321,17 @@ export const AdminModalFooter: React.FC<AdminModalFooterProps> = ({
   saveType = 'submit',
   statusText,
 }) => {
+  const showSaveButton = Boolean(onSave || saveType === 'submit');
+
   return (
     <div
+      className="admin-modal-footer"
       style={{
         padding: '14px 22px',
         borderTop: '1px solid rgba(255, 255, 255, 0.08)',
         backgroundColor: '#121319',
         display: 'flex',
+        flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexShrink: 0,
@@ -407,11 +413,11 @@ export const AdminModalFooter: React.FC<AdminModalFooterProps> = ({
             {cancelText}
           </button>
         )}
-        {onSave && (
+        {showSaveButton && (
           <button
             type={saveType}
             onClick={saveType === 'button' ? onSave : undefined}
-            disabled={saveDisabled || isSaving}
+            disabled={saveDisabled || isSaving || isDeleting}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -423,13 +429,14 @@ export const AdminModalFooter: React.FC<AdminModalFooterProps> = ({
               color: saveDisabled ? '#6A736E' : '#080809',
               fontSize: '13px',
               fontWeight: 600,
-              cursor: saveDisabled || isSaving ? 'not-allowed' : 'pointer',
+              cursor: saveDisabled || isSaving || isDeleting ? 'not-allowed' : 'pointer',
               boxShadow: saveDisabled ? 'none' : '0 2px 10px rgba(255, 255, 255, 0.2)',
+              opacity: isSaving ? 0.85 : 1,
               transition: 'all 0.15s ease',
             }}
           >
             {isSaving && <Loader2 size={13} className="spin" />}
-            {saveText}
+            {isSaving ? savingText : saveText}
           </button>
         )}
       </div>

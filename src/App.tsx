@@ -64,7 +64,7 @@ export const App: React.FC = () => {
   const [projects, setProjects] = useState<ProjectRecord[]>(() => cmsService.getProjects(true));
   const [certifications, setCertifications] = useState<CertificationRecord[]>(() => cmsService.getCertifications(true));
   const [skills, setSkills] = useState<SkillRecord[]>(() => cmsService.getSkills());
-  const [education, setEducation] = useState<EducationRecord[]>(() => cmsService.getEducation());
+  const [education, setEducation] = useState<EducationRecord[]>(() => cmsService.getEducation(true));
   const [sectionsConfig, setSectionsConfig] = useState<SectionConfig[]>(() => cmsService.getSectionsConfig());
   const [appearance, setAppearance] = useState<AppearanceSettings>(() => cmsService.getAppearanceSettings());
   const [resumeSettings, setResumeSettings] = useState<ResumeGeneratorSettings>(() =>
@@ -96,7 +96,7 @@ export const App: React.FC = () => {
       setProjects(cmsService.getProjects(true));
       setCertifications(cmsService.getCertifications(true));
       setSkills(cmsService.getSkills());
-      setEducation(cmsService.getEducation());
+      setEducation(cmsService.getEducation(true));
       setSectionsConfig(cmsService.getSectionsConfig());
       setAppearance(cmsService.getAppearanceSettings());
       setResumeSettings(cmsService.getResumeGeneratorSettings());

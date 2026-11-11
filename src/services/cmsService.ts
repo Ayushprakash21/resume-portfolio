@@ -6,6 +6,7 @@ import {
   updateDoc,
   deleteDoc,
   onSnapshot,
+  serverTimestamp,
   Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -469,7 +470,7 @@ function initFirestoreSync() {
         if (!snap.empty) {
           const list: EducationRecord[] = [];
           snap.forEach((d) => {
-            list.push({ ...d.data(), id: d.id } as EducationRecord);
+            list.push(normalizeEducationRecord(d.data(), d.id));
           });
           list.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
           store.education = list;
@@ -553,6 +554,73 @@ function initFirestoreSync() {
   } catch (err) {
     console.warn('[CMS Firestore] Initialization notice:', err);
   }
+}
+
+function withFirestoreTimeout<T>(promise: Promise<T>, label: string, timeoutMs = 10000): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${Math.round(timeoutMs / 1000)}s. Check network/authentication and retry.`));
+    }, timeoutMs);
+    promise
+      .then((val) => {
+        clearTimeout(timer);
+        resolve(val);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
+function normalizeTimestampValue(val: unknown): string | undefined {
+  if (!val) return undefined;
+  if (typeof val === 'string') return val;
+  if (val instanceof Date) return val.toISOString();
+  if (typeof (val as any).toDate === 'function') {
+    try {
+      return (val as any).toDate().toISOString();
+    } catch {
+      return undefined;
+    }
+  }
+  if (typeof (val as any).seconds === 'number') {
+    return new Date((val as any).seconds * 1000).toISOString();
+  }
+  return undefined;
+}
+
+export function normalizeEducationRecord(raw: any, docId?: string): EducationRecord {
+  const stringArray = (v: unknown): string[] =>
+    Array.isArray(v) ? v.filter((item): item is string => typeof item === 'string') : [];
+
+  return {
+    ...raw,
+    id: docId || raw?.id || `edu-${Date.now()}`,
+    institution: typeof raw?.institution === 'string' ? raw.institution : '',
+    associatedCollege: typeof raw?.associatedCollege === 'string' ? raw.associatedCollege : undefined,
+    degree: typeof raw?.degree === 'string' ? raw.degree : '',
+    fieldOfStudy: typeof raw?.fieldOfStudy === 'string' ? raw.fieldOfStudy : '',
+    startYear: typeof raw?.startYear === 'string' ? raw.startYear : '',
+    endYear: typeof raw?.endYear === 'string' ? raw.endYear : '',
+    grade: typeof raw?.grade === 'string' ? raw.grade : undefined,
+    description: typeof raw?.description === 'string' ? raw.description : undefined,
+    courseOverview: typeof raw?.courseOverview === 'string' ? raw.courseOverview : undefined,
+    specialization: typeof raw?.specialization === 'string' ? raw.specialization : undefined,
+    subjects: Array.isArray(raw?.subjects) ? stringArray(raw.subjects) : undefined,
+    relevantCoursework: Array.isArray(raw?.relevantCoursework) ? stringArray(raw.relevantCoursework) : undefined,
+    academicFocus: typeof raw?.academicFocus === 'string' ? raw.academicFocus : undefined,
+    learningOutcomes: Array.isArray(raw?.learningOutcomes) ? stringArray(raw.learningOutcomes) : undefined,
+    projectsResearch: typeof raw?.projectsResearch === 'string' ? raw.projectsResearch : undefined,
+    academicAchievements: Array.isArray(raw?.academicAchievements) ? stringArray(raw.academicAchievements) : undefined,
+    additionalNotes: typeof raw?.additionalNotes === 'string' ? raw.additionalNotes : undefined,
+    status: raw?.status === 'draft' ? 'draft' : 'published',
+    skillsUsed: Array.isArray(raw?.skillsUsed) ? stringArray(raw.skillsUsed) : undefined,
+    highlights: stringArray(raw?.highlights),
+    displayOrder: typeof raw?.displayOrder === 'number' ? raw.displayOrder : 1,
+    createdAt: normalizeTimestampValue(raw?.createdAt),
+    updatedAt: normalizeTimestampValue(raw?.updatedAt),
+  };
 }
 
 // Automatically start Firestore sync on client load
@@ -1119,19 +1187,39 @@ export const cmsService = {
   },
 
   // ================= EDUCATION =================
-  getEducation(): EducationRecord[] {
-    return [...store.education];
+  getEducation(publishedOnly = false): EducationRecord[] {
+    const list = [...store.education].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    if (publishedOnly) {
+      return list.filter((e) => e.status !== 'draft');
+    }
+    return list;
   },
 
   async addEducation(edu: Omit<EducationRecord, 'id'>): Promise<EducationRecord> {
-    const newRecord: EducationRecord = {
-      ...edu,
-      id: 'edu-' + Date.now(),
-      updatedAt: new Date().toISOString(),
-    };
+    const nowIso = new Date().toISOString();
+    const newRecord: EducationRecord = normalizeEducationRecord(
+      {
+        ...edu,
+        status: edu.status || 'published',
+        displayOrder: edu.displayOrder ?? store.education.length + 1,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      },
+      `edu-${Date.now()}`
+    );
 
     if (db) {
-      await setDoc(doc(db, 'education', newRecord.id), sanitizeForFirestore(newRecord));
+      await withFirestoreTimeout(
+        setDoc(
+          doc(db, 'education', newRecord.id),
+          sanitizeForFirestore({
+            ...newRecord,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          })
+        ),
+        'Saving education record'
+      );
     }
 
     store.education.push(newRecord);
@@ -1140,27 +1228,48 @@ export const cmsService = {
     return newRecord;
   },
 
-  async updateEducation(id: string, updates: Partial<EducationRecord>): Promise<void> {
-    const payload = {
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    };
+  async updateEducation(id: string, updates: Partial<EducationRecord>): Promise<EducationRecord> {
+    const nowIso = new Date().toISOString();
+    const existing = store.education.find((e) => e.id === id);
+    const merged: EducationRecord = normalizeEducationRecord(
+      {
+        ...(existing || {}),
+        ...updates,
+        id,
+        createdAt: existing?.createdAt || nowIso,
+        updatedAt: nowIso,
+      },
+      id
+    );
 
     if (db) {
-      await updateDoc(doc(db, 'education', id), sanitizeForFirestore(payload) as any);
+      await withFirestoreTimeout(
+        setDoc(
+          doc(db, 'education', id),
+          sanitizeForFirestore({
+            ...merged,
+            updatedAt: serverTimestamp(),
+          }),
+          { merge: true }
+        ),
+        'Updating education record'
+      );
     }
 
     const idx = store.education.findIndex((e) => e.id === id);
     if (idx !== -1) {
-      store.education[idx] = { ...store.education[idx], ...payload };
-      safeStorageSet(STORAGE_KEYS.education, store.education);
-      notifyListeners();
+      store.education[idx] = merged;
+    } else {
+      store.education.push(merged);
     }
+    safeStorageSet(STORAGE_KEYS.education, store.education);
+    notifyListeners();
+    return merged;
   },
 
   async deleteEducation(id: string): Promise<void> {
     if (db) {
-      await deleteDoc(doc(db, 'education', id));
+      await withFirestoreTimeout(deleteDoc(doc(db, 'education', id)), 'Deleting education record');
     }
 
     store.education = store.education.filter((e) => e.id !== id);

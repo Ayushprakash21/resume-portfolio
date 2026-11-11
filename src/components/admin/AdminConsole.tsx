@@ -1148,6 +1148,21 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                       <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 600, color: '#F4F3EE', margin: 0 }}>
                         {edu.degree}
                       </h3>
+                      {edu.status === 'draft' && (
+                        <span
+                          style={{
+                            padding: '2px 8px',
+                            borderRadius: '10px',
+                            backgroundColor: 'rgba(214, 168, 84, 0.12)',
+                            color: '#E8CE7D',
+                            fontSize: '11px',
+                            fontWeight: 500,
+                            border: '1px solid rgba(214, 168, 84, 0.25)',
+                          }}
+                        >
+                          Draft
+                        </span>
+                      )}
                       {edu.requiresDateConfirmation && (
                         <span
                           title={edu.dateConfirmationNotes || 'Only completion year in resume; start year requires confirmation'}
@@ -1166,11 +1181,16 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                       )}
                     </div>
                     <div style={{ fontSize: '13px', color: '#8294A6', marginTop: '2px' }}>
-                      {edu.institution} &bull; {edu.fieldOfStudy}
+                      {edu.institution} {edu.specialization ? `• ${edu.specialization}` : edu.fieldOfStudy ? `• ${edu.fieldOfStudy}` : ''}
                     </div>
                     <div style={{ fontSize: '12px', color: '#8E948D', marginTop: '2px' }}>
-                      {edu.startYear ? `${edu.startYear} — ${edu.endYear}` : edu.endYear} {edu.grade && `&bull; ${edu.grade}`}
+                      {edu.startYear ? `${edu.startYear} — ${edu.endYear}` : edu.endYear} {edu.grade && `• ${edu.grade}`}
                     </div>
+                    {(edu.courseOverview || edu.description) && (
+                      <p style={{ margin: '8px 0 0', fontSize: '12.5px', color: '#C1C4BE', lineHeight: 1.5, maxWidth: '680px' }}>
+                        {edu.courseOverview || edu.description}
+                      </p>
+                    )}
                     {edu.highlights && edu.highlights.length > 0 && (
                       <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '12px', color: '#C1C4BE' }}>
                         {edu.highlights.map((h, hIdx) => (
