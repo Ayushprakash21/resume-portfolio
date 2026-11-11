@@ -265,6 +265,52 @@ class StorageClient {
       ? `/api/storage/secure/${objectKey}`
       : `/api/storage/files/${objectKey}`;
   }
+
+  /**
+   * Server-validates and persists a verified issuer brand image directly into Cloudflare R2.
+   * Confirms object availability via HEAD check before resolving.
+   */
+  public async persistIssuerLogo(payload: {
+    imageUrl: string;
+    sourcePageUrl?: string;
+    issuerName?: string;
+    issuerDomain?: string;
+  }): Promise<{
+    storageProvider: 'cloudflare-r2';
+    objectKey: string;
+    publicUrl: string;
+    mimeType: string;
+    format: 'svg' | 'png' | 'webp' | 'jpeg';
+    sizeBytes: number;
+    width?: number;
+    height?: number;
+    originalSourceUrl: string;
+    sourcePageUrl: string;
+    issuerDomain: string;
+    verifiedAt: string;
+    uploadedAt: string;
+  }> {
+    const res = await fetch('/api/storage/persist-issuer-logo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.success || !data?.file?.publicUrl) {
+      throw new Error(data?.error || `Failed to validate and store logo in R2 (HTTP ${res.status}).`);
+    }
+
+    const stored = data.file;
+    // Confirm the newly persisted R2 object can be retrieved via public delivery URL
+    const accessible = await this.verifyFile(stored.publicUrl);
+    if (!accessible) {
+      throw new Error('Image was written to R2, but public delivery verification (HEAD) failed.');
+    }
+
+    return stored;
+  }
 }
 
 export const storageClient = new StorageClient();

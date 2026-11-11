@@ -1046,6 +1046,7 @@ export const cmsService = {
         logoSource: newRecord.issuerLogoSource || 'directory',
         altText: newRecord.issuerLogoAlt || `${newRecord.issuer} Official Brand Logo`,
         verifiedByAdmin: newRecord.issuerLogoSource === 'directory' || newRecord.issuerLogoSource === 'upload',
+        logoMetadata: newRecord.issuerLogoMetadata,
       }).catch((e) => console.warn('[saveIssuer notice]:', e));
     }
 
@@ -1089,6 +1090,7 @@ export const cmsService = {
           logoSource: merged.issuerLogoSource || 'directory',
           altText: merged.issuerLogoAlt || `${merged.issuer} Official Brand Logo`,
           verifiedByAdmin: merged.issuerLogoSource === 'directory' || merged.issuerLogoSource === 'upload',
+          logoMetadata: merged.issuerLogoMetadata,
         }).catch((e) => console.warn('[saveIssuer notice]:', e));
       }
 

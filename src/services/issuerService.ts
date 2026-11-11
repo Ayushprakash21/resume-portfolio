@@ -1,16 +1,54 @@
-import { CertificationRecord, IssuerRecord } from '../types/cms';
+import { CertificationRecord, IssuerLogoStorageMetadata, IssuerRecord } from '../types/cms';
+import { storageClient } from './storage/storageClient';
+
+export type LogoFormat = 'svg' | 'png' | 'webp' | 'jpeg';
+export type CandidateSourceType =
+  | 'existing_r2'
+  | 'official_website'
+  | 'verified_directory'
+  | 'wikimedia_commons'
+  | 'favicon_verified'
+  | 'monogram';
+
+export type CandidateValidationState = 'loading' | 'verified' | 'failed' | 'unsupported';
 
 export interface IssuerCandidate {
   id: string;
   name: string;
   domain: string;
   website: string;
+  sourcePageUrl: string;
+  imageUrl: string;
   logoUrl: string;
-  logoFormat: 'svg' | 'png' | 'webp';
+  format: LogoFormat;
+  logoFormat: LogoFormat;
+  sourceType: CandidateSourceType;
   source: 'directory' | 'clearbit' | 'upload' | 'url' | 'monogram';
   altText: string;
   badge: string;
   verified: boolean;
+  validationState: CandidateValidationState;
+  validationMessage?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  width?: number;
+  height?: number;
+}
+
+export interface CustomLogoValidationResult {
+  ok: boolean;
+  isWebpage: boolean;
+  validationState: CandidateValidationState;
+  reason: string;
+  imageUrl?: string;
+  sourcePageUrl?: string;
+  domain?: string;
+  format?: LogoFormat;
+  mimeType?: string;
+  width?: number;
+  height?: number;
+  sizeBytes?: number;
+  extractedCandidates?: IssuerCandidate[];
 }
 
 export interface ResolvedLogoCandidate {
@@ -34,6 +72,34 @@ export interface CertificationLogoResolution {
   verified: boolean;
   hasDeprecatedUrl: boolean;
   monogram: IssuerMonogramMeta;
+}
+
+/**
+ * Returns true when a URL appears to be an HTML webpage (e.g. https://logos-world.net/rutgers-university-logo/)
+ * rather than a direct image file or storage delivery URL.
+ */
+export function isProbableWebpageUrl(rawUrl?: string | null): boolean {
+  if (!rawUrl) return false;
+  const trimmed = rawUrl.trim();
+  if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) return false;
+  try {
+    const parsed = new URL(trimmed);
+    const pathLower = parsed.pathname.toLowerCase();
+    if (/\.(html|htm|php|asp|aspx|jsp)$/i.test(pathLower)) return true;
+    // Known third-party logo webpage aggregators or trailing slash HTML pages without image params
+    if (
+      parsed.hostname.includes('logos-world.net') &&
+      !/\.(svg|png|webp|jpg|jpeg)(\?|$)/i.test(pathLower)
+    ) {
+      return true;
+    }
+    if (pathLower.endsWith('/') && !parsed.search.includes('sz=') && !parsed.search.includes('format=')) {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -431,46 +497,70 @@ class IssuerService {
   }
 
   /**
-   * Resolve logo candidates across CMS directory, verified local vector SVG assets,
-   * and optional website icon fallback (never emitting dead Clearbit URLs).
+   * Resolve logo candidates following strict priority:
+   * 1. Existing uploaded & verified R2 logo in CMS
+   * 2. Official issuer website & Wikimedia brand assets (via server-side SSRF-safe Worker discovery)
+   * 3. Curated verified brand directory (/issuers/*.svg)
+   * 4. Validated external domain icons (never emitting dead Clearbit URLs or unvalidated webpage URLs)
    */
   public async resolveLogoCandidates(
     issuerQuery: string,
-    cmsIssuers: IssuerRecord[] = []
+    cmsIssuers: IssuerRecord[] = [],
+    options?: { domain?: string; skipBackend?: boolean }
   ): Promise<IssuerCandidate[]> {
     const query = issuerQuery.trim();
     if (!query) return [];
 
     const candidates: IssuerCandidate[] = [];
+    const seenImageUrls = new Set<string>();
     const lower = query.toLowerCase();
 
-    // 1. Check CMS + verified local SVG directory (sorted with exact match first)
+    // 1 & 3. Existing R2-uploaded CMS issuers & Verified Local SVG Directory
     const matchedDirectory = this.searchDirectory(query, cmsIssuers).sort((a, b) => {
+      const aR2 = a.logoUrl.startsWith('/api/storage/files/') ? -2 : 0;
+      const bR2 = b.logoUrl.startsWith('/api/storage/files/') ? -2 : 0;
+      if (aR2 !== bR2) return aR2 - bR2;
       const aExact = a.issuerName.toLowerCase() === lower ? -1 : 0;
       const bExact = b.issuerName.toLowerCase() === lower ? -1 : 0;
       return aExact - bExact;
     });
 
     for (const item of matchedDirectory) {
+      if (!item.logoUrl || isProbableWebpageUrl(item.logoUrl) || seenImageUrls.has(item.logoUrl)) continue;
+      seenImageUrls.add(item.logoUrl);
+
+      const isR2 = item.logoUrl.startsWith('/api/storage/files/') || item.logoSource === 'upload';
+      const fmt: LogoFormat = (item.logoFormat as LogoFormat) || 'svg';
+      const website = item.issuerWebsite || (item.issuerDomain ? `https://${item.issuerDomain}` : '');
+
       candidates.push({
         id: `dir-${item.id}`,
         name: item.issuerName,
         domain: item.issuerDomain || '',
-        website: item.issuerWebsite || `https://${item.issuerDomain}`,
+        website,
+        sourcePageUrl: website || item.logoUrl,
+        imageUrl: item.logoUrl,
         logoUrl: item.logoUrl,
-        logoFormat: item.logoFormat || 'svg',
-        source: item.logoSource === 'upload' ? 'upload' : 'directory',
-        altText: item.altText,
-        badge: item.logoSource === 'upload' ? 'Verified R2 Upload' : 'Official Vector SVG',
+        format: fmt,
+        logoFormat: fmt,
+        sourceType: isR2 ? 'existing_r2' : 'verified_directory',
+        source: isR2 ? 'upload' : 'directory',
+        altText: item.altText || `${item.issuerName} Official Logo`,
+        badge: isR2 ? 'Verified R2 Asset' : 'Official Vector SVG',
         verified: !!item.verifiedByAdmin,
+        validationState: item.verifiedByAdmin ? 'verified' : 'failed',
+        validationMessage: isR2
+          ? 'Existing verified R2 asset'
+          : 'Verified built-in SVG asset (persists to R2 on selection)',
+        mimeType: fmt === 'svg' ? 'image/svg+xml' : `image/${fmt}`,
       });
     }
 
-    // 2. Derive canonical domain if user typed a domain or known institution/company
-    let guessedDomain = '';
-    if (query.includes('.')) {
+    // 2 & 4. Server-side discovery & byte validation for arbitrary universities, orgs & companies
+    let guessedDomain = options?.domain || '';
+    if (!guessedDomain && query.includes('.')) {
       guessedDomain = normalizeDomain(query);
-    } else {
+    } else if (!guessedDomain) {
       for (const [key, dom] of Object.entries(KNOWN_ISSUER_DOMAIN_MAP)) {
         if (lower.includes(key)) {
           guessedDomain = dom;
@@ -479,23 +569,201 @@ class IssuerService {
       }
     }
 
-    // 3. Offer domain icon candidate ONLY as an explicitly unverified external fallback when no verified SVG exists
-    if (guessedDomain && candidates.length === 0) {
-      candidates.push({
-        id: `favicon-${guessedDomain}`,
-        name: query,
-        domain: guessedDomain,
-        website: `https://${guessedDomain}`,
-        logoUrl: `https://www.google.com/s2/favicons?domain=${guessedDomain}&sz=128`,
-        logoFormat: 'png',
-        source: 'url',
-        altText: `${query} Website Icon (Unverified)`,
-        badge: 'Website Favicon (Unverified — Verify Visually)',
-        verified: false,
-      });
+    if (!options?.skipBackend && typeof window !== 'undefined' && typeof fetch === 'function') {
+      try {
+        const res = await fetch('/api/issuers/discover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ query, domain: guessedDomain || undefined }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.success && Array.isArray(data.candidates)) {
+            for (const c of data.candidates) {
+              if (!c.imageUrl || isProbableWebpageUrl(c.imageUrl) || seenImageUrls.has(c.imageUrl)) {
+                continue;
+              }
+              seenImageUrls.add(c.imageUrl);
+              candidates.push({
+                id: c.id,
+                name: c.name || query,
+                domain: c.domain || guessedDomain,
+                website: c.website || '',
+                sourcePageUrl: c.sourcePageUrl || c.website || '',
+                imageUrl: c.imageUrl,
+                logoUrl: c.imageUrl,
+                format: (c.format as LogoFormat) || 'png',
+                logoFormat: (c.format as LogoFormat) || 'png',
+                sourceType: c.sourceType || 'official_website',
+                source: 'url',
+                altText: c.altText || `${query} Brand Logo`,
+                badge: c.badge || 'Official Website Asset',
+                verified: !!c.verified,
+                validationState: c.validationState || (c.verified ? 'verified' : 'failed'),
+                validationMessage: c.validationMessage,
+                mimeType: c.mimeType,
+                sizeBytes: c.sizeBytes,
+                width: c.width,
+                height: c.height,
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[IssuerService] Server discovery fallback notice:', err);
+      }
     }
 
-    return candidates;
+    return candidates.sort((a, b) => {
+      if (a.verified !== b.verified) return a.verified ? -1 : 1;
+      const priorityScore = (s: CandidateSourceType) =>
+        s === 'existing_r2'
+          ? 0
+          : s === 'official_website'
+          ? 1
+          : s === 'verified_directory'
+          ? 2
+          : s === 'wikimedia_commons'
+          ? 3
+          : 4;
+      return priorityScore(a.sourceType) - priorityScore(b.sourceType);
+    });
+  }
+
+  /**
+   * Validates an arbitrary admin-supplied URL via backend SSRF-safe pipeline.
+   * Rejects webpage URLs (e.g. HTML pages) as direct images and extracts validated image candidates if present.
+   */
+  public async validateExternalLogoUrl(
+    inputUrl: string,
+    issuerQuery = '',
+    fetchImpl: typeof fetch = fetch
+  ): Promise<CustomLogoValidationResult> {
+    const trimmed = (inputUrl || '').trim();
+    if (!trimmed) {
+      return {
+        ok: false,
+        isWebpage: false,
+        validationState: 'failed',
+        reason: 'Please enter a valid HTTPS image URL.',
+      };
+    }
+
+    if (!trimmed.startsWith('https://')) {
+      return {
+        ok: false,
+        isWebpage: false,
+        validationState: 'unsupported',
+        reason: 'Only HTTPS URLs are permitted for external issuer logos.',
+      };
+    }
+
+    const res = await fetchImpl('/api/issuers/validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ url: trimmed, query: issuerQuery }),
+    });
+
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data) {
+      return {
+        ok: false,
+        isWebpage: isProbableWebpageUrl(trimmed),
+        validationState: 'failed',
+        reason: data?.error || `Validation endpoint failed (HTTP ${res.status}).`,
+      };
+    }
+
+    const extractedCandidates: IssuerCandidate[] = Array.isArray(data.extractedCandidates)
+      ? data.extractedCandidates.map((c: any) => ({
+          id: c.id,
+          name: c.name || issuerQuery || data.domain || 'Issuer',
+          domain: c.domain || data.domain || '',
+          website: c.website || '',
+          sourcePageUrl: c.sourcePageUrl || trimmed,
+          imageUrl: c.imageUrl,
+          logoUrl: c.imageUrl,
+          format: c.format || 'png',
+          logoFormat: c.format || 'png',
+          sourceType: c.sourceType || 'official_website',
+          source: 'url',
+          altText: c.altText || `${issuerQuery || 'Issuer'} Logo`,
+          badge: c.badge || 'Extracted Image',
+          verified: !!c.verified,
+          validationState: c.validationState || 'verified',
+          validationMessage: c.validationMessage,
+          mimeType: c.mimeType,
+          sizeBytes: c.sizeBytes,
+          width: c.width,
+          height: c.height,
+        }))
+      : [];
+
+    return {
+      ok: !!data.ok,
+      isWebpage: !!data.isWebpage,
+      validationState: data.validationState || (data.ok ? 'verified' : 'failed'),
+      reason: data.reason || (data.ok ? 'Verified direct image' : 'Image validation failed'),
+      imageUrl: data.imageUrl,
+      sourcePageUrl: data.sourcePageUrl,
+      domain: data.domain,
+      format: data.format,
+      mimeType: data.mimeType,
+      width: data.width,
+      height: data.height,
+      sizeBytes: data.sizeBytes,
+      extractedCandidates,
+    };
+  }
+
+  /**
+   * Validates & persists a selected verified candidate directly into Cloudflare R2
+   * via central storageClient, returning permanent R2 URL and full metadata.
+   */
+  public async persistCandidateToR2(
+    candidate: Pick<IssuerCandidate, 'imageUrl' | 'sourcePageUrl' | 'name' | 'domain' | 'verified' | 'validationState'>,
+    persistFn: typeof storageClient.persistIssuerLogo = (p) => storageClient.persistIssuerLogo(p)
+  ): Promise<{
+    publicUrl: string;
+    objectKey: string;
+    format: LogoFormat;
+    metadata: IssuerLogoStorageMetadata;
+  }> {
+    if (!candidate.verified || candidate.validationState === 'failed' || candidate.validationState === 'unsupported') {
+      throw new Error('Cannot select or store an unverified or failed logo candidate.');
+    }
+    if (!candidate.imageUrl || isProbableWebpageUrl(candidate.imageUrl)) {
+      throw new Error('Selected candidate does not point to a valid direct image file.');
+    }
+
+    const stored = await persistFn({
+      imageUrl: candidate.imageUrl,
+      sourcePageUrl: candidate.sourcePageUrl,
+      issuerName: candidate.name,
+      issuerDomain: candidate.domain,
+    });
+
+    return {
+      publicUrl: stored.publicUrl,
+      objectKey: stored.objectKey,
+      format: stored.format,
+      metadata: {
+        storageProvider: stored.storageProvider,
+        objectKey: stored.objectKey,
+        mimeType: stored.mimeType,
+        sizeBytes: stored.sizeBytes,
+        width: stored.width,
+        height: stored.height,
+        originalSourceUrl: stored.originalSourceUrl,
+        sourcePageUrl: stored.sourcePageUrl,
+        issuerDomain: stored.issuerDomain,
+        verifiedAt: stored.verifiedAt,
+        uploadedAt: stored.uploadedAt,
+      },
+    };
   }
 }
 

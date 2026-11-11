@@ -165,6 +165,20 @@ export interface ProjectRecord {
   updatedAt?: string;
 }
 
+export interface IssuerLogoStorageMetadata {
+  storageProvider: 'cloudflare-r2';
+  objectKey: string;
+  mimeType: string;
+  sizeBytes: number;
+  width?: number;
+  height?: number;
+  originalSourceUrl?: string;
+  sourcePageUrl?: string;
+  issuerDomain?: string;
+  verifiedAt?: string;
+  uploadedAt?: string;
+}
+
 export interface CertificationRecord {
   id: string;
   title: string;
@@ -174,8 +188,9 @@ export interface CertificationRecord {
   issuerLogo?: string;
   issuerLogoKey?: string;
   issuerLogoSource?: 'directory' | 'clearbit' | 'upload' | 'url' | 'monogram';
-  issuerLogoFormat?: 'svg' | 'png' | 'webp';
+  issuerLogoFormat?: 'svg' | 'png' | 'webp' | 'jpeg';
   issuerLogoAlt?: string;
+  issuerLogoMetadata?: IssuerLogoStorageMetadata;
   issueMonth?: string;
   issueYear?: string;
   completionDate: string;
@@ -206,10 +221,11 @@ export interface IssuerRecord {
   issuerWebsite?: string;
   logoObjectKey?: string;
   logoUrl: string;
-  logoFormat?: 'svg' | 'png' | 'webp';
+  logoFormat?: 'svg' | 'png' | 'webp' | 'jpeg';
   logoSource: 'directory' | 'clearbit' | 'upload' | 'url' | 'monogram';
   altText: string;
   verifiedByAdmin: boolean;
+  logoMetadata?: IssuerLogoStorageMetadata;
   createdAt?: string;
   updatedAt?: string;
 }

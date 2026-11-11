@@ -20,6 +20,7 @@ import {
   issuerService,
   IssuerCandidate,
   isDeprecatedOrBrokenLogoUrl,
+  isProbableWebpageUrl,
 } from '../../../services/issuerService';
 import { CertificationLogoMark } from '../../editorial/CertificationLogoMark';
 import { ImageUploadWithCrop } from '../common/ImageUploadWithCrop';
@@ -90,6 +91,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
         issuerLogoSource: initialCertification.issuerLogoSource || 'directory',
         issuerLogoFormat: initialCertification.issuerLogoFormat || 'svg',
         issuerLogoAlt: initialCertification.issuerLogoAlt || '',
+        issuerLogoMetadata: initialCertification.issuerLogoMetadata,
         issueMonth: initialCertification.issueMonth || '',
         issueYear: initialCertification.issueYear || '',
         completionDate: initialCertification.completionDate || '',
@@ -143,6 +145,16 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
   const [issuerCandidates, setIssuerCandidates] = useState<IssuerCandidate[]>([]);
   const [isSearchingIssuer, setIsSearchingIssuer] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string>('');
+  const [persistingCandidateId, setPersistingCandidateId] = useState<string>('');
+  const [failedCandidateThumbs, setFailedCandidateThumbs] = useState<Record<string, boolean>>({});
+  const [pendingCustomUrl, setPendingCustomUrl] = useState<string>('');
+  const [isValidatingCustomUrl, setIsValidatingCustomUrl] = useState<boolean>(false);
+  const [logoSelectionError, setLogoSelectionError] = useState<{
+    message: string;
+    retryCandidate?: IssuerCandidate;
+    retryUrl?: string;
+  } | null>(null);
   const [previewLogoStatus, setPreviewLogoStatus] = useState<{
     renderedAs: 'image' | 'monogram';
     activeUrl: string | null;
@@ -156,12 +168,14 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
   // Trigger search when user types or clicks an issuer
   const handleSearchIssuer = async (query: string) => {
     setIssuerSearchQuery(query);
+    setLogoSelectionError(null);
     if (!query.trim()) {
       setIssuerCandidates([]);
       return;
     }
 
     setIsSearchingIssuer(true);
+    setFailedCandidateThumbs({});
     try {
       const candidates = await issuerService.resolveLogoCandidates(query, cmsService.getIssuers());
       setIssuerCandidates(candidates);
@@ -185,24 +199,130 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSelectIssuerCandidate = (cand: IssuerCandidate) => {
-    setForm((prev) => ({
-      ...prev,
-      issuer: cand.name,
-      issuerDomain: cand.domain,
-      issuerWebsite: cand.website,
-      issuerLogo: cand.logoUrl,
-      issuerLogoKey: '',
-      issuerLogoSource: cand.source,
-      issuerLogoFormat: cand.logoFormat,
-      issuerLogoAlt: cand.altText,
-    }));
-    setIssuerSearchQuery(cand.name);
-    showNotification(
-      cand.verified
-        ? `Selected verified logo for ${cand.name}`
-        : `Selected unverified external icon for ${cand.name} — confirm preview before publishing.`
-    );
+  const handleSelectIssuerCandidate = async (cand: IssuerCandidate) => {
+    if (persistingCandidateId) return;
+    setLogoSelectionError(null);
+
+    const browserFailed = failedCandidateThumbs[cand.id];
+    if (!cand.verified || cand.validationState === 'failed' || cand.validationState === 'unsupported' || browserFailed) {
+      const reason = browserFailed
+        ? 'Browser could not decode this candidate image.'
+        : cand.validationMessage || 'Candidate image failed server validation.';
+      setLogoSelectionError({
+        message: `Cannot use candidate "${cand.name}" (${cand.domain}): ${reason} Previous logo preserved.`,
+      });
+      showNotification(reason, 'error');
+      return;
+    }
+
+    setPersistingCandidateId(cand.id);
+    try {
+      const persisted = await issuerService.persistCandidateToR2(cand);
+
+      setForm((prev) => ({
+        ...prev,
+        issuer: cand.name,
+        issuerDomain: cand.domain,
+        issuerWebsite: cand.website,
+        issuerLogo: persisted.publicUrl,
+        issuerLogoKey: persisted.objectKey,
+        issuerLogoSource: 'upload',
+        issuerLogoFormat: persisted.format,
+        issuerLogoAlt: cand.altText,
+        issuerLogoMetadata: persisted.metadata,
+      }));
+      setSelectedCandidateId(cand.id);
+      setIssuerSearchQuery(cand.name);
+      showNotification(
+        `Verified & stored ${cand.name} logo in Cloudflare R2 (${Math.round(persisted.metadata.sizeBytes / 1024)} KB).`
+      );
+    } catch (err: any) {
+      const reason = err?.message || 'Failed to validate and persist logo into Cloudflare R2.';
+      setLogoSelectionError({
+        message: `${reason} Previous logo preserved.`,
+        retryCandidate: cand,
+      });
+      showNotification(reason, 'error');
+    } finally {
+      setPersistingCandidateId('');
+    }
+  };
+
+  const handleValidateAndPersistCustomUrl = async (overrideUrl?: string) => {
+    const rawUrl = (overrideUrl ?? pendingCustomUrl).trim();
+    if (!rawUrl || isValidatingCustomUrl) return;
+
+    setIsValidatingCustomUrl(true);
+    setLogoSelectionError(null);
+
+    try {
+      const validation = await issuerService.validateExternalLogoUrl(
+        rawUrl,
+        form.issuer || issuerSearchQuery
+      );
+
+      if (!validation.ok || !validation.imageUrl) {
+        if (validation.extractedCandidates && validation.extractedCandidates.length > 0) {
+          setIssuerCandidates((prev) => {
+            const existingIds = new Set(validation.extractedCandidates!.map((e) => e.imageUrl));
+            return [...validation.extractedCandidates!, ...prev.filter((p) => !existingIds.has(p.imageUrl))];
+          });
+        }
+        setLogoSelectionError({
+          message: `${validation.reason} Previous logo preserved.`,
+          retryUrl: validation.isWebpage ? undefined : rawUrl,
+        });
+        showNotification(validation.reason, 'error');
+        return;
+      }
+
+      const cand: IssuerCandidate = {
+        id: `custom-${Date.now()}`,
+        name: form.issuer || issuerSearchQuery || validation.domain || 'Custom Issuer',
+        domain: validation.domain || form.issuerDomain || '',
+        website: validation.domain ? `https://${validation.domain}` : form.issuerWebsite || '',
+        sourcePageUrl: validation.sourcePageUrl || rawUrl,
+        imageUrl: validation.imageUrl,
+        logoUrl: validation.imageUrl,
+        format: validation.format || 'png',
+        logoFormat: validation.format || 'png',
+        sourceType: 'official_website',
+        source: 'url',
+        altText: `${form.issuer || validation.domain || 'Issuer'} Official Brand Logo`,
+        badge: 'Validated External Image',
+        verified: true,
+        validationState: 'verified',
+        mimeType: validation.mimeType,
+        sizeBytes: validation.sizeBytes,
+        width: validation.width,
+        height: validation.height,
+      };
+
+      const persisted = await issuerService.persistCandidateToR2(cand);
+      setForm((prev) => ({
+        ...prev,
+        issuer: prev.issuer || cand.name,
+        issuerDomain: cand.domain || prev.issuerDomain,
+        issuerWebsite: cand.website || prev.issuerWebsite,
+        issuerLogo: persisted.publicUrl,
+        issuerLogoKey: persisted.objectKey,
+        issuerLogoSource: 'upload',
+        issuerLogoFormat: persisted.format,
+        issuerLogoAlt: cand.altText,
+        issuerLogoMetadata: persisted.metadata,
+      }));
+      setPendingCustomUrl('');
+      showNotification(`Custom logo validated and persisted to Cloudflare R2 (${persisted.objectKey}).`);
+    } catch (err: any) {
+      const reason = err?.message || 'Unable to validate or persist external logo URL.';
+      setLogoSelectionError({
+        message: `${reason} Previous logo preserved.`,
+        retryUrl: rawUrl,
+      });
+      showNotification(reason, 'error');
+    } finally {
+      setIsValidatingCustomUrl(false);
+    }
   };
 
   const handleCustomLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -211,6 +331,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
     if (!file) return;
 
     setIsUploadingLogo(true);
+    setLogoSelectionError(null);
     try {
       // Upload logo directly to Cloudflare R2 under certifications/
       const stored = await storageClient.uploadFile(file, {
@@ -220,8 +341,9 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
       });
 
       const ext = file.name.split('.').pop()?.toLowerCase();
-      const format = ext === 'svg' ? 'svg' : ext === 'webp' ? 'webp' : 'png';
+      const format = ext === 'svg' ? 'svg' : ext === 'webp' ? 'webp' : ext === 'jpg' || ext === 'jpeg' ? 'jpeg' : 'png';
       const logoUrl = stored.publicUrl || `/api/storage/files/${stored.objectKey}`;
+      const nowIso = new Date().toISOString();
 
       setForm((prev) => ({
         ...prev,
@@ -230,6 +352,15 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
         issuerLogoSource: 'upload',
         issuerLogoFormat: format as any,
         issuerLogoAlt: `${prev.issuer || 'Issuer'} Official Logo`,
+        issuerLogoMetadata: {
+          storageProvider: 'cloudflare-r2',
+          objectKey: stored.objectKey,
+          mimeType: stored.mimeType || (format === 'svg' ? 'image/svg+xml' : `image/${format}`),
+          sizeBytes: stored.sizeBytes || file.size,
+          issuerDomain: prev.issuerDomain || '',
+          verifiedAt: nowIso,
+          uploadedAt: stored.createdAt || nowIso,
+        },
       }));
 
       showNotification(`Logo uploaded to Cloudflare R2 (${stored.objectKey}).`);
@@ -303,14 +434,17 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
       (!form.issueMonth?.trim() && !!form.issueYear?.trim()) ||
       (!form.issueYear && !form.issueMonth);
 
-    const hasBrokenUrl = !!form.issuerLogo && isDeprecatedOrBrokenLogoUrl(form.issuerLogo);
+    const hasBrokenUrl =
+      !!form.issuerLogo &&
+      (isDeprecatedOrBrokenLogoUrl(form.issuerLogo) || isProbableWebpageUrl(form.issuerLogo));
     const cleanedLogo = hasBrokenUrl ? '' : (form.issuerLogo || '').trim();
-    const cleanedSource = cleanedLogo ? (form.issuerLogoSource || 'url') : 'monogram';
+    const cleanedSource = cleanedLogo ? (form.issuerLogoSource || 'upload') : 'monogram';
 
     const payload = {
       ...form,
       issuerLogo: cleanedLogo,
       issuerLogoKey: cleanedLogo ? (form.issuerLogoKey || initialCertification?.issuerLogoKey || '') : '',
+      issuerLogoMetadata: cleanedLogo ? form.issuerLogoMetadata : undefined,
       issuerLogoSource: cleanedSource as any,
       completionDate: computedCompletionDate,
       expiryDate: computedExpiryDate,
@@ -564,17 +698,29 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
               {issuerCandidates.length > 0 && (
                 <div style={{ marginBottom: '18px' }}>
                   <div style={{ fontSize: '11px', color: '#D4D7DC', fontWeight: 600, marginBottom: '8px' }}>
-                    Available Logo Candidates ({issuerCandidates.length}):
+                    Discovered Brand Assets ({issuerCandidates.length}):
                   </div>
                   <div
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(235px, 1fr))',
                       gap: '10px',
                     }}
                   >
                     {issuerCandidates.map((cand) => {
-                      const isSelected = form.issuerLogo === cand.logoUrl;
+                      const isPersisting = persistingCandidateId === cand.id;
+                      const isBrowserFailed = !!failedCandidateThumbs[cand.id];
+                      const effectiveState = isPersisting
+                        ? 'loading'
+                        : isBrowserFailed
+                        ? 'failed'
+                        : cand.validationState;
+                      const isSelected =
+                        selectedCandidateId === cand.id ||
+                        (!!form.issuerLogo &&
+                          (form.issuerLogo === cand.imageUrl ||
+                            form.issuerLogoMetadata?.originalSourceUrl === cand.imageUrl));
+
                       return (
                         <div
                           key={cand.id}
@@ -585,8 +731,11 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                             backgroundColor: isSelected ? 'rgba(220, 80, 95, 0.18)' : '#14151C',
                             border: isSelected
                               ? '1px solid rgba(220, 80, 95, 0.6)'
+                              : effectiveState === 'failed' || effectiveState === 'unsupported'
+                              ? '1px solid rgba(217, 83, 79, 0.25)'
                               : '1px solid rgba(255, 255, 255, 0.08)',
-                            cursor: 'pointer',
+                            cursor: isPersisting ? 'wait' : 'pointer',
+                            opacity: effectiveState === 'failed' || effectiveState === 'unsupported' ? 0.68 : 1,
                             display: 'flex',
                             alignItems: 'center',
                             gap: '12px',
@@ -608,19 +757,24 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                               overflow: 'hidden',
                             }}
                           >
-                            <img
-                              src={cand.logoUrl}
-                              alt={cand.altText}
-                              style={{
-                                maxWidth: '100%',
-                                maxHeight: '100%',
-                                objectFit: 'contain',
-                              }}
-                              onError={(e) => {
-                                // Graceful fallback
-                                (e.target as HTMLElement).style.display = 'none';
-                              }}
-                            />
+                            {cand.imageUrl && effectiveState !== 'failed' && effectiveState !== 'unsupported' ? (
+                              <img
+                                src={cand.imageUrl}
+                                alt={cand.altText}
+                                style={{
+                                  maxWidth: '100%',
+                                  maxHeight: '100%',
+                                  objectFit: 'contain',
+                                }}
+                                onError={() => {
+                                  setFailedCandidateThumbs((prev) => ({ ...prev, [cand.id]: true }));
+                                }}
+                              />
+                            ) : (
+                              <span style={{ fontSize: '10px', fontWeight: 700, color: '#E06C75' }}>
+                                ERR
+                              </span>
+                            )}
                           </div>
 
                           <div style={{ flex: 1, minWidth: 0 }}>
@@ -636,22 +790,50 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                             >
                               {cand.name}
                             </div>
-                            <div style={{ fontSize: '10px', color: '#8E948D' }}>{cand.domain}</div>
-                            <span
-                              style={{
-                                display: 'inline-block',
-                                marginTop: '3px',
-                                padding: '1px 6px',
-                                borderRadius: '4px',
-                                fontSize: '9px',
-                                backgroundColor: cand.verified
-                                  ? 'rgba(74, 180, 120, 0.15)'
-                                  : 'rgba(255, 255, 255, 0.06)',
-                                color: cand.verified ? '#6CE098' : '#A7B0A9',
-                              }}
-                            >
-                              {cand.badge}
-                            </span>
+                            <div style={{ fontSize: '10px', color: '#8E948D', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {cand.domain} &bull; {cand.format.toUpperCase()}
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+                              <span
+                                style={{
+                                  padding: '1px 6px',
+                                  borderRadius: '4px',
+                                  fontSize: '9px',
+                                  fontWeight: 600,
+                                  backgroundColor:
+                                    effectiveState === 'loading'
+                                      ? 'rgba(130, 148, 166, 0.2)'
+                                      : effectiveState === 'verified'
+                                      ? 'rgba(74, 180, 120, 0.16)'
+                                      : 'rgba(217, 83, 79, 0.18)',
+                                  color:
+                                    effectiveState === 'loading'
+                                      ? '#B8C7D6'
+                                      : effectiveState === 'verified'
+                                      ? '#6CE098'
+                                      : '#E06C75',
+                                }}
+                              >
+                                {effectiveState === 'loading'
+                                  ? 'Persisting to R2...'
+                                  : effectiveState === 'verified'
+                                  ? 'Verified'
+                                  : effectiveState === 'unsupported'
+                                  ? 'Unsupported'
+                                  : 'Failed'}
+                              </span>
+                              <span
+                                style={{
+                                  padding: '1px 6px',
+                                  borderRadius: '4px',
+                                  fontSize: '9px',
+                                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                                  color: '#A7B0A9',
+                                }}
+                              >
+                                {cand.badge}
+                              </span>
+                            </div>
                           </div>
 
                           {isSelected && (
@@ -661,6 +843,52 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                       );
                     })}
                   </div>
+                </div>
+              )}
+
+              {/* Candidate / R2 Selection Error Banner (Previous Valid Logo Preserved) */}
+              {logoSelectionError && (
+                <div
+                  role="alert"
+                  style={{
+                    marginBottom: '14px',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(217, 83, 79, 0.12)',
+                    border: '1px solid rgba(217, 83, 79, 0.35)',
+                    color: '#F38B96',
+                    fontSize: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <span>{logoSelectionError.message}</span>
+                  {(logoSelectionError.retryCandidate || logoSelectionError.retryUrl) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (logoSelectionError.retryCandidate) {
+                          handleSelectIssuerCandidate(logoSelectionError.retryCandidate);
+                        } else if (logoSelectionError.retryUrl) {
+                          handleValidateAndPersistCustomUrl(logoSelectionError.retryUrl);
+                        }
+                      }}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        color: '#FFFFFF',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Retry
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -745,7 +973,7 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                           >
                             {previewLogoStatus.verified
                               ? form.issuerLogoSource === 'upload'
-                                ? 'Verified R2 Upload'
+                                ? 'Verified • Stored in Cloudflare R2'
                                 : 'Verified Directory SVG'
                               : 'External URL (Unverified)'}
                           </span>
@@ -761,6 +989,20 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                           >
                             {form.issuerLogoFormat || 'svg'}
                           </span>
+                          {form.issuerLogoMetadata?.objectKey && (
+                            <span
+                              title={form.issuerLogoMetadata.objectKey}
+                              style={{
+                                padding: '1px 6px',
+                                borderRadius: '4px',
+                                fontSize: '10px',
+                                backgroundColor: 'rgba(74, 180, 120, 0.12)',
+                                color: '#8EE4AF',
+                              }}
+                            >
+                              R2 Key Saved ({Math.max(1, Math.round(form.issuerLogoMetadata.sizeBytes / 1024))} KB)
+                            </span>
+                          )}
                         </>
                       ) : (
                         <span
@@ -855,18 +1097,21 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                 </div>
               </div>
 
-              {/* Optional Custom Logo URL input */}
-              <div style={{ marginTop: '12px' }}>
+              {/* Optional Custom Logo URL Validation & R2 Import */}
+              <div style={{ marginTop: '12px', display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <input
-                  type="text"
-                  value={form.issuerLogo || ''}
-                  onChange={(e) => {
-                    updateField('issuerLogo', e.target.value);
-                    updateField('issuerLogoSource', 'url');
+                  type="url"
+                  value={pendingCustomUrl}
+                  onChange={(e) => setPendingCustomUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleValidateAndPersistCustomUrl();
+                    }
                   }}
-                  placeholder="Or paste direct image URL (https://...)"
+                  placeholder="Or paste HTTPS image URL to validate & store in R2 (https://...)"
                   style={{
-                    width: '100%',
+                    flex: 1,
                     padding: '8px 12px',
                     borderRadius: '6px',
                     backgroundColor: '#0F1015',
@@ -876,6 +1121,24 @@ export const CertificationEditorModal: React.FC<CertificationEditorModalProps> =
                     outline: 'none',
                   }}
                 />
+                <button
+                  type="button"
+                  onClick={() => handleValidateAndPersistCustomUrl()}
+                  disabled={!pendingCustomUrl.trim() || isValidatingCustomUrl}
+                  style={{
+                    padding: '8px 14px',
+                    borderRadius: '6px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.18)',
+                    color: '#FFFFFF',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    cursor: !pendingCustomUrl.trim() || isValidatingCustomUrl ? 'not-allowed' : 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {isValidatingCustomUrl ? 'Validating...' : 'Validate & Save to R2'}
+                </button>
               </div>
             </div>
 

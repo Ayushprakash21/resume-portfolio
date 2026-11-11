@@ -5,6 +5,12 @@
  */
 
 import { handleContactRequest, type ContactEnv } from './contact/contactHandler.ts';
+import {
+  discoverIssuerLogoCandidates,
+  safeFetchExternal,
+  validateCandidateOrWebpageUrl,
+  validateImagePayload,
+} from './issuers/issuerLogoHandler.ts';
 
 export interface StorageEnv extends ContactEnv {
   ASSETS: { fetch: (request: Request) => Promise<Response> };
@@ -576,6 +582,188 @@ export async function handleStorageRequest(request: Request, env: StorageEnv): P
     }
   }
 
+  // 7. FETCH, VALIDATE & PERSIST ISSUER LOGO INTO R2 (ADMIN ONLY)
+  if (pathname === '/api/storage/persist-issuer-logo' && request.method === 'POST') {
+    const auth = await authenticateAdmin(request, env);
+    if (!auth.authorized) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized: Admin authentication required.' }),
+        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    if (!r2) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'R2 storage binding unavailable.' }),
+        { status: 503, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    try {
+      const body = (await request.json()) as {
+        imageUrl?: string;
+        sourcePageUrl?: string;
+        issuerName?: string;
+        issuerDomain?: string;
+      };
+
+      const imageUrl = (body.imageUrl || '').trim();
+      if (!imageUrl) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Missing imageUrl to validate and persist.' }),
+          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+
+      // Case A: Already stored inside R2 via /api/storage/files/...
+      if (imageUrl.startsWith('/api/storage/files/')) {
+        const existingKey = decodeURIComponent(imageUrl.slice('/api/storage/files/'.length)).replace(/^\/+/, '');
+        if (!existingKey || existingKey.startsWith('private/') || existingKey.includes('..')) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Invalid or private R2 objectKey.' }),
+            { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+          );
+        }
+        const head = await r2.head(existingKey);
+        if (!head) {
+          return new Response(
+            JSON.stringify({ success: false, error: `R2 object "${existingKey}" not found.` }),
+            { status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+          );
+        }
+        const nowIso = new Date().toISOString();
+        const mimeType = inferContentType(existingKey, head.httpMetadata?.contentType);
+        return new Response(
+          JSON.stringify({
+            success: true,
+            file: {
+              storageProvider: 'cloudflare-r2',
+              objectKey: existingKey,
+              publicUrl: `/api/storage/files/${existingKey}`,
+              mimeType,
+              format: mimeType.includes('svg') ? 'svg' : mimeType.includes('webp') ? 'webp' : mimeType.includes('jpeg') ? 'jpeg' : 'png',
+              sizeBytes: head.size,
+              originalSourceUrl: head.customMetadata?.originalSourceUrl || imageUrl,
+              sourcePageUrl: body.sourcePageUrl || head.customMetadata?.sourcePageUrl || '',
+              issuerDomain: body.issuerDomain || head.customMetadata?.issuerDomain || '',
+              verifiedAt: nowIso,
+              uploadedAt: head.customMetadata?.uploadedAt || nowIso,
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+
+      let rawBytes: Uint8Array;
+      let rawMime: string | null = null;
+      let resolvedSourceUrl = imageUrl;
+
+      // Case B: Local verified asset in Worker static ASSETS (/issuers/...)
+      if (imageUrl.startsWith('/issuers/')) {
+        const assetReq = new Request(new URL(imageUrl, url.origin).toString());
+        const assetRes = await env.ASSETS.fetch(assetReq);
+        if (!assetRes.ok) {
+          return new Response(
+            JSON.stringify({ success: false, error: `Static asset "${imageUrl}" returned HTTP ${assetRes.status}.` }),
+            { status: 422, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+          );
+        }
+        rawBytes = new Uint8Array(await assetRes.arrayBuffer());
+        rawMime = assetRes.headers.get('content-type');
+      } else {
+        // Case C: External HTTPS asset — SSRF-safe fetch + manual redirect checks
+        const fetched = await safeFetchExternal(imageUrl, { timeoutMs: 9000, maxBytes: 2 * 1024 * 1024 });
+        if (!fetched.ok) {
+          return new Response(
+            JSON.stringify({ success: false, error: fetched.reason }),
+            { status: 422, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+          );
+        }
+        rawBytes = fetched.bytes;
+        rawMime = fetched.contentType;
+        resolvedSourceUrl = fetched.finalUrl;
+      }
+
+      const validated = validateImagePayload(rawBytes, rawMime, resolvedSourceUrl);
+      if (!validated.valid || !validated.format || !validated.mimeType) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: validated.reason,
+            isWebpage: !!validated.isWebpage,
+            validationState: validated.validationState,
+          }),
+          { status: 422, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+
+      const issuerSlug = (body.issuerName || body.issuerDomain || 'issuer')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 40) || 'issuer';
+      const ext = validated.format === 'jpeg' ? 'jpg' : validated.format;
+      const randomSuffix = crypto.randomUUID().slice(0, 8);
+      const nowIso = new Date().toISOString();
+      const objectKey = `public/certifications/issuer_${issuerSlug}_${Date.now()}_${randomSuffix}.${ext}`;
+      const cleanName = sanitizeKey(`${issuerSlug}_logo.${ext}`);
+
+      await r2.put(objectKey, rawBytes, {
+        httpMetadata: { contentType: validated.mimeType },
+        customMetadata: {
+          originalName: cleanName,
+          category: 'certifications',
+          visibility: 'public',
+          originalSourceUrl: resolvedSourceUrl,
+          sourcePageUrl: body.sourcePageUrl || resolvedSourceUrl,
+          issuerDomain: body.issuerDomain || '',
+          width: String(validated.width || ''),
+          height: String(validated.height || ''),
+          verifiedAt: nowIso,
+          uploadedBy: auth.email || 'Admin',
+          uploadedAt: nowIso,
+        },
+      });
+
+      const verifyHead = await r2.head(objectKey);
+      if (!verifyHead) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'R2 write verification failed (head returned null).' }),
+          { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          file: {
+            fileId: `r2_${Date.now()}_${randomSuffix}`,
+            storageProvider: 'cloudflare-r2',
+            objectKey,
+            publicUrl: `/api/storage/files/${objectKey}`,
+            mimeType: validated.mimeType,
+            format: validated.format,
+            sizeBytes: verifyHead.size,
+            width: validated.width,
+            height: validated.height,
+            originalSourceUrl: resolvedSourceUrl,
+            sourcePageUrl: body.sourcePageUrl || resolvedSourceUrl,
+            issuerDomain: body.issuerDomain || '',
+            verifiedAt: nowIso,
+            uploadedAt: nowIso,
+            status: 'active',
+          },
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    } catch (err: any) {
+      return new Response(
+        JSON.stringify({ success: false, error: err?.message || 'Failed to persist issuer logo to R2.' }),
+        { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+  }
+
   return null;
 }
 
@@ -623,6 +811,78 @@ export default {
       const storageRes = await handleStorageRequest(request, env);
       if (storageRes) {
         return storageRes;
+      }
+    }
+
+    // ==========================================
+    // ISSUER LOGO DISCOVERY & VALIDATION API (ADMIN ONLY)
+    // ==========================================
+    if (url.pathname.startsWith('/api/issuers/')) {
+      const corsHeaders = {
+        'Access-Control-Allow-Origin': url.origin,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Credentials': 'true',
+      };
+
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { status: 204, headers: corsHeaders });
+      }
+
+      const auth = await authenticateAdmin(request, env);
+      if (!auth.authorized) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Unauthorized: Admin authentication required.' }),
+          { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+
+      if (url.pathname === '/api/issuers/discover' && request.method === 'POST') {
+        try {
+          const body = (await request.json()) as { query?: string; domain?: string };
+          const query = (body.query || '').trim();
+          if (!query) {
+            return new Response(
+              JSON.stringify({ success: false, error: 'Missing query parameter.' }),
+              { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+            );
+          }
+
+          const candidates = await discoverIssuerLogoCandidates(query, { domain: body.domain });
+          return new Response(
+            JSON.stringify({ success: true, candidates }),
+            { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+          );
+        } catch (err: any) {
+          return new Response(
+            JSON.stringify({ success: false, error: err?.message || 'Issuer discovery failed.' }),
+            { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+          );
+        }
+      }
+
+      if (url.pathname === '/api/issuers/validate' && request.method === 'POST') {
+        try {
+          const body = (await request.json()) as { url?: string; query?: string };
+          const targetUrl = (body.url || '').trim();
+          if (!targetUrl) {
+            return new Response(
+              JSON.stringify({ success: false, error: 'Missing url parameter.' }),
+              { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+            );
+          }
+
+          const result = await validateCandidateOrWebpageUrl(targetUrl, body.query || '');
+          return new Response(
+            JSON.stringify({ success: true, ...result }),
+            { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+          );
+        } catch (err: any) {
+          return new Response(
+            JSON.stringify({ success: false, error: err?.message || 'URL validation failed.' }),
+            { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+          );
+        }
       }
     }
 
