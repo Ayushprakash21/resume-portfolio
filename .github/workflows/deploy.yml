@@ -1,0 +1,104 @@
+name: Deploy Portfolio to Cloudflare Workers
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    name: Build, Test & Deploy Worker
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Cloudflare deployment secrets
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ACCOUNT_ID" ]; then
+            echo "::error::Missing required GitHub Actions secrets: CLOUDFLARE_API_TOKEN and/or CLOUDFLARE_ACCOUNT_ID."
+            echo "Add both secrets under GitHub Repository -> Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies cleanly from lockfile
+        run: npm ci
+
+      - name: Run TypeScript check and Vite production build
+        run: npm run build
+
+      - name: Run unit & integration test suite
+        run: node --test tests/*.test.mjs
+
+      - name: Record UTC build timestamp
+        id: meta
+        run: echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy Worker & static assets via Wrangler
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.151.3"
+          command: deploy --config wrangler.jsonc --var BUILD_COMMIT_SHA:${{ github.sha }} --var BUILD_TIMESTAMP:${{ steps.meta.outputs.timestamp }}
+
+      - name: Verify live production endpoint & deployed commit SHA
+        run: |
+          set -e
+          HEALTH_URL="https://resume-portfolio.ayushprakash0021.workers.dev/api/health"
+          HOME_URL="https://resume-portfolio.ayushprakash0021.workers.dev/"
+          EXPECTED_SHA="${{ github.sha }}"
+
+          echo "Verifying live deployment for commit $EXPECTED_SHA..."
+          MATCHED=0
+          for i in $(seq 1 12); do
+            STATUS=$(curl -sS -o /tmp/health.json -w "%{http_code}" "$HEALTH_URL" || true)
+            if [ "$STATUS" = "200" ]; then
+              LIVE_SHA=$(node -e "const d = JSON.parse(require('fs').readFileSync('/tmp/health.json','utf8')); console.log(d.commitSha || '')")
+              VERSION_ID=$(node -e "const d = JSON.parse(require('fs').readFileSync('/tmp/health.json','utf8')); console.log(d.workerVersionId || '')")
+              if [ "$LIVE_SHA" = "$EXPECTED_SHA" ]; then
+                echo "Verified live /api/health matches commit $LIVE_SHA (Worker version: $VERSION_ID)"
+                MATCHED=1
+                break
+              fi
+              echo "Attempt $i: HTTP 200, waiting for commitSha sync (got '$LIVE_SHA', expected '$EXPECTED_SHA')"
+            else
+              echo "Attempt $i: HTTP $STATUS from $HEALTH_URL"
+            fi
+            sleep 3
+          done
+
+          if [ "$MATCHED" -ne 1 ]; then
+            echo "::error::Production /api/health did not report expected commit $EXPECTED_SHA"
+            cat /tmp/health.json || true
+            exit 1
+          fi
+
+          HOME_STATUS=$(curl -sS -o /tmp/index.html -w "%{http_code}" "$HOME_URL")
+          if [ "$HOME_STATUS" != "200" ]; then
+            echo "::error::Production homepage returned HTTP $HOME_STATUS"
+            exit 1
+          fi
+
+          BUILT_ASSET=$(grep -oE 'assets/index-[^"]+\.js' dist/index.html | head -n 1)
+          if [ -n "$BUILT_ASSET" ] && ! grep -qF "$BUILT_ASSET" /tmp/index.html; then
+            echo "::error::Stale frontend assets detected! Expected $BUILT_ASSET in live HTML."
+            exit 1
+          fi
+          echo "Production assets verified fresh: $BUILT_ASSET"

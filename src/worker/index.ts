@@ -12,6 +12,13 @@ export interface StorageEnv extends ContactEnv {
   ADMIN_PASSWORD?: string;
   ADMIN_SESSION_SECRET?: string;
   GEMINI_API_KEY?: string;
+  BUILD_COMMIT_SHA?: string;
+  BUILD_TIMESTAMP?: string;
+  CF_VERSION_METADATA?: {
+    id: string;
+    tag?: string;
+    timestamp?: string;
+  };
 }
 
 export interface Env extends StorageEnv {}
@@ -543,6 +550,29 @@ export async function handleStorageRequest(request: Request, env: StorageEnv): P
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+
+    // ==========================================
+    // DEPLOYMENT HEALTH & COMMIT DIAGNOSTIC API
+    // ==========================================
+    if (url.pathname === '/api/health' && request.method === 'GET') {
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          service: 'resume-portfolio',
+          commitSha: env.BUILD_COMMIT_SHA || null,
+          buildTimestamp: env.BUILD_TIMESTAMP || null,
+          workerVersionId: env.CF_VERSION_METADATA?.id || null,
+          workerDeployedAt: env.CF_VERSION_METADATA?.timestamp || null,
+        }),
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store',
+          },
+        }
+      );
+    }
 
     // ==========================================
     // CONTACT ENQUIRY EMAIL DELIVERY API
