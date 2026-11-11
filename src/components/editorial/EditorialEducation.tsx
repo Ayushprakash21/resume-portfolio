@@ -10,8 +10,8 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
   return (
     <section
       id="education"
+      className="public-section"
       style={{
-        padding: 'clamp(56px, 6vw, 84px) 0',
         backgroundColor: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-subtle)',
       }}
@@ -25,48 +25,27 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
         }}
       >
         {/* Editorial Eyebrow */}
-        <div style={{ marginBottom: '18px' }}>
-          <span
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(12px, 0.95vw, 13.5px)',
-              color: '#D4D7DC',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
+        <div className="public-eyebrow-wrap">
+          <span className="public-eyebrow">
             ACADEMIC &bull; QUALIFICATIONS
           </span>
         </div>
 
         <h2
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(32px, 4.4vw, 56px)',
-            fontWeight: 600,
-            lineHeight: 1.12,
-            letterSpacing: '-0.02em',
-            color: '#FFFFFF',
-            maxWidth: '920px',
-            marginBottom: '36px',
-            overflowWrap: 'break-word',
-          }}
+          className="public-heading-editorial public-heading-editorial--standalone"
+          style={{ maxWidth: '880px' }}
         >
           Business administration, commerce &amp; computer applications foundation.
         </h2>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {education.map((edu) => (
             <div
               key={edu.id}
               className="glass-card editorial-timeline-grid"
               style={{
                 borderRadius: '16px',
-                padding: 'clamp(20px, 4vw, 36px)',
+                padding: 'clamp(20px, 3.5vw, 32px)',
                 alignItems: 'start',
               }}
             >
@@ -77,7 +56,7 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
                     alignItems: 'center',
                     gap: '8px',
                     fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
+                    fontSize: '12.5px',
                     color: 'var(--accent-silver)',
                     marginBottom: '10px',
                   }}
@@ -91,10 +70,11 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
                 <h3
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: '20px',
+                    fontSize: 'clamp(20px, 1.45vw, 22px)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
                     marginBottom: '6px',
+                    lineHeight: 1.25,
                   }}
                 >
                   {edu.degree}
@@ -103,7 +83,7 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
                 <div
                   style={{
                     fontFamily: 'var(--font-body)',
-                    fontSize: '14px',
+                    fontSize: '15px',
                     color: 'var(--text-secondary)',
                   }}
                 >
@@ -115,7 +95,7 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
                 <div
                   style={{
                     fontFamily: 'var(--font-body)',
-                    fontSize: '15px',
+                    fontSize: '16px',
                     color: 'var(--text-primary)',
                     fontWeight: 500,
                     marginBottom: edu.associatedCollege ? '4px' : '8px',
@@ -128,7 +108,7 @@ export const EditorialEducation: React.FC<EditorialEducationProps> = ({ educatio
                   <div
                     style={{
                       fontFamily: 'var(--font-body)',
-                      fontSize: '13.5px',
+                      fontSize: '14.5px',
                       color: 'var(--text-secondary)',
                       marginBottom: '8px',
                     }}

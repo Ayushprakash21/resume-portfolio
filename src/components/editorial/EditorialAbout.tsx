@@ -33,11 +33,10 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
   return (
     <section
       id="about"
+      className="public-section"
       style={{
-        padding: 'clamp(56px, 6vw, 84px) 0',
         backgroundColor: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-subtle)',
-        position: 'relative',
       }}
     >
       <div
@@ -49,38 +48,14 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
         }}
       >
         {/* Editorial Section Label */}
-        <div style={{ marginBottom: '18px' }}>
-          <span
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(12px, 0.95vw, 13.5px)',
-              color: '#D4D7DC',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
+        <div className="public-eyebrow-wrap">
+          <span className="public-eyebrow">
             ABOUT &bull; BACKGROUND
           </span>
         </div>
 
         {/* Editorial Headline */}
-        <h2
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(32px, 4.4vw, 56px)',
-            fontWeight: 600,
-            lineHeight: 1.12,
-            letterSpacing: '-0.02em',
-            color: '#FFFFFF',
-            maxWidth: '920px',
-            marginBottom: '36px',
-            overflowWrap: 'break-word',
-          }}
-        >
+        <h2 className="public-heading-about">
           {headline}
         </h2>
 
@@ -109,13 +84,13 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
                   }}
                 >
                   <div>
-                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>
                       {profile.name}
                     </div>
                     {profile.isLocationVisible !== false && (
                       <div
                         data-testid="profile-location"
-                        style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}
+                        style={{ fontFamily: 'var(--font-body)', fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '2px' }}
                       >
                         {profile.location || (profile.city ? `${profile.city}, ${profile.stateProvince ? profile.stateProvince + ', ' : ''}${profile.countryRegion || 'India'}` : '')}
                       </div>
@@ -123,7 +98,7 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <MapPin size={13} color="var(--accent-silver)" />
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-secondary)' }}>
                       Active
                     </span>
                   </div>
@@ -133,12 +108,12 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
           </div>
 
           {/* Column 2: Editorial Text */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <p
               style={{
                 fontFamily: 'var(--font-serif)',
-                fontSize: '24px',
-                lineHeight: 1.4,
+                fontSize: 'clamp(19px, 1.5vw, 22px)',
+                lineHeight: 1.42,
                 color: 'var(--text-primary)',
                 fontStyle: 'italic',
                 fontWeight: 400,
@@ -147,12 +122,12 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
               &ldquo;{quote}&rdquo;
             </p>
 
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', lineHeight: 1.65, color: 'var(--text-secondary)' }}>
               {profile.bio}
             </p>
 
             {detailedText && detailedText.trim() !== profile.bio.trim() && (
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: '15px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: '15.5px', lineHeight: 1.65, color: 'var(--text-secondary)' }}>
                 {detailedText}
               </p>
             )}
@@ -161,26 +136,26 @@ export const EditorialAbout: React.FC<EditorialAboutProps> = ({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '24px',
-                paddingTop: '20px',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '20px',
+                paddingTop: '18px',
                 borderTop: '1px solid var(--border-subtle)',
               }}
             >
               <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '6px' }}>
                   {physicalHeading}
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--text-primary)', lineHeight: 1.55 }}>
                   {physicalText}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '6px' }}>
                   {digitalHeading}
                 </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--text-primary)', lineHeight: 1.55 }}>
                   {digitalText}
                 </div>
               </div>

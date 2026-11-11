@@ -45,11 +45,10 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
   return (
     <section
       id="opentowork"
+      className="public-section"
       style={{
-        padding: 'clamp(48px, 5vw, 64px) 0 20px 0',
         backgroundColor: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-subtle)',
-        position: 'relative',
         overflow: 'hidden',
       }}
     >
@@ -84,24 +83,12 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '16px',
-            marginBottom: '24px',
+            marginBottom: '16px',
           }}
         >
           {/* Eyebrow Label */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: 'clamp(12px, 0.95vw, 13.5px)',
-                color: '#D4D7DC',
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
+            <span className="public-eyebrow">
               {sectionHeading || 'OPEN TO OPPORTUNITIES'}
             </span>
           </div>
@@ -146,29 +133,11 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
         </div>
 
         {/* Section Headline */}
-        <div style={{ maxWidth: '960px', marginBottom: '32px' }}>
-          <h2
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(32px, 4.4vw, 56px)',
-              fontWeight: 600,
-              lineHeight: 1.12,
-              letterSpacing: '-0.02em',
-              color: '#FFFFFF',
-              marginBottom: '16px',
-            }}
-          >
+        <div style={{ maxWidth: '960px' }}>
+          <h2 className="public-heading-main">
             {headline}
           </h2>
-          <p
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '17px',
-              lineHeight: 1.7,
-              color: 'var(--text-secondary)',
-              maxWidth: '820px',
-            }}
-          >
+          <p className="public-section-subtitle" style={{ maxWidth: '820px' }}>
             {description}
           </p>
         </div>

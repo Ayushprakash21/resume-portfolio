@@ -10,8 +10,8 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
   return (
     <section
       id="experience"
+      className="public-section"
       style={{
-        padding: '48px 0 clamp(48px, 5vw, 64px) 0',
         backgroundColor: 'var(--bg-section)',
         borderBottom: '1px solid var(--border-subtle)',
       }}
@@ -25,48 +25,24 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
         }}
       >
         {/* Editorial Eyebrow */}
-        <div style={{ marginBottom: '18px' }}>
-          <span
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(12px, 0.95vw, 13.5px)',
-              color: '#D4D7DC',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
+        <div className="public-eyebrow-wrap">
+          <span className="public-eyebrow">
             EXPERIENCE &bull; CAREER JOURNEY
           </span>
         </div>
 
-        <h2
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(32px, 4.4vw, 56px)',
-            fontWeight: 600,
-            lineHeight: 1.12,
-            letterSpacing: '-0.02em',
-            color: '#FFFFFF',
-            maxWidth: '920px',
-            marginBottom: '36px',
-            overflowWrap: 'break-word',
-          }}
-        >
+        <h2 className="public-heading-experience">
           Career history across supply chain operations, project coordination, business technology delivery, and banking operations.
         </h2>
 
         {/* Editorial Timeline Items */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
           {experiences.map((exp, idx) => (
             <div
               key={exp.id}
               className="editorial-timeline-grid"
               style={{
-                paddingBottom: '48px',
+                paddingBottom: idx !== experiences.length - 1 ? '40px' : '0',
                 borderBottom: idx !== experiences.length - 1 ? '1px solid var(--border-subtle)' : 'none',
               }}
             >
@@ -125,7 +101,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                 <div
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: '22px',
+                    fontSize: 'clamp(20px, 1.5vw, 23px)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
                     lineHeight: 1.25,
@@ -138,7 +114,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                 <div
                   style={{
                     fontFamily: 'var(--font-body)',
-                    fontSize: '15px',
+                    fontSize: '15.5px',
                     color: 'var(--text-secondary)',
                     marginBottom: '12px',
                   }}
@@ -154,7 +130,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                         alignItems: 'center',
                         gap: '6px',
                         fontFamily: 'var(--font-body)',
-                        fontSize: '12px',
+                        fontSize: '12.5px',
                         color: 'var(--text-muted)',
                       }}
                     >
@@ -163,7 +139,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                     </div>
                   )}
                   {exp.locationType && (
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--text-muted)' }}>
                       &bull; {exp.locationType}
                     </span>
                   )}
@@ -171,13 +147,13 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
               </div>
 
               {/* Right Column: Narrative & Key Responsibilities */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                 {exp.description && (
                   <p
                     style={{
                       fontFamily: 'var(--font-body)',
                       fontSize: '16px',
-                      lineHeight: 1.7,
+                      lineHeight: 1.65,
                       color: 'var(--text-secondary)',
                     }}
                   >
@@ -189,7 +165,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                   <p
                     style={{
                       fontFamily: 'var(--font-body)',
-                      fontSize: '14px',
+                      fontSize: '15px',
                       lineHeight: 1.6,
                       color: 'var(--text-muted)',
                       fontStyle: 'italic',
@@ -200,15 +176,15 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                 )}
 
                 {exp.responsibilities && exp.responsibilities.length > 0 && (
-                  <div style={{ marginTop: '4px' }}>
+                  <div style={{ marginTop: '2px' }}>
                     <div
                       style={{
                         fontFamily: 'var(--font-body)',
-                        fontSize: '11px',
+                        fontSize: '12px',
                         textTransform: 'uppercase',
                         letterSpacing: '0.1em',
                         color: 'var(--text-muted)',
-                        marginBottom: '14px',
+                        marginBottom: '12px',
                       }}
                     >
                       Key Deliverables &amp; Responsibilities
@@ -218,7 +194,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                         listStyle: 'none',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '12px',
+                        gap: '10px',
                       }}
                     >
                       {exp.responsibilities.map((resp, rIdx) => (
@@ -229,7 +205,7 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                             alignItems: 'baseline',
                             gap: '12px',
                             fontFamily: 'var(--font-body)',
-                            fontSize: '14px',
+                            fontSize: '15px',
                             lineHeight: 1.6,
                             color: 'var(--text-secondary)',
                           }}
@@ -253,11 +229,11 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
 
                 {/* Associated Skills */}
                 {exp.skillsUsed && exp.skillsUsed.length > 0 && (
-                  <div style={{ marginTop: '12px' }}>
+                  <div style={{ marginTop: '8px' }}>
                     <div
                       style={{
                         fontFamily: 'var(--font-body)',
-                        fontSize: '11px',
+                        fontSize: '12px',
                         textTransform: 'uppercase',
                         letterSpacing: '0.1em',
                         color: 'var(--text-muted)',

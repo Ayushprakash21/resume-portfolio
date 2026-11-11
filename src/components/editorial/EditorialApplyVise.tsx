@@ -33,11 +33,10 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
   return (
     <section
       id="applyvise-ai"
+      className="public-section"
       style={{
-        padding: '90px 0',
         backgroundColor: '#050505',
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        position: 'relative',
       }}
     >
       <div className="container" style={{ maxWidth: '1080px' }}>
@@ -99,17 +98,7 @@ export const EditorialApplyVise: React.FC<EditorialApplyViseProps> = ({ project 
             </div>
 
             <div>
-              <h2
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: 'clamp(28px, 3.2vw, 38px)',
-                  fontWeight: 700,
-                  color: '#FFFFFF',
-                  letterSpacing: '-0.02em',
-                  margin: 0,
-                  lineHeight: 1.1,
-                }}
-              >
+              <h2 className="public-heading-project-detail">
                 {project?.name || 'ApplyWise AI'}
               </h2>
               <div

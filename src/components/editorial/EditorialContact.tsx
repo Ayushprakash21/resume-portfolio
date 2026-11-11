@@ -84,8 +84,8 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
   return (
     <section
       id="contact"
+      className="public-section"
       style={{
-        padding: 'clamp(56px, 6vw, 84px) 0',
         backgroundColor: 'var(--bg-section)',
         borderBottom: '1px solid var(--border-subtle)',
       }}
@@ -99,37 +99,13 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
         }}
       >
         {/* Editorial Eyebrow */}
-        <div style={{ marginBottom: '18px' }}>
-          <span
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(12px, 0.95vw, 13.5px)',
-              color: '#D4D7DC',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
+        <div className="public-eyebrow-wrap">
+          <span className="public-eyebrow">
             CONTACT &bull; LET&apos;S CONNECT
           </span>
         </div>
 
-        <h2
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(32px, 4.4vw, 56px)',
-            fontWeight: 600,
-            lineHeight: 1.12,
-            letterSpacing: '-0.02em',
-            color: '#FFFFFF',
-            maxWidth: '920px',
-            marginBottom: '36px',
-            overflowWrap: 'break-word',
-          }}
-        >
+        <h2 className="public-heading-contact">
           Let&apos;s start a conversation around supply chain transformation, systems execution, or strategic product roles.
         </h2>
 
@@ -147,7 +123,7 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                 <div
                   style={{
                     fontFamily: 'var(--font-body)',
-                    fontSize: '11px',
+                    fontSize: '12px',
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
                     color: 'var(--text-muted)',
@@ -160,7 +136,7 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                 <div
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: '20px',
+                    fontSize: 'clamp(18px, 1.4vw, 22px)',
                     fontWeight: 600,
                     color: 'var(--text-primary)',
                     marginBottom: profile.phone ? '8px' : '20px',
@@ -177,7 +153,7 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                       alignItems: 'center',
                       gap: '8px',
                       fontFamily: 'var(--font-body)',
-                      fontSize: '14px',
+                      fontSize: '15px',
                       color: 'var(--text-secondary)',
                       marginBottom: '20px',
                     }}
@@ -220,19 +196,19 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
             <div
               style={{
                 backgroundColor: 'var(--bg-card)',
-                padding: '32px',
-                borderRadius: '8px',
+                padding: '28px',
+                borderRadius: '12px',
                 border: '1px solid var(--border-subtle)',
               }}
             >
               <div
                 style={{
                   fontFamily: 'var(--font-body)',
-                  fontSize: '11px',
+                  fontSize: '12px',
                   textTransform: 'uppercase',
                   letterSpacing: '0.1em',
                   color: 'var(--text-muted)',
-                  marginBottom: '16px',
+                  marginBottom: '14px',
                 }}
               >
                 Verified Professional Networks
@@ -251,7 +227,7 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                       color: 'var(--text-secondary)',
                       textDecoration: 'none',
                       fontFamily: 'var(--font-body)',
-                      fontSize: '14px',
+                      fontSize: '15px',
                       transition: 'color 0.2s ease',
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
@@ -274,7 +250,7 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                       color: 'var(--text-secondary)',
                       textDecoration: 'none',
                       fontFamily: 'var(--font-body)',
-                      fontSize: '14px',
+                      fontSize: '15px',
                       transition: 'color 0.2s ease',
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}

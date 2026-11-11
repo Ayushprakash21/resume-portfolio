@@ -38,11 +38,10 @@ export const EditorialOrion9: React.FC<EditorialOrion9Props> = ({ project }) => 
   return (
     <section
       id="orion-9"
+      className="public-section"
       style={{
-        padding: '90px 0',
         backgroundColor: '#070709',
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        position: 'relative',
       }}
     >
       <div className="container" style={{ maxWidth: '1080px' }}>
@@ -104,17 +103,7 @@ export const EditorialOrion9: React.FC<EditorialOrion9Props> = ({ project }) => 
             </div>
 
             <div>
-              <h2
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: 'clamp(28px, 3.2vw, 38px)',
-                  fontWeight: 700,
-                  color: '#FFFFFF',
-                  letterSpacing: '-0.02em',
-                  margin: 0,
-                  lineHeight: 1.1,
-                }}
-              >
+              <h2 className="public-heading-project-detail">
                 {project?.name || 'Orion-9'}
               </h2>
               <div

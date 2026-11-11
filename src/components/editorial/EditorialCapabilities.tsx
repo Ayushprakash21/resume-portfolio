@@ -50,12 +50,11 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
   return (
     <section
       id="capabilities"
+      className="public-section"
       style={{
-        padding: 'clamp(64px, 7vw, 96px) 0',
         scrollMarginTop: '80px',
         backgroundColor: 'var(--bg-primary)',
         borderBottom: '1px solid var(--border-subtle)',
-        position: 'relative',
         overflow: 'hidden',
       }}
     >
@@ -68,51 +67,18 @@ export const EditorialCapabilities: React.FC<EditorialCapabilitiesProps> = ({ sk
         }}
       >
         {/* Section Eyebrow */}
-        <div style={{ marginBottom: '18px' }}>
-          <span
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(12px, 0.95vw, 13.5px)',
-              color: '#D4D7DC',
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              fontWeight: 600,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
+        <div className="public-eyebrow-wrap">
+          <span className="public-eyebrow">
             CAPABILITIES &bull; CORE DISCIPLINES
           </span>
         </div>
 
-        {/* Wide Editorial Section Heading */}
-        <h2
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(32px, 4.4vw, 56px)',
-            fontWeight: 600,
-            lineHeight: 1.12,
-            letterSpacing: '-0.02em',
-            color: '#FFFFFF',
-            maxWidth: '1000px',
-            marginBottom: '16px',
-            overflowWrap: 'break-word',
-          }}
-        >
+        {/* Editorial Section Heading */}
+        <h2 className="public-heading-editorial" style={{ maxWidth: '960px' }}>
           Core capabilities across supply chain operations, project coordination, business operations, and enterprise tools.
         </h2>
 
-        <p
-          style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: 'clamp(14px, 1.1vw, 16.5px)',
-            color: 'var(--text-secondary)',
-            maxWidth: '780px',
-            lineHeight: 1.6,
-            margin: '0 0 32px 0',
-          }}
-        >
+        <p className="public-section-subtitle">
           Five specialized skill groups combining operational execution, project coordination, enterprise systems, and applied AI. Drag horizontally or use arrow keys to navigate.
         </p>
 

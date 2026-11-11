@@ -28,11 +28,10 @@ export const EditorialProjects: React.FC<EditorialProjectsProps> = ({
   return (
     <section
       id="projects"
+      className="public-section"
       style={{
-        padding: 'clamp(56px, 6vw, 84px) 0',
         backgroundColor: '#050505',
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        position: 'relative',
       }}
     >
       <div
@@ -44,49 +43,18 @@ export const EditorialProjects: React.FC<EditorialProjectsProps> = ({
         }}
       >
         {/* Section Header */}
-        <div style={{ marginBottom: '44px' }}>
-          <div style={{ marginBottom: '18px' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: 'clamp(12px, 0.95vw, 13.5px)',
-                color: '#D4D7DC',
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
+        <div style={{ marginBottom: '28px' }}>
+          <div className="public-eyebrow-wrap">
+            <span className="public-eyebrow">
               FEATURED WORK &bull; SELECTED SYSTEMS
             </span>
           </div>
 
-          <h2
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(32px, 4.4vw, 56px)',
-              fontWeight: 600,
-              color: '#FFFFFF',
-              letterSpacing: '-0.02em',
-              lineHeight: 1.12,
-              marginBottom: '16px',
-            }}
-          >
+          <h2 className="public-heading-projects">
             Projects
           </h2>
 
-          <p
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: 'clamp(14px, 1.1vw, 16.5px)',
-              color: 'var(--text-secondary)',
-              maxWidth: '680px',
-              lineHeight: 1.65,
-              margin: 0,
-            }}
-          >
+          <p className="public-section-subtitle" style={{ maxWidth: '680px', marginBottom: 0 }}>
             Personal AI-powered platforms designed for supply chain operations and career intelligence.
           </p>
         </div>
@@ -170,7 +138,7 @@ export const EditorialProjects: React.FC<EditorialProjectsProps> = ({
                       <h3
                         style={{
                           fontFamily: 'var(--font-display)',
-                          fontSize: 'clamp(22px, 2.2vw, 28px)',
+                          fontSize: 'clamp(20px, 1.6vw, 24px)',
                           fontWeight: 700,
                           color: '#FFFFFF',
                           letterSpacing: '-0.01em',
@@ -185,7 +153,7 @@ export const EditorialProjects: React.FC<EditorialProjectsProps> = ({
                     <div
                       style={{
                         fontFamily: 'var(--font-serif)',
-                        fontSize: 'clamp(14px, 1.2vw, 16px)',
+                        fontSize: 'clamp(14px, 1.15vw, 16px)',
                         fontStyle: 'italic',
                         color: 'var(--accent-silver)',
                         letterSpacing: '0.01em',
@@ -199,7 +167,7 @@ export const EditorialProjects: React.FC<EditorialProjectsProps> = ({
                     <p
                       style={{
                         fontFamily: 'var(--font-body)',
-                        fontSize: '14px',
+                        fontSize: '15px',
                         lineHeight: 1.6,
                         color: 'var(--text-secondary)',
                         maxWidth: '680px',
@@ -219,7 +187,7 @@ export const EditorialProjects: React.FC<EditorialProjectsProps> = ({
                         <span
                           key={tIdx}
                           style={{
-                            fontSize: '11px',
+                            fontSize: '12px',
                             fontWeight: 500,
                             color: '#A5A5A9',
                             background: 'rgba(255, 255, 255, 0.05)',

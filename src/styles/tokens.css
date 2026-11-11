@@ -59,14 +59,15 @@
 
   /* Typography Scale */
   --type-hero: clamp(3.2rem, 7vw, 6.2rem);
-  --type-editorial-large: clamp(2.4rem, 5vw, 4.2rem);
-  --type-section-heading: clamp(2rem, 4vw, 3.2rem);
-  --type-project-heading: clamp(1.8rem, 3vw, 2.6rem);
-  --type-subheading: clamp(1.2rem, 2vw, 1.6rem);
+  --type-editorial-large: clamp(46px, 3.5vw, 52px);
+  --type-section-heading: clamp(42px, 3.2vw, 48px);
+  --type-project-heading: clamp(36px, 3.05vw, 46px);
+  --type-card-title: clamp(20px, 1.5vw, 24px);
+  --type-subheading: clamp(18px, 1.35vw, 21px);
   --type-body: 16px;
-  --type-body-sm: 14px;
+  --type-body-sm: 15px;
   --type-nav: 13px;
-  --type-metadata: 11px;
+  --type-metadata: 12px;
 
   /* Geometry & Radii */
   --radius-xs: 4px;
