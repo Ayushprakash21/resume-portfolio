@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { CertificationRecord, IssuerRecord } from '../../types/cms';
 import { resolveCertificationLogoPipeline } from '../../services/issuerService';
 
@@ -87,7 +87,7 @@ export const CertificationLogoMark: React.FC<CertificationLogoMarkProps> = ({
     }
   }, [activeCandidate?.url, activeCandidate?.verified, loadState, failedUrls.length]);
 
-  const handleCandidateFailure = (badUrl: string) => {
+  const handleCandidateFailure = useCallback((badUrl: string) => {
     setFailedUrls((prev) => (prev.includes(badUrl) ? prev : [...prev, badUrl]));
     const nextIdx = candidateIdx + 1;
     if (nextIdx < resolution.candidates.length) {
@@ -96,7 +96,25 @@ export const CertificationLogoMark: React.FC<CertificationLogoMarkProps> = ({
     } else {
       setLoadState('fallback');
     }
-  };
+  }, [candidateIdx, resolution.candidates.length]);
+
+  /**
+   * SVGs loaded as <img> elements may report naturalWidth === 0 on some browsers
+   * because SVG is a scalable format with no intrinsic pixel dimensions when no
+   * explicit width/height attributes are present. We treat this as a successful load
+   * for .svg URLs; only reject if both naturalWidth AND naturalHeight are 0 for raster images.
+   */
+  const handleImgLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>, url: string) => {
+    const img = e.currentTarget;
+    const isSvg = url.toLowerCase().includes('.svg');
+    // For SVG: even if naturalWidth is 0, we consider it loaded (it's scalable, not pixel-based).
+    // For raster: reject only if both dimensions are 0 (broken/empty response).
+    if (!isSvg && img.naturalWidth === 0 && img.naturalHeight === 0) {
+      handleCandidateFailure(url);
+    } else {
+      setLoadState('loaded');
+    }
+  }, [handleCandidateFailure]);
 
   if (variant === 'admin') {
     return (
@@ -121,13 +139,7 @@ export const CertificationLogoMark: React.FC<CertificationLogoMarkProps> = ({
             key={activeCandidate.url}
             src={activeCandidate.url}
             alt={activeCandidate.altText}
-            onLoad={(e) => {
-              if (e.currentTarget.naturalWidth === 0) {
-                handleCandidateFailure(activeCandidate.url);
-              } else {
-                setLoadState('loaded');
-              }
-            }}
+            onLoad={(e) => handleImgLoad(e, activeCandidate.url)}
             onError={() => handleCandidateFailure(activeCandidate.url)}
             style={{
               maxWidth: '100%',
@@ -138,8 +150,7 @@ export const CertificationLogoMark: React.FC<CertificationLogoMarkProps> = ({
               opacity: loadState === 'loaded' ? 1 : 0.35,
               transition: 'opacity 0.2s ease',
             }}
-          />
-        ) : (
+          />        ) : (
           <span
             aria-label={resolution.monogram.label}
             style={{
@@ -172,13 +183,7 @@ export const CertificationLogoMark: React.FC<CertificationLogoMarkProps> = ({
             key={activeCandidate.url}
             src={activeCandidate.url}
             alt={activeCandidate.altText}
-            onLoad={(e) => {
-              if (e.currentTarget.naturalWidth === 0) {
-                handleCandidateFailure(activeCandidate.url);
-              } else {
-                setLoadState('loaded');
-              }
-            }}
+            onLoad={(e) => handleImgLoad(e, activeCandidate.url)}
             onError={() => handleCandidateFailure(activeCandidate.url)}
             style={{
               height: activeCandidate.url.toLowerCase().includes('.svg') ? '32px' : 'auto',
@@ -282,13 +287,7 @@ export const CertificationLogoMark: React.FC<CertificationLogoMarkProps> = ({
             alt={activeCandidate.altText}
             decoding="async"
             loading="eager"
-            onLoad={(e) => {
-              if (e.currentTarget.naturalWidth === 0) {
-                handleCandidateFailure(activeCandidate.url);
-              } else {
-                setLoadState('loaded');
-              }
-            }}
+            onLoad={(e) => handleImgLoad(e, activeCandidate.url)}
             onError={() => handleCandidateFailure(activeCandidate.url)}
             style={{
               height: activeCandidate.url.toLowerCase().includes('.svg') ? '42px' : 'auto',
