@@ -90,14 +90,21 @@ jobs:
             exit 1
           fi
 
-          HOME_STATUS=$(curl -sS -o /tmp/index.html -w "%{http_code}" "$HOME_URL")
-          if [ "$HOME_STATUS" != "200" ]; then
-            echo "::error::Production homepage returned HTTP $HOME_STATUS"
-            exit 1
-          fi
-
           BUILT_ASSET=$(grep -oE 'assets/index-[^"]+\.js' dist/index.html | head -n 1)
-          if [ -n "$BUILT_ASSET" ] && ! grep -qF "$BUILT_ASSET" /tmp/index.html; then
+          ASSET_MATCHED=0
+          for j in $(seq 1 10); do
+            HOME_STATUS=$(curl -sS -H "Cache-Control: no-cache" -o /tmp/index.html -w "%{http_code}" "$HOME_URL?v=$(date +%s)" || true)
+            if [ "$HOME_STATUS" = "200" ]; then
+              if [ -z "$BUILT_ASSET" ] || grep -qF "$BUILT_ASSET" /tmp/index.html; then
+                ASSET_MATCHED=1
+                break
+              fi
+              echo "Attempt $j: waiting for edge cache to refresh $BUILT_ASSET"
+            fi
+            sleep 3
+          done
+
+          if [ "$ASSET_MATCHED" -ne 1 ]; then
             echo "::error::Stale frontend assets detected! Expected $BUILT_ASSET in live HTML."
             exit 1
           fi
