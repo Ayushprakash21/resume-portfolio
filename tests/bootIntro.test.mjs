@@ -69,4 +69,25 @@ describe('4-Second Cinematic AP Brand Boot Animation Suite', () => {
     assert.ok(!bootIntroCss.includes('#00ff00'), 'Rejects neon green');
     assert.ok(!bootIntroCss.includes('#00ffff'), 'Rejects bright cyan');
   });
+
+  it('8. Intro typography consumes approved hero name and body/serif font stacks without Benzinova Thin', () => {
+    assert.ok(
+      bootIntroCss.includes("font-family: var(--font-hero-name, 'Orenza Bold', 'Orenza', 'Manrope'"),
+      'boot-intro-founder-name must use approved hero name font stack'
+    );
+    assert.ok(
+      bootIntroCss.includes('.boot-intro-tagline-heading') &&
+      bootIntroCss.includes("font-family: var(--font-body, 'Manrope'"),
+      'boot-intro-tagline-heading must use approved body font stack'
+    );
+    assert.ok(
+      bootIntroCss.includes('.boot-intro-tagline-sub') &&
+      bootIntroCss.includes("font-family: var(--font-serif, 'Cormorant Garamond'"),
+      'boot-intro-tagline-sub must use approved serif font stack'
+    );
+    assert.ok(
+      !bootIntroCss.includes('.boot-intro-founder-name {\n  font-family: var(--font-display)'),
+      'boot-intro-founder-name must not use global Benzinova Thin heading font'
+    );
+  });
 });

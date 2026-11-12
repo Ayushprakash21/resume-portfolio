@@ -53,13 +53,13 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     };
 
     // ========================================================
-    // 1. SCENE SETUP & ATMOSPHERIC FOG (NEAR-BLACK IDENTITY)
+    // 1. SCENE SETUP & INFERNAL VOLCANIC ATMOSPHERE
     // ========================================================
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#050508');
+    scene.background = new THREE.Color('#060407');
 
-    // Atmospheric fog: deep charcoal & dark crimson mist
-    scene.fog = new THREE.FogExp2('#06070B', 0.012);
+    // Volcanic atmospheric mist: deep charcoal & infernal crimson haze
+    scene.fog = new THREE.FogExp2('#080407', 0.015);
 
     // ========================================================
     // 2. CAMERA SETUP (DESKTOP, TABLET & MOBILE ADAPTIVE)
@@ -148,42 +148,62 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     scene.add(overheadSpot);
     scene.add(overheadSpot.target);
 
-    // 4e. Left Fill Light: Soft slate fill for the left hall
-    const fillLight = new THREE.DirectionalLight('#2A2D38', 1.3);
+    // 4e. Left Fill Light: Soft slate fill for the left horizon
+    const fillLight = new THREE.DirectionalLight('#2A2028', 1.2);
     fillLight.position.set(-6.0, 4.0, 4.0);
     scene.add(fillLight);
 
-    // 4f. Cathedral Arch Volumetric Spotlight: Beaming through the distant arch
-    const archSpot = new THREE.SpotLight('#CBD5E1', 4.2, 60, Math.PI / 4, 0.65, 1.2);
-    archSpot.position.set(1.5, 12, -32);
-    archSpot.target.position.set(1.8, 0, 0);
-    archSpot.castShadow = true;
-    scene.add(archSpot);
-    scene.add(archSpot.target);
+    // 4f. Volumetric Distant Crimson Horizon Light
+    const horizonSpot = new THREE.SpotLight('#9E1B2D', 3.2, 70, Math.PI / 3.5, 0.7, 1.3);
+    horizonSpot.position.set(0, 16, -42);
+    horizonSpot.target.position.set(0, 0, -20);
+    scene.add(horizonSpot);
+    scene.add(horizonSpot.target);
 
-    // 4g. RESTRAINED CRIMSON SWORD LIGHT: Subtle warm crimson accent near blade and hilt
+    // 4g. WARM LAVA BOUNCE LIGHT FROM BELOW (Under knight platform, boots, greaves, underside of greatsword)
+    const lavaBounceLight = new THREE.PointLight('#FF3812', 1.4, 6.2, 1.8);
+    lavaBounceLight.position.set(2.4, -0.3, 1.2);
+    scene.add(lavaBounceLight);
+
+    // 4h. DISTANT MOLTEN LAVA POOL ILLUMINATION
+    const lavaPoolLight1 = new THREE.PointLight('#FF2800', 2.8, 32, 1.6);
+    lavaPoolLight1.position.set(8.5, 0.8, -26);
+    scene.add(lavaPoolLight1);
+
+    const lavaPoolLight2 = new THREE.PointLight('#D61E00', 2.2, 40, 1.5);
+    lavaPoolLight2.position.set(-14.0, 0.8, -40);
+    scene.add(lavaPoolLight2);
+
+    // 4i. RESTRAINED CRIMSON RIM LIGHT (Cinematic silhouette contour on knight's shoulders & cape)
+    const crimsonRimLight = new THREE.DirectionalLight('#B31224', 3.2);
+    crimsonRimLight.position.set(2.0, 3.4, -2.8);
+    crimsonRimLight.target.position.set(2.4, 1.8, 0.8);
+    scene.add(crimsonRimLight);
+    scene.add(crimsonRimLight.target);
+
+    // 4j. RESTRAINED CRIMSON SWORD LIGHT: Subtle warm crimson accent near blade and hilt
     const swordGlowLight = new THREE.PointLight('#FF2A42', 2.2, 3.8, 1.8);
     swordGlowLight.position.set(1.85, 0.85, 1.35);
     scene.add(swordGlowLight);
 
-    // 4h. RESTRAINED CRIMSON CHEST CORE LIGHT
+    // 4k. RESTRAINED CRIMSON CHEST CORE LIGHT
     const chestCoreLight = new THREE.PointLight('#FF1E38', 1.8, 2.5, 2.0);
     chestCoreLight.position.set(2.4, 2.85, 1.35);
     scene.add(chestCoreLight);
 
-    // 4i. PIERCING CRIMSON VISOR SLIT LIGHT
+    // 4l. PIERCING CRIMSON VISOR SLIT LIGHT
     const visorEyeLight = new THREE.PointLight('#FF1E38', 2.2, 2.2, 2.0);
     visorEyeLight.position.set(2.4, 3.42, 1.35);
     scene.add(visorEyeLight);
 
-    // 4j. FRONT METALLIC ARMOR KEY LIGHT: Illuminating chevron cuirass facets & silver bevels
+    // 4m. FRONT METALLIC ARMOR KEY LIGHT: Illuminating chevron cuirass facets & silver bevels
     const armorKeyLight = new THREE.DirectionalLight('#D8E2F0', 2.5);
     armorKeyLight.position.set(2.4, 2.6, 4.5);
     armorKeyLight.target.position.set(2.4, 1.8, 0.8);
     scene.add(armorKeyLight);
     scene.add(armorKeyLight.target);
 
-    // 4k. RADIANT HELMET PLUME TOP LIGHT
+    // 4n. RADIANT HELMET PLUME TOP LIGHT
     const plumeLight = new THREE.PointLight('#FF1E42', 2.8, 3.5, 1.5);
     plumeLight.position.set(2.4, 3.8, 0.6);
     scene.add(plumeLight);
@@ -265,30 +285,39 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
       })
     );
 
-    // Cathedral Stone / Pillar Material
+    // Volcanic Basalt Stone & Spire Material
     const rockMat = trackDisposable(
       new THREE.MeshStandardMaterial({
-        color: new THREE.Color('#12151E'),
-        roughness: 0.65,
-        metalness: 0.45,
+        color: new THREE.Color('#0A0C12'),
+        roughness: 0.72,
+        metalness: 0.40,
       })
     );
 
-    // Reflective Flagstone Water / Mirror Floor
-    const stoneFloorMat = trackDisposable(
+    // Volcanic Battlefield Ground Material
+    const volcanicGroundMat = trackDisposable(
       new THREE.MeshStandardMaterial({
-        color: new THREE.Color('#06070B'),
-        roughness: 0.14,
-        metalness: 0.90,
-        envMapIntensity: 2.2,
+        color: new THREE.Color('#07080B'),
+        roughness: 0.84,
+        metalness: 0.28,
       })
     );
 
-    const portalMat = trackDisposable(
+    // Glowing Molten Lava Fissure Material
+    const moltenLavaMat = trackDisposable(
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#E63914'),
+        emissive: new THREE.Color('#FF2600'),
+        emissiveIntensity: 2.8,
+        roughness: 0.35,
+        metalness: 0.15,
+      })
+    );
+
+    // Distant Volcanic Mountains Silhouette Material
+    const mountainMat = trackDisposable(
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#1C1F2E'),
-        transparent: true,
-        opacity: 0.65,
+        color: new THREE.Color('#050508'),
       })
     );
 
@@ -327,109 +356,141 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     };
 
     // ========================================================
-    // 6. CATHEDRAL ENVIRONMENT (ARCHITECTURAL MONOLITHS & WATER)
+    // 6. CINEMATIC INFERNAL VOLCANIC BATTLEFIELD ENVIRONMENT
     // ========================================================
     const environmentGroup = new THREE.Group();
 
-    // 6a. Reflective Floor Plane
-    const waterGeo = trackDisposable(new THREE.PlaneGeometry(64, 80));
+    // 6a. Vast Volcanic Battlefield Ground Plane
+    const waterGeo = trackDisposable(new THREE.PlaneGeometry(120, 140, 24, 24));
     waterGeo.rotateX(-Math.PI / 2);
-    const floorMesh = new THREE.Mesh(waterGeo, stoneFloorMat);
-    floorMesh.position.set(0, -0.01, -12);
-    floorMesh.receiveShadow = true;
-    environmentGroup.add(floorMesh);
+    const terrainMesh = new THREE.Mesh(waterGeo, volcanicGroundMat);
+    terrainMesh.position.set(0, -0.01, -22);
+    terrainMesh.receiveShadow = true;
+    environmentGroup.add(terrainMesh);
 
-    // 6b. Cathedral Colonnade Pillars
-    const pillarGeo = trackDisposable(new THREE.BoxGeometry(1.6, 22, 1.6));
-    const pillarBaseGeo = trackDisposable(new THREE.BoxGeometry(2.4, 1.2, 2.4));
-    const pillarCapitalGeo = trackDisposable(new THREE.BoxGeometry(2.2, 1.0, 2.2));
+    // 6b. Glowing Molten Lava Fissures (Snaking Magma Veins Across Battlefield)
+    const createLavaFissure = (pts: [number, number][], width = 0.24) => {
+      const curvePts = pts.map(([x, z]) => new THREE.Vector3(x, 0.02, z));
+      const curve = new THREE.CatmullRomCurve3(curvePts);
+      const tubeGeo = trackDisposable(new THREE.TubeGeometry(curve, 36, width, 6, false));
+      return new THREE.Mesh(tubeGeo, moltenLavaMat);
+    };
 
-    const leftColX = -8.2;
-    const rightColX = 8.2;
-    const colZPoints = [6, -2, -10, -18, -26, -34];
+    const fissure1 = createLavaFissure([
+      [-16, -46],
+      [-10, -34],
+      [-2, -24],
+      [6, -16],
+      [14, -8],
+    ], 0.26);
+    environmentGroup.add(fissure1);
 
-    colZPoints.forEach((z) => {
-      [leftColX, rightColX].forEach((x) => {
-        const pGroup = new THREE.Group();
-        pGroup.position.set(x, 0, z);
+    const fissure2 = createLavaFissure([
+      [4, -50],
+      [8, -38],
+      [2, -28],
+      [-6, -18],
+    ], 0.20);
+    environmentGroup.add(fissure2);
 
-        const shaft = new THREE.Mesh(pillarGeo, rockMat);
-        shaft.position.y = 11;
-        shaft.castShadow = true;
-        shaft.receiveShadow = true;
-        pGroup.add(shaft);
+    const fissure3 = createLavaFissure([
+      [-26, -32],
+      [-18, -22],
+      [-12, -14],
+    ], 0.18);
+    environmentGroup.add(fissure3);
 
-        const base = new THREE.Mesh(pillarBaseGeo, rockMat);
-        base.position.y = 0.6;
-        base.receiveShadow = true;
-        pGroup.add(base);
+    // Distant Molten Lava Pools
+    const lavaPoolGeo1 = trackDisposable(new THREE.CircleGeometry(5.2, 28));
+    lavaPoolGeo1.rotateX(-Math.PI / 2);
+    const lavaPool1 = new THREE.Mesh(lavaPoolGeo1, moltenLavaMat);
+    lavaPool1.position.set(8.5, 0.025, -26);
+    environmentGroup.add(lavaPool1);
 
-        const cap = new THREE.Mesh(pillarCapitalGeo, rockMat);
-        cap.position.y = 21.5;
-        pGroup.add(cap);
+    const lavaPoolGeo2 = trackDisposable(new THREE.CircleGeometry(6.8, 32));
+    lavaPoolGeo2.rotateX(-Math.PI / 2);
+    const lavaPool2 = new THREE.Mesh(lavaPoolGeo2, moltenLavaMat);
+    lavaPool2.position.set(-14.0, 0.025, -40);
+    environmentGroup.add(lavaPool2);
 
-        environmentGroup.add(pGroup);
-      });
+    // 6c. Black Volcanic Basalt Columns & Crags (Replacing Greek Colonnade)
+    const spires = [
+      { x: -11.5, z: -4, h: 14, r: 1.4 },
+      { x: -14.2, z: -14, h: 22, r: 1.9 },
+      { x: -10.8, z: -22, h: 17, r: 1.6 },
+      { x: -16.5, z: -32, h: 26, r: 2.2 },
+      { x: -9.2, z: -38, h: 18, r: 1.5 },
+      { x: 10.5, z: -6, h: 13, r: 1.3 },
+      { x: 13.8, z: -16, h: 23, r: 1.9 },
+      { x: 11.4, z: -26, h: 18, r: 1.6 },
+      { x: 15.8, z: -36, h: 25, r: 2.1 },
+    ];
+
+    spires.forEach((spire, idx) => {
+      const spireGeo = trackDisposable(new THREE.CylinderGeometry(spire.r * 0.72, spire.r, spire.h, 5));
+      const spireMesh = new THREE.Mesh(spireGeo, rockMat);
+      spireMesh.position.set(spire.x, spire.h / 2 - 0.4, spire.z);
+      spireMesh.rotation.y = idx * 0.75;
+      spireMesh.rotation.z = (idx % 2 === 0 ? 1 : -1) * 0.035;
+      spireMesh.castShadow = true;
+      spireMesh.receiveShadow = true;
+      environmentGroup.add(spireMesh);
     });
 
-    // 6c. Foreground Rocks Grounded Below Left Hero Text Zone
+    // 6d. Foreground Left Rock Grounded Below Hero Text Zone (Preserving acceptance test 21)
     const leftRockGeo = trackDisposable(new THREE.BoxGeometry(3.6, 0.8, 3.2));
     const leftRock = new THREE.Mesh(leftRockGeo, rockMat);
     leftRock.position.set(-7.2, -0.75, 1.8);
     leftRock.receiveShadow = true;
     environmentGroup.add(leftRock);
 
-    // 6d. Massive Distant Gothic Archway & Portal
-    const archGroup = new THREE.Group();
-    archGroup.position.set(0, 0, -38);
+    // 6e. Distant Jagged Volcanic Mountain Silhouette on Horizon (z = -55 to -75)
+    const mountains = [
+      { x: -34, z: -65, h: 28, r: 18 },
+      { x: -16, z: -58, h: 24, r: 15 },
+      { x: 2, z: -70, h: 34, r: 22 },
+      { x: 22, z: -62, h: 26, r: 17 },
+      { x: 38, z: -72, h: 30, r: 20 },
+    ];
 
-    const archPillarGeo = trackDisposable(new THREE.BoxGeometry(2.8, 24, 2.8));
-    const leftArchPillar = new THREE.Mesh(archPillarGeo, rockMat);
-    leftArchPillar.position.set(-6.5, 12, 0);
-    archGroup.add(leftArchPillar);
+    mountains.forEach((m, idx) => {
+      const mGeo = trackDisposable(new THREE.ConeGeometry(m.r, m.h, 5));
+      const mMesh = new THREE.Mesh(mGeo, mountainMat);
+      mMesh.position.set(m.x, m.h / 2 - 2, m.z);
+      mMesh.rotation.y = idx * 1.1;
+      environmentGroup.add(mMesh);
+    });
 
-    const rightArchPillar = new THREE.Mesh(archPillarGeo, rockMat);
-    rightArchPillar.position.set(6.5, 12, 0);
-    archGroup.add(rightArchPillar);
+    // 6f. Distant Ancient Obsidian Monolith (Bearing the subtle AP Brand Monogram)
+    const obeliskGeo = trackDisposable(new THREE.BoxGeometry(3.2, 18, 3.2));
+    const obeliskMesh = new THREE.Mesh(obeliskGeo, rockMat);
+    obeliskMesh.position.set(0, 8.5, -36);
+    obeliskMesh.rotation.y = 0.25;
+    obeliskMesh.rotation.z = -0.05;
+    environmentGroup.add(obeliskMesh);
 
-    const archTorusGeo = trackDisposable(new THREE.TorusGeometry(6.5, 1.6, 16, 32, Math.PI));
-    const archTorus = new THREE.Mesh(archTorusGeo, rockMat);
-    archTorus.position.set(0, 22, 0);
-    archGroup.add(archTorus);
-
-    const portalGeo = trackDisposable(new THREE.PlaneGeometry(12, 24));
-    const portal = new THREE.Mesh(portalGeo, portalMat);
-    portal.position.set(0, 12, -0.5);
-    archGroup.add(portal);
-
-    // 6e. Central Altar Dais with Engraved AP Metallic Emblem
-    const daisGeo = trackDisposable(new THREE.CylinderGeometry(4.2, 4.6, 0.6, 32));
-    const dais = new THREE.Mesh(daisGeo, rockMat);
-    dais.position.set(0, 0.3, -26);
-    dais.receiveShadow = true;
-    archGroup.add(dais);
-
-    // Engraved AP Monogram in the Dais Wall
+    // Engraved AP Monogram in the Distant Obsidian Monolith
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load('/brand/ap-transparent.png', (apTexture) => {
       apTexture.generateMipmaps = true;
-      const apEmblemGeo = trackDisposable(new THREE.PlaneGeometry(5.2, 3.32));
+      const apEmblemGeo = trackDisposable(new THREE.PlaneGeometry(4.8, 3.06));
       const apEmblemMat = trackDisposable(
         new THREE.MeshStandardMaterial({
           map: apTexture,
           transparent: true,
-          roughness: 0.15,
+          roughness: 0.18,
           metalness: 0.95,
           emissive: new THREE.Color('#94A3B8'),
           emissiveIntensity: 0.35,
         })
       );
       const apEmblem = new THREE.Mesh(apEmblemGeo, apEmblemMat);
-      apEmblem.position.set(0, 4.5, -34.8);
+      apEmblem.position.set(0, 6.2, -34.3);
+      apEmblem.rotation.y = 0.25;
+      apEmblem.rotation.z = -0.05;
       scene.add(apEmblem);
     });
 
-    environmentGroup.add(archGroup);
     scene.add(environmentGroup);
 
     // ========================================================
@@ -1230,54 +1291,64 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
 
     figureGroup.add(torsoGroup);
 
-    // 7k. Celestial Dark Eclipse Disc Behind Knight (With subtle faint crimson outer rim)
+    // ========================================================
+    // 7k. SOFT ATMOSPHERIC CRIMSON ENERGY RING (8-12% TRANSLUCENT AURA)
+    // - Feathered radial gradient canvas texture (zero sharp edges)
+    // - Translucent deep crimson illumination (~10-12% visual opacity)
+    // - Substantially soft outer glow fading into volcanic atmosphere
+    // - Kept safely behind shoulders, torso, and cape
+    // ========================================================
     const auraGroup = new THREE.Group();
-    auraGroup.position.set(0, 1.85, -0.95);
+    auraGroup.position.set(0, 1.85, -1.25);
 
-    const haloRingGeo = trackDisposable(new THREE.RingGeometry(2.35, 2.50, 64));
-    const haloRingMesh = new THREE.Mesh(
-      haloRingGeo,
-      trackDisposable(
-        new THREE.MeshBasicMaterial({
-          color: new THREE.Color('#4A060E'),
-          transparent: true,
-          opacity: 0.28,
-          side: THREE.DoubleSide,
-        })
-      )
-    );
-    auraGroup.add(haloRingMesh);
+    const haloCanvas = document.createElement('canvas');
+    haloCanvas.width = 512;
+    haloCanvas.height = 512;
+    const hCtx = haloCanvas.getContext('2d');
+    if (hCtx) {
+      const grad = hCtx.createRadialGradient(256, 256, 110, 256, 256, 248);
+      grad.addColorStop(0.0, 'rgba(0, 0, 0, 0)');
+      grad.addColorStop(0.50, 'rgba(0, 0, 0, 0)');
+      grad.addColorStop(0.70, 'rgba(125, 14, 26, 0.12)'); // Peak ~12% subtle deep crimson
+      grad.addColorStop(0.84, 'rgba(75, 8, 16, 0.05)');
+      grad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+      hCtx.fillStyle = grad;
+      hCtx.fillRect(0, 0, 512, 512);
+    }
 
-    const eclipseDiscGeo = trackDisposable(new THREE.CircleGeometry(2.35, 48));
-    const eclipseDiscMesh = new THREE.Mesh(
-      eclipseDiscGeo,
-      trackDisposable(
-        new THREE.MeshBasicMaterial({
-          color: new THREE.Color('#040508'),
-          transparent: true,
-          opacity: 0.85,
-          side: THREE.DoubleSide,
-        })
-      )
+    const haloTexture = trackDisposable(new THREE.CanvasTexture(haloCanvas));
+    haloTexture.generateMipmaps = true;
+
+    const haloPlaneGeo = trackDisposable(new THREE.PlaneGeometry(5.4, 5.4));
+    const haloPlaneMat = trackDisposable(
+      new THREE.MeshBasicMaterial({
+        map: haloTexture,
+        transparent: true,
+        opacity: 0.90, // Combined with texture alpha yields 10-11% peak visual opacity
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+      })
     );
-    auraGroup.add(eclipseDiscMesh);
+    const haloMesh = new THREE.Mesh(haloPlaneGeo, haloPlaneMat);
+    auraGroup.add(haloMesh);
 
     figureGroup.add(auraGroup);
 
     scene.add(figureGroup);
 
     // ========================================================
-    // 8. RESTORED CRIMSON & AMBER ATMOSPHERIC EMBERS
+    // 8. RESTORED CRIMSON & AMBER ATMOSPHERIC EMBERS + VOLCANIC ASH
     // ========================================================
-    const emberCount = 38;
+    const emberCount = 42;
     const emberGeo = trackDisposable(new THREE.BufferGeometry());
     const emberPositions = new Float32Array(emberCount * 3);
     const emberSpeeds = new Float32Array(emberCount);
 
     for (let i = 0; i < emberCount; i++) {
-      emberPositions[i * 3] = (Math.random() - 0.5) * 16;
-      emberPositions[i * 3 + 1] = Math.random() * 8;
-      emberPositions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+      emberPositions[i * 3] = (Math.random() - 0.5) * 18;
+      emberPositions[i * 3 + 1] = Math.random() * 8.5;
+      emberPositions[i * 3 + 2] = (Math.random() - 0.5) * 22;
       emberSpeeds[i] = 0.2 + Math.random() * 0.4;
     }
 
@@ -1295,6 +1366,31 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
 
     const embers = new THREE.Points(emberGeo, emberMat);
     scene.add(embers);
+
+    // Slow-drifting dark atmospheric ash particles
+    const ashCount = 28;
+    const ashGeo = trackDisposable(new THREE.BufferGeometry());
+    const ashPositions = new Float32Array(ashCount * 3);
+    const ashSpeeds = new Float32Array(ashCount);
+
+    for (let i = 0; i < ashCount; i++) {
+      ashPositions[i * 3] = (Math.random() - 0.5) * 20;
+      ashPositions[i * 3 + 1] = Math.random() * 9;
+      ashPositions[i * 3 + 2] = (Math.random() - 0.5) * 24;
+      ashSpeeds[i] = 0.12 + Math.random() * 0.20;
+    }
+
+    ashGeo.setAttribute('position', new THREE.BufferAttribute(ashPositions, 3));
+    const ashMat = trackDisposable(
+      new THREE.PointsMaterial({
+        color: new THREE.Color('#442226'),
+        size: 0.05,
+        transparent: true,
+        opacity: 0.40,
+      })
+    );
+    const ashParticles = new THREE.Points(ashGeo, ashMat);
+    scene.add(ashParticles);
 
     // ========================================================
     // 9. MOUSE PARALLAX & CINEMATIC TRACKING
@@ -1340,10 +1436,13 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
         torsoGroup.position.y = 2.05 + breath;
         helmetGroup.rotation.y = Math.sin(elapsedTime * 0.7) * 0.035;
 
-        // Subtle Crimson Visor & Core Pulse
+        // Subtle Crimson Visor, Core & Infernal Lava Light Pulse
         swordGlowLight.intensity = 2.2 + Math.sin(elapsedTime * 2.5) * 0.35;
         visorEyeLight.intensity = 2.2 + Math.sin(elapsedTime * 2.8) * 0.35;
         chestCoreLight.intensity = 1.8 + Math.sin(elapsedTime * 2.0) * 0.25;
+        lavaBounceLight.intensity = 1.4 + Math.sin(elapsedTime * 2.2) * 0.25;
+        lavaPoolLight1.intensity = 2.8 + Math.sin(elapsedTime * 1.8 + 1.0) * 0.35;
+        lavaPoolLight2.intensity = 2.2 + Math.sin(elapsedTime * 1.5 + 2.0) * 0.30;
 
         // Corrected Tapered Velvet Cape Wave Simulation
         const pos = capeGeo.attributes.position;
@@ -1363,10 +1462,20 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
         for (let i = 0; i < emberCount; i++) {
           let ey = ePos.getY(i);
           ey += emberSpeeds[i] * 0.018;
-          if (ey > 8.0) ey = 0.1;
+          if (ey > 8.5) ey = 0.1;
           ePos.setY(i, ey);
         }
         ePos.needsUpdate = true;
+
+        // Slow Drifting Volcanic Ash Flakes
+        const aPos = ashGeo.attributes.position;
+        for (let i = 0; i < ashCount; i++) {
+          let ay = aPos.getY(i);
+          ay += ashSpeeds[i] * 0.012;
+          if (ay > 9.0) ay = 0.1;
+          aPos.setY(i, ay);
+        }
+        aPos.needsUpdate = true;
 
         // Smooth Parallax
         currentParallaxX += (targetParallaxX - currentParallaxX) * 0.05;

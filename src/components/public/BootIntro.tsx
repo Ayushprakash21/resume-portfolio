@@ -107,6 +107,18 @@ export const BootIntro: React.FC<BootIntroProps> = ({ onComplete, forcePlay = fa
     };
     window.addEventListener('keydown', handleKeyDown);
 
+    // Support frozen identity state for deterministic visual audits (?freeze_intro=1)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('freeze_intro') || urlParams.has('intro_freeze')) {
+      setStage('identity');
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+        if (typeof document !== 'undefined') {
+          document.body.style.overflow = '';
+        }
+      };
+    }
+
     // Timeline Sequence:
     // 0.0s – 0.7s: 'entrance' (Logo emerges from darkness)
     // 0.7s – 1.8s: 'reveal' (Shimmer light sweep across logo)

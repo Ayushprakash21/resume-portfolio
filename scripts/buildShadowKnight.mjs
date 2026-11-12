@@ -944,31 +944,21 @@ torsoGroup.add(capeMesh);
 characterRoot.add(torsoGroup);
 
 // -------------------------------------------------------------------
-// 12. SHADOW AURA RING / CELESTIAL ECLIPSE DISC (CRIMSON/BLACK IDENTITY)
+// 12. TRANSLUCENT CRIMSON ENERGY RING (8-12% OPACITY, NO SOLID DISC)
 // -------------------------------------------------------------------
 const auraGroup = new THREE.Group();
 auraGroup.name = 'ShadowAuraGroup';
-auraGroup.position.set(0, 1.85, -0.95);
+auraGroup.position.set(0, 1.85, -1.25);
 
-// Outer subtle crimson rim
-const haloRingGeo = new THREE.RingGeometry(2.35, 2.45, 64);
+// Soft translucent crimson energy ring
+const haloRingGeo = new THREE.RingGeometry(2.20, 2.65, 64);
 const haloRingMesh = new THREE.Mesh(haloRingGeo, new THREE.MeshBasicMaterial({
-  color: new THREE.Color('#4A060E'),
+  color: new THREE.Color('#8B0014'),
   transparent: true,
-  opacity: 0.35,
+  opacity: 0.12,
   side: THREE.DoubleSide,
 }));
 auraGroup.add(haloRingMesh);
-
-// Inner dark eclipse disc
-const eclipseDiscGeo = new THREE.CircleGeometry(2.35, 48);
-const eclipseDiscMesh = new THREE.Mesh(eclipseDiscGeo, new THREE.MeshBasicMaterial({
-  color: new THREE.Color('#030408'),
-  transparent: true,
-  opacity: 0.85,
-  side: THREE.DoubleSide,
-}));
-auraGroup.add(eclipseDiscMesh);
 
 characterRoot.add(auraGroup);
 
