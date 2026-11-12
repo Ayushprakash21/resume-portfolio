@@ -98,18 +98,21 @@ export const EditorialExperience: React.FC<EditorialExperienceProps> = ({ experi
                   )}
                 </div>
 
-                <div
+                <h3
+                  className="public-card-title"
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: 'var(--type-card-title)',
-                    fontWeight: 600,
+                    fontSize: 'var(--font-size-card)',
+                    fontWeight: 'var(--heading-font-weight)' as any,
+                    letterSpacing: 'var(--heading-letter-spacing)',
+                    textTransform: 'var(--heading-text-transform)' as any,
                     color: 'var(--text-primary)',
                     lineHeight: 1.25,
-                    marginBottom: '6px',
+                    margin: '0 0 6px 0',
                   }}
                 >
                   {exp.jobTitle}
-                </div>
+                </h3>
 
                 <div
                   style={{

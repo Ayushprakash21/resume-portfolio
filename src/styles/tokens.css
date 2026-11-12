@@ -50,27 +50,72 @@
   --accent-champagne: #E5E0D8;
   --accent-emerald: #10B981;
 
-  /* Typography Font Families */
-  --font-display: 'Orenza Bold', 'Orenza', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-body: 'Clean', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-editorial: 'Quokka', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  /* Typography Font Families (Admin-Controlled Defaults; SIL OFL Local WOFF2 + Webfonts) */
+  --font-display: 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: var(--font-display);
+  --font-body: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-editorial: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --font-serif: var(--font-editorial);
   --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
 
-  /* Typography Scale */
-  --type-hero: clamp(3.1rem, 6.5vw, 6.5rem);
-  --type-hero-tagline: clamp(1.125rem, 1.55vw, 1.5625rem);
-  --type-hero-subtagline: clamp(1.0625rem, 1.45vw, 1.4375rem);
-  --type-editorial-large: clamp(2.125rem, 2.65vw, 2.5rem);
-  --type-section-heading: clamp(2rem, 2.45vw, 2.375rem);
-  --type-project-heading: clamp(1.5rem, 1.95vw, 1.875rem);
-  --type-card-title: clamp(1.1875rem, 1.45vw, 1.375rem);
+  /* Responsive Typography Breakpoint Defaults (Overridden dynamically from Admin Settings) */
+  --typo-desktop-hero: 76px;
+  --typo-tablet-hero: 64px;
+  --typo-mobile-hero: 50px;
+
+  --typo-desktop-h1: 56px;
+  --typo-tablet-h1: 46px;
+  --typo-mobile-h1: 38px;
+
+  --typo-desktop-h2: 44px;
+  --typo-tablet-h2: 36px;
+  --typo-mobile-h2: 30px;
+
+  --typo-desktop-h3: 32px;
+  --typo-tablet-h3: 27px;
+  --typo-mobile-h3: 22px;
+
+  --typo-desktop-h4: 25px;
+  --typo-tablet-h4: 21px;
+  --typo-mobile-h4: 18px;
+
+  --typo-desktop-card: 22px;
+  --typo-tablet-card: 19px;
+  --typo-mobile-card: 16px;
+
+  --typo-desktop-eyebrow: 11px;
+  --typo-tablet-eyebrow: 11px;
+  --typo-mobile-eyebrow: 10px;
+
+  /* Active Resolved Public Typography Tokens */
+  --font-size-hero: var(--typo-desktop-hero);
+  --font-size-h1: var(--typo-desktop-h1);
+  --font-size-h2: var(--typo-desktop-h2);
+  --font-size-h3: var(--typo-desktop-h3);
+  --font-size-h4: var(--typo-desktop-h4);
+  --font-size-card: var(--typo-desktop-card);
+  --font-size-eyebrow: var(--typo-desktop-eyebrow);
+
+  --heading-font-weight: 600;
+  --heading-letter-spacing: -0.025em;
+  --heading-line-height: 1.14;
+  --heading-text-transform: none;
+  --font-size-body: 16px;
+  --line-height-body: 1.6;
+
+  /* Unified Semantic Scale Mapping */
+  --type-hero: var(--font-size-hero);
+  --type-hero-tagline: clamp(1.0625rem, 1.35vw, 1.3125rem);
+  --type-hero-subtagline: clamp(1rem, 1.25vw, 1.25rem);
+  --type-editorial-large: var(--font-size-h2);
+  --type-section-heading: var(--font-size-h2);
+  --type-project-heading: var(--font-size-h3);
+  --type-card-title: var(--font-size-card);
   --type-subheading: clamp(1.0625rem, 1.25vw, 1.1875rem);
-  --type-body: 1rem;
+  --type-body: var(--font-size-body);
   --type-body-sm: 0.9375rem;
   --type-nav: 0.8125rem;
-  --type-metadata: 0.75rem;
-
+  --type-metadata: var(--font-size-eyebrow);
   /* Geometry & Radii */
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -91,4 +136,28 @@
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   --transition-smooth: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --font-size-hero: var(--typo-tablet-hero);
+    --font-size-h1: var(--typo-tablet-h1);
+    --font-size-h2: var(--typo-tablet-h2);
+    --font-size-h3: var(--typo-tablet-h3);
+    --font-size-h4: var(--typo-tablet-h4);
+    --font-size-card: var(--typo-tablet-card);
+    --font-size-eyebrow: var(--typo-tablet-eyebrow);
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --font-size-hero: var(--typo-mobile-hero);
+    --font-size-h1: var(--typo-mobile-h1);
+    --font-size-h2: var(--typo-mobile-h2);
+    --font-size-h3: var(--typo-mobile-h3);
+    --font-size-h4: var(--typo-mobile-h4);
+    --font-size-card: var(--typo-mobile-card);
+    --font-size-eyebrow: var(--typo-mobile-eyebrow);
+  }
 }

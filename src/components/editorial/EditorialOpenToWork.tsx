@@ -181,12 +181,14 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
                   <Briefcase size={18} />
                 </div>
                 <h3
+                  className="public-card-title"
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: 'var(--type-card-title)',
-                    fontWeight: 600,
+                    fontSize: 'var(--font-size-card)',
+                    fontWeight: 'var(--heading-font-weight)' as any,
+                    letterSpacing: 'var(--heading-letter-spacing)',
+                    textTransform: 'var(--heading-text-transform)' as any,
                     color: 'var(--text-primary)',
-                    letterSpacing: '-0.01em',
                     margin: 0,
                   }}
                 >
@@ -261,12 +263,14 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
                   <CheckCircle2 size={18} />
                 </div>
                 <h3
+                  className="public-card-title"
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: 'var(--type-card-title)',
-                    fontWeight: 600,
+                    fontSize: 'var(--font-size-card)',
+                    fontWeight: 'var(--heading-font-weight)' as any,
+                    letterSpacing: 'var(--heading-letter-spacing)',
+                    textTransform: 'var(--heading-text-transform)' as any,
                     color: 'var(--text-primary)',
-                    letterSpacing: '-0.01em',
                     margin: 0,
                   }}
                 >
@@ -384,12 +388,14 @@ export const EditorialOpenToWork: React.FC<EditorialOpenToWorkProps> = ({
               </div>
               <div>
                 <h3
+                  className="public-card-title"
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: 'var(--type-card-title)',
-                    fontWeight: 600,
+                    fontSize: 'var(--font-size-card)',
+                    fontWeight: 'var(--heading-font-weight)' as any,
+                    letterSpacing: 'var(--heading-letter-spacing)',
+                    textTransform: 'var(--heading-text-transform)' as any,
                     color: 'var(--text-primary)',
-                    letterSpacing: '-0.01em',
                   }}
                 >
                   Geographic Availability &amp; Target Locations

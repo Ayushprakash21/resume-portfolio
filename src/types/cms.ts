@@ -307,6 +307,34 @@ export interface SectionConfig {
   status: 'published' | 'draft';
 }
 
+export interface ResponsiveSizeValue {
+  desktop: number;
+  tablet: number;
+  mobile: number;
+}
+
+export interface TypographyScaleSettings {
+  hero: ResponsiveSizeValue;
+  h1: ResponsiveSizeValue;
+  h2: ResponsiveSizeValue;
+  h3: ResponsiveSizeValue;
+  h4: ResponsiveSizeValue;
+  card: ResponsiveSizeValue;
+  eyebrow: ResponsiveSizeValue;
+}
+
+export interface TypographySettings {
+  headingFont: string;
+  bodyFont: string;
+  scale: TypographyScaleSettings;
+  headingFontWeight: number;
+  headingLetterSpacing: number;
+  headingLineHeight: number;
+  headingTextTransform: 'none' | 'uppercase' | 'capitalize';
+  bodyFontSize: number;
+  bodyLineHeight: number;
+}
+
 export interface AppearanceSettings {
   primaryBg: string;
   cardBg: string;
@@ -316,6 +344,10 @@ export interface AppearanceSettings {
   headingFont: string;
   bodyFont: string;
   sectionSpacing: 'compact' | 'normal' | 'spacious';
+  typography?: TypographySettings;
+  draftTypography?: TypographySettings;
+  draftUpdatedAt?: string;
+  publishedAt?: string;
 }
 
 export interface ContactMessage {

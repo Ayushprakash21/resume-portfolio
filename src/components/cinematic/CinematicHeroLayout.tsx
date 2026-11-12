@@ -152,22 +152,21 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             />
           </div>
 
-          {/* 3. & 4. DOMINANT HERO IDENTITY: AYUSH / PRAKASH (76-104px DESKTOP) */}
-          <div
+          {/* 3. & 4. DOMINANT HERO IDENTITY: AYUSH / PRAKASH */}
+          <h1
             className="hero-founder-name hero-name"
             style={{
               display: 'flex',
               flexDirection: 'column',
-              lineHeight: 0.90,
-              letterSpacing: '-0.03em',
+              lineHeight: 0.94,
+              letterSpacing: 'var(--heading-letter-spacing)',
               textTransform: 'uppercase',
-              fontFamily: 'var(--font-display, Orenza, sans-serif)',
-              fontWeight: 700,
-              fontSize: 'var(--type-hero)',
+              fontFamily: 'var(--font-display)',
+              fontWeight: 'var(--heading-font-weight)' as any,
+              fontSize: 'var(--font-size-hero)',
               margin: '0 0 14px 0',
               userSelect: 'none',
-              overflowWrap: 'break-word',
-              wordBreak: 'break-word',
+              maxWidth: '100%',
             }}
           >
             <span
@@ -181,7 +180,7 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
                 display: 'block',
                 width: 'fit-content',
                 maxWidth: '100%',
-                lineHeight: 0.90,
+                lineHeight: 0.94,
                 filter: 'drop-shadow(0 4px 28px rgba(0, 0, 0, 0.95))',
               }}
             >
@@ -199,13 +198,13 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
                 display: 'block',
                 width: 'fit-content',
                 maxWidth: '100%',
-                lineHeight: 0.90,
+                lineHeight: 0.94,
                 filter: 'drop-shadow(0 4px 24px rgba(0, 0, 0, 0.85))',
               }}
             >
               PRAKASH
             </span>
-          </div>
+          </h1>
 
           {/* 5. & 6. TAGLINE POSITION: BUSINESS. SYSTEMS. / Intelligence & Innovation. */}
           <div

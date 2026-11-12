@@ -1,87 +1,43 @@
 /**
  * AP — GLOBAL TYPOGRAPHY SYSTEM FONT FACES
- * Font Families:
- * 1. Orenza Bold — Display and Brand Identity
- * 2. Clean — Primary UI & Body Typography (Light, Regular, Bold)
- * 3. Quokka — Editorial Accent Typography
+ *
+ * Active Default Webfonts (Bundled locally in Vite via @fontsource/plus-jakarta-sans + Google Fonts):
+ *   - Heading / Display: Plus Jakarta Sans (SIL OFL 1.1 — WOFF2 bundled locally)
+ *   - Body / UI: Manrope / Inter (SIL OFL 1.1)
+ *   - Editorial Accent: Cormorant Garamond (SIL OFL 1.1)
+ *
+ * Optional Local WOFF2 Drop-In Slot:
+ *   - Limerock (Commercial font — place licensed WOFF2 files in /public/fonts/limerock/ before activating)
  */
 
-/* 1. ORENZA BOLD — Display and Brand Typography */
 @font-face {
-  font-family: 'Orenza Bold';
-  src: url('/fonts/orenza/Orenza-Bold.woff2') format('woff2'),
-       url('/fonts/orenza/Orenza-Bold.woff') format('woff'),
-       url('/fonts/orenza/Orenza-Bold.otf') format('opentype'),
-       url('/fonts/orenza/Orenza-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Orenza';
-  src: url('/fonts/orenza/Orenza-Bold.woff2') format('woff2'),
-       url('/fonts/orenza/Orenza-Bold.woff') format('woff'),
-       url('/fonts/orenza/Orenza-Bold.otf') format('opentype'),
-       url('/fonts/orenza/Orenza-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* 2. CLEAN — Primary UI & Body Typography */
-@font-face {
-  font-family: 'Clean';
-  src: url('/fonts/clean/Clean-Light.woff2') format('woff2'),
-       url('/fonts/clean/Clean-Light.woff') format('woff'),
-       url('/fonts/clean/Clean-Light.otf') format('opentype'),
-       url('/fonts/clean/Clean-Light.ttf') format('truetype');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Clean';
-  src: url('/fonts/clean/Clean-Regular.woff2') format('woff2'),
-       url('/fonts/clean/Clean-Regular.woff') format('woff'),
-       url('/fonts/clean/Clean-Regular.otf') format('opentype'),
-       url('/fonts/clean/Clean-Regular.ttf') format('truetype');
+  font-family: 'Limerock';
+  src: url('/fonts/limerock/Limerock-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Clean';
-  src: url('/fonts/clean/Clean-Bold.woff2') format('woff2'),
-       url('/fonts/clean/Clean-Bold.woff') format('woff'),
-       url('/fonts/clean/Clean-Bold.otf') format('opentype'),
-       url('/fonts/clean/Clean-Bold.ttf') format('truetype');
+  font-family: 'Limerock';
+  src: url('/fonts/limerock/Limerock-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Limerock';
+  src: url('/fonts/limerock/Limerock-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Limerock';
+  src: url('/fonts/limerock/Limerock-Bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
-  font-display: swap;
-}
-
-/* 3. QUOKKA — Editorial Accent Typography */
-@font-face {
-  font-family: 'Quokka';
-  src: url('/fonts/quokka/Quokka.woff2') format('woff2'),
-       url('/fonts/quokka/Quokka.woff') format('woff'),
-       url('/fonts/quokka/Quokka.otf') format('opentype'),
-       url('/fonts/quokka/Quokka.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Quokka';
-  src: url('/fonts/quokka/Quokka-Italic.woff2') format('woff2'),
-       url('/fonts/quokka/Quokka-Italic.woff') format('woff'),
-       url('/fonts/quokka/Quokka-Italic.otf') format('opentype'),
-       url('/fonts/quokka/Quokka-Italic.ttf') format('truetype');
-  font-weight: 400;
-  font-style: italic;
   font-display: swap;
 }

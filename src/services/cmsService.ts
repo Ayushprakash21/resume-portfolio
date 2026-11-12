@@ -31,7 +31,13 @@ import {
   ResumeAuditEntry,
   IssuerRecord,
   ExtractionJob,
+  TypographySettings,
 } from '../types/cms.ts';
+import {
+  DEFAULT_TYPOGRAPHY_SETTINGS,
+  normalizeAppearanceSettings,
+  normalizeTypographySettings,
+} from '../utils/typography';
 import { VERIFIED_ISSUERS_DIRECTORY, isDeprecatedOrBrokenLogoUrl } from './issuerService';
 import { LinkedInImportAudit, LinkedInParsedRecord } from '../types/linkedin';
 import {
@@ -178,7 +184,10 @@ const store: CmsStore = {
   resumeAudit: safeStorageGet(STORAGE_KEYS.resumeAudit, []),
   linkedinAudit: safeStorageGet(STORAGE_KEYS.linkedinAudit, []),
   sections: safeStorageGet(STORAGE_KEYS.sections, DEFAULT_SECTIONS_CONFIG),
-  appearance: safeStorageGet(STORAGE_KEYS.appearance, DEFAULT_APPEARANCE_SETTINGS),
+  appearance: normalizeAppearanceSettings(
+    safeStorageGet(STORAGE_KEYS.appearance, DEFAULT_APPEARANCE_SETTINGS),
+    DEFAULT_APPEARANCE_SETTINGS
+  ),
   experiences: safeStorageGet(STORAGE_KEYS.experiences, DEFAULT_EXPERIENCES),
   projects: safeStorageGet(STORAGE_KEYS.projects, DEFAULT_PROJECTS),
   certifications: initCertifications(),
@@ -309,7 +318,7 @@ function initFirestoreSync() {
       (snap) => {
         if (snap.exists()) {
           const data = snap.data() as AppearanceSettings;
-          store.appearance = { ...DEFAULT_APPEARANCE_SETTINGS, ...data };
+          store.appearance = normalizeAppearanceSettings(data, DEFAULT_APPEARANCE_SETTINGS);
           safeStorageSet(STORAGE_KEYS.appearance, store.appearance);
           notifyListeners();
         }
@@ -1838,20 +1847,103 @@ export const cmsService = {
 
   // ================= APPEARANCE SETTINGS =================
   getAppearanceSettings(): AppearanceSettings {
-    return store.appearance;
+    return normalizeAppearanceSettings(store.appearance, DEFAULT_APPEARANCE_SETTINGS);
+  },
+
+  getPublishedTypographySettings(): TypographySettings {
+    const app = this.getAppearanceSettings();
+    return normalizeTypographySettings(app.typography || DEFAULT_TYPOGRAPHY_SETTINGS);
+  },
+
+  getDraftTypographySettings(): TypographySettings {
+    const app = this.getAppearanceSettings();
+    return normalizeTypographySettings(app.draftTypography || app.typography || DEFAULT_TYPOGRAPHY_SETTINGS);
   },
 
   async updateAppearanceSettings(appearance: AppearanceSettings): Promise<void> {
+    const normalized = normalizeAppearanceSettings(appearance, DEFAULT_APPEARANCE_SETTINGS);
+    const payload = sanitizeForFirestore({
+      ...normalized,
+      updatedAt: new Date().toISOString(),
+    });
     if (db) {
-      await setDoc(doc(db, 'settings', 'appearance'), {
-        ...appearance,
-        updatedAt: new Date().toISOString(),
-      });
+      await setDoc(doc(db, 'settings', 'appearance'), payload, { merge: true });
     }
 
-    store.appearance = appearance;
-    safeStorageSet(STORAGE_KEYS.appearance, appearance);
+    store.appearance = normalized;
+    safeStorageSet(STORAGE_KEYS.appearance, store.appearance);
     notifyListeners();
+  },
+
+  async saveTypographyDraft(draftInput: TypographySettings): Promise<AppearanceSettings> {
+    const current = this.getAppearanceSettings();
+    const cleanDraft = normalizeTypographySettings(draftInput);
+    const draftUpdatedAt = new Date().toISOString();
+    const updated: AppearanceSettings = {
+      ...current,
+      draftTypography: cleanDraft,
+      draftUpdatedAt,
+    };
+
+    if (db) {
+      await setDoc(
+        doc(db, 'settings', 'appearance'),
+        sanitizeForFirestore({
+          draftTypography: cleanDraft,
+          draftUpdatedAt,
+          updatedAt: draftUpdatedAt,
+        }),
+        { merge: true }
+      );
+    }
+
+    store.appearance = updated;
+    safeStorageSet(STORAGE_KEYS.appearance, updated);
+    notifyListeners();
+    return updated;
+  },
+
+  async publishTypographySettings(publishedInput: TypographySettings): Promise<AppearanceSettings> {
+    const current = this.getAppearanceSettings();
+    const cleanPublished = normalizeTypographySettings(publishedInput);
+    const now = new Date().toISOString();
+    const updated: AppearanceSettings = {
+      ...current,
+      headingFont: cleanPublished.headingFont,
+      bodyFont: cleanPublished.bodyFont,
+      typography: cleanPublished,
+      draftTypography: cleanPublished,
+      draftUpdatedAt: now,
+      publishedAt: now,
+    };
+
+    if (db) {
+      await setDoc(
+        doc(db, 'settings', 'appearance'),
+        sanitizeForFirestore({
+          headingFont: cleanPublished.headingFont,
+          bodyFont: cleanPublished.bodyFont,
+          typography: cleanPublished,
+          draftTypography: cleanPublished,
+          draftUpdatedAt: now,
+          publishedAt: now,
+          updatedAt: now,
+        }),
+        { merge: true }
+      );
+    }
+
+    store.appearance = updated;
+    safeStorageSet(STORAGE_KEYS.appearance, updated);
+    notifyListeners();
+    return updated;
+  },
+
+  async resetTypographyDefaults(mode: 'draft' | 'publish'): Promise<AppearanceSettings> {
+    if (mode === 'publish') {
+      return this.publishTypographySettings(DEFAULT_TYPOGRAPHY_SETTINGS);
+    }
+    return this.saveTypographyDraft(DEFAULT_TYPOGRAPHY_SETTINGS);
   },
 
   // ================= SITE SETTINGS =================

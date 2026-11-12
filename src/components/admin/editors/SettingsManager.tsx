@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Settings,
   Search,
@@ -12,26 +12,67 @@ import {
   Trash2,
   Check,
 } from 'lucide-react';
-import { SiteSettings, ContactMessage } from '../../../types/cms';
+import { AppearanceSettings, SiteSettings, ContactMessage } from '../../../types/cms';
 import { cmsService } from '../../../services/cmsService';
+import { TypographyManager } from './TypographyManager';
+
+export type SettingsTabId = 'typography' | 'general' | 'seo' | 'inbox' | 'system';
 
 interface SettingsManagerProps {
   settings: SiteSettings;
+  appearance: AppearanceSettings;
   messages: ContactMessage[];
+  initialTab?: SettingsTabId;
   onUpdateSettings: (updated: SiteSettings) => void;
+  onUpdateAppearance: (updated: AppearanceSettings) => void;
   onRefreshMessages: () => void;
+  onTypographyDirtyChange?: (isDirty: boolean) => void;
   showNotification: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }
 
 export const SettingsManager: React.FC<SettingsManagerProps> = ({
   settings,
+  appearance,
   messages,
+  initialTab = 'typography',
   onUpdateSettings,
+  onUpdateAppearance,
   onRefreshMessages,
+  onTypographyDirtyChange,
   showNotification,
 }) => {
   const [form, setForm] = useState<SiteSettings>(settings);
-  const [activeTab, setActiveTab] = useState<'general' | 'seo' | 'inbox' | 'system'>('general');
+  const [activeTab, setActiveTab] = useState<SettingsTabId>(initialTab);
+  const [isTypographyDirty, setIsTypographyDirty] = useState(false);
+
+  useEffect(() => {
+    setForm(settings);
+  }, [settings]);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  const handleDirtyChange = (dirty: boolean) => {
+    setIsTypographyDirty(dirty);
+    onTypographyDirtyChange?.(dirty);
+  };
+
+  const handleSwitchTab = (nextTab: SettingsTabId) => {
+    if (
+      activeTab === 'typography' &&
+      nextTab !== 'typography' &&
+      isTypographyDirty &&
+      typeof window !== 'undefined' &&
+      !window.confirm('You have unsaved typography adjustments. Discard unsaved changes and switch tabs?')
+    ) {
+      return;
+    }
+    if (activeTab === 'typography' && nextTab !== 'typography') {
+      handleDirtyChange(false);
+    }
+    setActiveTab(nextTab);
+  };
 
   const updateField = <K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -84,7 +125,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
               margin: 0,
             }}
           >
-            System Settings, SEO &amp; Inquiries
+            System Settings, Typography &amp; Inquiries
           </h2>
           <p
             style={{
@@ -94,11 +135,11 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
               margin: '4px 0 0',
             }}
           >
-            Manage global meta descriptors, OpenGraph cards, recruiter contact submissions, and cloud database integrity.
+            Manage typography &amp; appearance, global meta descriptors, OpenGraph cards, recruiter inquiries, and database integrity.
           </p>
         </div>
 
-        {activeTab !== 'inbox' && (
+        {activeTab !== 'inbox' && activeTab !== 'typography' && (
           <button
             type="button"
             onClick={handleSave}
@@ -125,6 +166,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
       <div
         style={{
           display: 'flex',
+          flexWrap: 'wrap',
           gap: '8px',
           marginBottom: '20px',
           backgroundColor: 'rgba(18, 18, 22, 0.72)',
@@ -134,6 +176,7 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
         }}
       >
         {[
+          { id: 'typography', label: 'Typography & Appearance' },
           { id: 'general', label: 'General Portfolio Settings' },
           { id: 'seo', label: 'SEO & OpenGraph' },
           { id: 'inbox', label: `Inquiries Inbox (${messages.filter((m) => !m.read).length} new)` },
@@ -142,9 +185,10 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
           <button
             key={tab.id}
             type="button"
-            onClick={() => setActiveTab(tab.id as any)}
+            data-testid={`settings-tab-${tab.id}`}
+            onClick={() => handleSwitchTab(tab.id as SettingsTabId)}
             style={{
-              flex: 1,
+              flex: '1 1 auto',
               padding: '8px 14px',
               borderRadius: '6px',
               border: 'none',
@@ -160,6 +204,16 @@ export const SettingsManager: React.FC<SettingsManagerProps> = ({
           </button>
         ))}
       </div>
+
+      {/* TAB: TYPOGRAPHY & APPEARANCE */}
+      {activeTab === 'typography' && (
+        <TypographyManager
+          appearance={appearance}
+          onUpdateAppearance={onUpdateAppearance}
+          onDirtyChange={handleDirtyChange}
+          showNotification={showNotification}
+        />
+      )}
 
       {/* TAB: GENERAL */}
       {activeTab === 'general' && (

@@ -138,11 +138,12 @@ export const EditorialProjects: React.FC<EditorialProjectsProps> = ({
                       <h3
                         style={{
                           fontFamily: 'var(--font-display)',
-                          fontSize: 'var(--type-project-heading)',
-                          fontWeight: 600,
+                          fontSize: 'var(--font-size-h3)',
+                          fontWeight: 'var(--heading-font-weight)' as any,
+                          letterSpacing: 'var(--heading-letter-spacing)',
+                          lineHeight: 'var(--heading-line-height)',
+                          textTransform: 'var(--heading-text-transform)' as any,
                           color: '#FFFFFF',
-                          letterSpacing: '-0.015em',
-                          lineHeight: 1.2,
                           margin: 0,
                         }}
                       >

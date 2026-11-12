@@ -197,9 +197,11 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
                       <h3
                         style={{
                           fontFamily: 'var(--font-display)',
-                          fontSize: '16.5px',
-                          fontWeight: 700,
-                          lineHeight: 1.3,
+                          fontSize: 'var(--font-size-card)',
+                          fontWeight: 'var(--heading-font-weight)' as any,
+                          letterSpacing: 'var(--heading-letter-spacing)',
+                          textTransform: 'var(--heading-text-transform)' as any,
+                          lineHeight: 1.22,
                           color: '#FFFFFF',
                           margin: '0 0 6px 0',
                           display: '-webkit-box',
@@ -446,10 +448,12 @@ export const EditorialCertifications: React.FC<EditorialCertificationsProps> = (
               <h3
                 style={{
                   fontFamily: 'var(--font-display)',
-                  fontSize: '22px',
-                  fontWeight: 700,
+                  fontSize: 'var(--font-size-card)',
+                  fontWeight: 'var(--heading-font-weight)' as any,
+                  letterSpacing: 'var(--heading-letter-spacing)',
+                  textTransform: 'var(--heading-text-transform)' as any,
                   color: '#FFFFFF',
-                  lineHeight: 1.25,
+                  lineHeight: 1.24,
                   margin: 0,
                 }}
               >

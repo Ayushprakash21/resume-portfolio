@@ -20,8 +20,8 @@ html {
 
 body {
   font-family: var(--font-body);
-  font-size: var(--type-body);
-  line-height: 1.6;
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
   background-color: var(--bg-primary);
   color: var(--text-primary);
   overflow-x: hidden;
@@ -32,9 +32,35 @@ body {
 /* Typography Classes */
 h1, h2, h3, h4, .font-display {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
-  font-weight: 500;
+  letter-spacing: var(--heading-letter-spacing);
+  font-weight: var(--heading-font-weight);
+  line-height: var(--heading-line-height);
   color: var(--text-primary);
+}
+
+.public-site-shell main h1 {
+  font-size: var(--font-size-h1);
+  text-transform: var(--heading-text-transform);
+}
+
+.public-site-shell main h2 {
+  font-size: var(--font-size-h2);
+  text-transform: var(--heading-text-transform);
+}
+
+.public-site-shell main h3 {
+  font-size: var(--font-size-h3);
+  text-transform: var(--heading-text-transform);
+}
+
+.public-site-shell main h4 {
+  font-size: var(--font-size-h4);
+  text-transform: var(--heading-text-transform);
+}
+
+.public-site-shell main p {
+  font-family: var(--font-body);
+  line-height: var(--line-height-body);
 }
 
 .font-serif {
@@ -49,17 +75,19 @@ h1, h2, h3, h4, .font-display {
 
 .type-hero {
   font-family: var(--font-display);
-  font-size: var(--type-hero);
-  line-height: 1.05;
-  font-weight: 600;
-  letter-spacing: -0.03em;
+  font-size: var(--font-size-hero);
+  line-height: var(--heading-line-height);
+  font-weight: var(--heading-font-weight);
+  letter-spacing: var(--heading-letter-spacing);
 }
 
 /* Hero Founder Name: Metallic Silver & Deep Crimson Gradient */
 .hero-name {
-  font-weight: 800;
-  line-height: 0.88;
-  letter-spacing: -0.035em;
+  font-family: var(--font-display);
+  font-size: var(--font-size-hero);
+  font-weight: var(--heading-font-weight);
+  line-height: 0.94;
+  letter-spacing: var(--heading-letter-spacing);
 }
 
 .hero-name__first {
@@ -100,32 +128,35 @@ h1, h2, h3, h4, .font-display {
 
 .type-editorial-large {
   font-family: var(--font-display);
-  font-size: var(--type-editorial-large);
-  line-height: 1.1;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-size: var(--font-size-h2);
+  line-height: var(--heading-line-height);
+  font-weight: var(--heading-font-weight);
+  letter-spacing: var(--heading-letter-spacing);
+  text-transform: var(--heading-text-transform);
 }
 
 .type-section-heading {
   font-family: var(--font-display);
-  font-size: var(--type-section-heading);
-  line-height: 1.15;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-size: var(--font-size-h2);
+  line-height: var(--heading-line-height);
+  font-weight: var(--heading-font-weight);
+  letter-spacing: var(--heading-letter-spacing);
+  text-transform: var(--heading-text-transform);
 }
 
 .type-project-heading {
   font-family: var(--font-display);
-  font-size: var(--type-project-heading);
-  line-height: 1.2;
-  font-weight: 500;
-  letter-spacing: -0.015em;
+  font-size: var(--font-size-h3);
+  line-height: var(--heading-line-height);
+  font-weight: var(--heading-font-weight);
+  letter-spacing: var(--heading-letter-spacing);
+  text-transform: var(--heading-text-transform);
 }
 
 .type-body {
   font-family: var(--font-body);
-  font-size: var(--type-body);
-  line-height: 1.6;
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
   color: var(--text-secondary);
 }
 
@@ -139,7 +170,7 @@ h1, h2, h3, h4, .font-display {
 
 .type-metadata {
   font-family: var(--font-body);
-  font-size: var(--type-metadata);
+  font-size: var(--font-size-eyebrow);
   line-height: 1.4;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -148,16 +179,16 @@ h1, h2, h3, h4, .font-display {
 
 /* ========================================================
    REFINED PUBLIC SECTION TYPOGRAPHY & SPACING HIERARCHY
-   (Scoped explicitly to public editorial sections; preserves Admin CMS UI)
+   (Admin-controlled tokens via :root CSS variables)
    ======================================================== */
 .public-section {
-  padding: clamp(48px, 5vw, 72px) 0;
+  padding: clamp(44px, 4.8vw, 68px) 0;
   position: relative;
 }
 
 .public-eyebrow {
   font-family: var(--font-body);
-  font-size: var(--type-metadata);
+  font-size: var(--font-size-eyebrow);
   color: #D4D7DC;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -168,7 +199,7 @@ h1, h2, h3, h4, .font-display {
 }
 
 .public-eyebrow-wrap {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .public-heading-about,
@@ -177,120 +208,87 @@ h1, h2, h3, h4, .font-display {
 .public-heading-contact,
 .public-heading-editorial,
 .public-heading-projects,
-.public-heading-project-detail {
+.public-heading-project-detail,
+.public-card-title {
   font-family: var(--font-display);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  font-weight: var(--heading-font-weight);
+  line-height: var(--heading-line-height);
+  letter-spacing: var(--heading-letter-spacing);
+  text-transform: var(--heading-text-transform);
   color: #FFFFFF;
   overflow-wrap: break-word;
   text-wrap: balance;
 }
 
 .public-heading-about {
-  font-size: var(--type-editorial-large);
-  max-width: 860px;
-  margin-bottom: 24px;
+  font-size: var(--font-size-h2);
+  max-width: 820px;
+  margin-bottom: 22px;
 }
 
 .public-heading-main {
-  font-size: var(--type-editorial-large);
+  font-size: var(--font-size-h2);
   max-width: 780px;
   margin-bottom: 12px;
 }
 
 .public-heading-contact {
-  font-size: var(--type-editorial-large);
-  max-width: 860px;
-  margin-bottom: 24px;
+  font-size: var(--font-size-h2);
+  max-width: 840px;
+  margin-bottom: 22px;
 }
 
 .public-heading-experience {
-  font-size: var(--type-editorial-large);
-  max-width: 880px;
-  margin-bottom: 24px;
+  font-size: var(--font-size-h2);
+  max-width: 860px;
+  margin-bottom: 22px;
 }
 
 .public-heading-editorial {
-  font-size: var(--type-section-heading);
-  line-height: 1.16;
+  font-size: var(--font-size-h2);
   max-width: 820px;
   margin-bottom: 12px;
 }
 
 .public-heading-editorial--standalone {
-  margin-bottom: 24px;
+  margin-bottom: 22px;
 }
 
 .public-heading-projects {
-  font-size: var(--type-section-heading);
-  line-height: 1.16;
+  font-size: var(--font-size-h2);
   max-width: 760px;
   margin-bottom: 12px;
 }
 
 .public-heading-project-detail {
-  font-size: var(--type-project-heading);
-  line-height: 1.18;
-  font-weight: 600;
+  font-size: var(--font-size-h3);
   margin: 0;
+}
+
+.public-card-title {
+  font-size: var(--font-size-card);
+  line-height: 1.25;
 }
 
 .public-section-subtitle {
   font-family: var(--font-body);
-  font-size: clamp(14.5px, 1.05vw, 15.5px);
-  line-height: 1.6;
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
   color: var(--text-secondary);
   max-width: 720px;
   margin: 0 0 28px 0;
 }
 
-@media (max-width: 1024px) {
-  .public-heading-about,
-  .public-heading-main,
-  .public-heading-contact,
-  .public-heading-experience {
-    font-size: clamp(29px, calc(20px + 1.5vw), 35px);
-    line-height: 1.16;
-  }
-
-  .public-heading-editorial,
-  .public-heading-projects {
-    font-size: clamp(28px, calc(19.5px + 1.35vw), 33.5px);
-    line-height: 1.17;
-  }
-
-  .public-heading-project-detail {
-    font-size: clamp(23px, calc(18px + 0.8vw), 26.5px);
-    line-height: 1.18;
-  }
-}
-
-@media (max-width: 599px) {
+@media (max-width: 767px) {
   .public-section {
     padding: 36px 0;
   }
 
   .public-heading-about,
-  .public-heading-main,
   .public-heading-contact,
-  .public-heading-experience {
-    font-size: clamp(24px, 6vw, 28px);
-    line-height: 1.18;
+  .public-heading-experience,
+  .public-heading-editorial--standalone {
     margin-bottom: 18px;
-  }
-
-  .public-heading-editorial,
-  .public-heading-projects {
-    font-size: clamp(23px, 5.7vw, 27px);
-    line-height: 1.18;
-    margin-bottom: 18px;
-  }
-
-  .public-heading-project-detail {
-    font-size: clamp(21px, 5.2vw, 24px);
-    line-height: 1.2;
-    margin-bottom: 0;
   }
 
   .public-heading-editorial:not(.public-heading-editorial--standalone),
@@ -488,10 +486,6 @@ h1, h2, h3, h4, .font-display {
     width: 120px !important; /* Mobile: 105–135px prominent standalone AP logo */
     height: auto !important;
     max-height: none !important;
-  }
-
-  .hero-founder-name {
-    font-size: clamp(44px, 9.2vw, 68px) !important;
   }
 
   .project-compact-card {

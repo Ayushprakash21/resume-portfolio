@@ -133,18 +133,20 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                   Direct Email
                 </div>
 
-                <div
+                <h3
+                  className="public-card-title"
                   style={{
                     fontFamily: 'var(--font-display)',
-                    fontSize: 'var(--type-card-title)',
-                    fontWeight: 600,
+                    fontSize: 'var(--font-size-card)',
+                    fontWeight: 'var(--heading-font-weight)' as any,
+                    letterSpacing: 'var(--heading-letter-spacing)',
                     color: 'var(--text-primary)',
-                    marginBottom: profile.phone ? '8px' : '20px',
+                    margin: profile.phone ? '0 0 8px 0' : '0 0 20px 0',
                     wordBreak: 'break-all',
                   }}
                 >
                   {profile.email}
-                </div>
+                </h3>
 
                 {profile.phone && (
                   <div
@@ -274,17 +276,19 @@ export const EditorialContact: React.FC<EditorialContactProps> = ({ profile }) =
                 height: '100%',
               }}
             >
-            <div
+            <h3
+              className="public-card-title"
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: 'var(--type-card-title)',
-                fontWeight: 600,
+                fontSize: 'var(--font-size-card)',
+                fontWeight: 'var(--heading-font-weight)' as any,
+                letterSpacing: 'var(--heading-letter-spacing)',
                 color: 'var(--text-primary)',
-                marginBottom: '8px',
+                margin: '0 0 8px 0',
               }}
             >
               Send an Inquiry
-            </div>
+            </h3>
             <p
               style={{
                 fontFamily: 'var(--font-body)',

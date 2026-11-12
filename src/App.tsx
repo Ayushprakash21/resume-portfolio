@@ -23,6 +23,7 @@ import { AdminConsole } from './components/admin/AdminConsole';
 // CMS & Auth Services
 import { cmsService } from './services/cmsService';
 import { authService } from './services/authService';
+import { applyTypographyToDocument } from './utils/typography';
 import {
   ProfileData,
   HomepageSettings,
@@ -109,6 +110,11 @@ export const App: React.FC = () => {
       unsubscribeCms();
     };
   }, []);
+
+  // Apply published global typography tokens to CSS variables whenever CMS settings update
+  useEffect(() => {
+    applyTypographyToDocument(cmsService.getPublishedTypographySettings());
+  }, [appearance]);
 
   const navigateToAdmin = () => {
     window.history.pushState({}, '', '/admin');
@@ -206,6 +212,7 @@ export const App: React.FC = () => {
 
   return (
     <div
+      className="public-site-shell"
       style={{
         position: 'relative',
         minHeight: '100vh',

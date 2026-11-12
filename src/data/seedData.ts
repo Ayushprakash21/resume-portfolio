@@ -889,13 +889,17 @@ export const DEFAULT_SECTIONS_CONFIG: SectionConfig[] = [
   { id: 'sec-contact', sectionKey: 'contact', title: 'Contact', subtitle: 'Direct Contact', displayOrder: 10, isVisible: true, status: 'published' },
 ];
 
+import { DEFAULT_TYPOGRAPHY_SETTINGS } from '../utils/typography';
+
 export const DEFAULT_APPEARANCE_SETTINGS: AppearanceSettings = {
   primaryBg: '#050505',
   cardBg: 'rgba(255, 255, 255, 0.045)',
   textPrimary: '#F5F5F5',
   textSecondary: '#A5A5A9',
   accentColor: '#C8C8CE',
-  headingFont: 'Manrope',
-  bodyFont: 'Manrope',
+  headingFont: DEFAULT_TYPOGRAPHY_SETTINGS.headingFont,
+  bodyFont: DEFAULT_TYPOGRAPHY_SETTINGS.bodyFont,
   sectionSpacing: 'normal',
+  typography: DEFAULT_TYPOGRAPHY_SETTINGS,
+  draftTypography: DEFAULT_TYPOGRAPHY_SETTINGS,
 };

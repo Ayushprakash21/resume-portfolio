@@ -28,6 +28,7 @@ import {
   Menu,
   X,
   Cloud,
+  Type,
 } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { cmsService } from '../../services/cmsService';
@@ -85,6 +86,7 @@ export type AdminSectionId =
   | 'media'
   | 'storage'
   | 'sections'
+  | 'typography'
   | 'settings';
 
 export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnToSite }) => {
@@ -111,6 +113,8 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
   const [resume, setResume] = useState<ResumeRecord>(() => cmsService.getResumeRecord());
   const [media, setMedia] = useState<MediaAsset[]>(() => cmsService.getMediaAssets());
   const [sections, setSections] = useState<SectionConfig[]>(() => cmsService.getSectionsConfig());
+  const [appearance, setAppearance] = useState<AppearanceSettings>(() => cmsService.getAppearanceSettings());
+  const [isTypographyDirty, setIsTypographyDirty] = useState(false);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => cmsService.getSiteSettings());
   const [messages, setMessages] = useState<ContactMessage[]>(() => cmsService.getContactMessages());
 
@@ -151,6 +155,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
       setResume(cmsService.getResumeRecord());
       setMedia(cmsService.getMediaAssets());
       setSections(cmsService.getSectionsConfig());
+      setAppearance(cmsService.getAppearanceSettings());
       setSiteSettings(cmsService.getSiteSettings());
       setMessages(cmsService.getContactMessages());
     });
@@ -226,6 +231,7 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
     { id: 'media', label: 'Media Library', icon: ImageIcon },
     { id: 'storage', label: 'Cloudflare R2 Storage', icon: Cloud },
     { id: 'sections', label: 'Website Sections', icon: ListOrdered },
+    { id: 'typography', label: 'Typography & Appearance', icon: Type },
     {
       id: 'settings',
       label: 'Settings',
@@ -393,6 +399,18 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
                   <button
                     key={item.id}
                     onClick={() => {
+                      if (
+                        (activeSection === 'typography' || activeSection === 'settings') &&
+                        item.id !== activeSection &&
+                        !(item.id === 'typography' && activeSection === 'settings') &&
+                        !(item.id === 'settings' && activeSection === 'typography') &&
+                        isTypographyDirty &&
+                        typeof window !== 'undefined' &&
+                        !window.confirm('You have unsaved typography changes. Discard changes and leave?')
+                      ) {
+                        return;
+                      }
+                      setIsTypographyDirty(false);
                       setActiveSection(item.id);
                       setIsMobileNavOpen(false);
                     }}
@@ -1464,13 +1482,17 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onLogout, onReturnTo
           />
         )}
 
-        {/* ---------------- 12. SETTINGS ---------------- */}
-        {activeSection === 'settings' && (
+        {/* ---------------- 12. TYPOGRAPHY & SETTINGS ---------------- */}
+        {(activeSection === 'settings' || activeSection === 'typography') && (
           <SettingsManager
             settings={siteSettings}
+            appearance={appearance}
             messages={messages}
+            initialTab={activeSection === 'typography' ? 'typography' : 'general'}
             onUpdateSettings={(updated) => setSiteSettings(updated)}
+            onUpdateAppearance={(updated) => setAppearance(updated)}
             onRefreshMessages={() => setMessages(cmsService.getContactMessages())}
+            onTypographyDirtyChange={(dirty) => setIsTypographyDirty(dirty)}
             showNotification={showNotification}
           />
         )}
