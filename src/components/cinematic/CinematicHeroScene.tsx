@@ -6,13 +6,19 @@ interface CinematicHeroSceneProps {
 }
 
 /**
- * CINEMATIC SHADOW KNIGHT 3D HERO EXPERIENCE (HIGH-END REFINEMENT)
- * 
- * Features an original dark-fantasy knight guardian inspired by the presence
- * of high-tier shadow commanders (commanding stance, sculpted black & deep-crimson armor,
- * polished metallic silver filigree, glowing crimson visor slit, grand greatsword,
- * billowing velvet cape, grand gothic cathedral hall, reflective flagstone floor,
- * volumetric backlighting, and an engraved AP monogram emblem).
+ * CINEMATIC SHADOW KNIGHT 3D HERO EXPERIENCE (RED-AND-BLACK IDENTITY RESTORATION)
+ *
+ * Implements a high-end luxury dark fantasy armored warrior:
+ * - Imposing, athletic silhouette in obsidian black & dark metallic silver plate armor
+ * - Multi-tiered flared angular gothic pauldrons with polished silver trim
+ * - Segmented chevron cuirass with restrained crimson energy seams
+ * - Piercing crimson slit eyes beneath an aggressive visor
+ * - Flowing crimson/red helmet plume streaming backward
+ * - TAPERED, SUPPORTING BLACK FABRIC CAPE kept behind the shoulders & body (arms, legs & sword visible)
+ * - Monumental greatsword in dark obsidian steel with subtle crimson fuller line
+ * - Reflective dark flagstone floor with subtle ambient crimson reflections
+ * - Dramatic celestial overhead spotlight and razor-sharp silver rim lighting
+ * - Unobstructed left hero composition preserving AP monogram, AYUSH PRAKASH text, and intro
  */
 export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedMotion = false }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,17 +45,24 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     let width = container.clientWidth || window.innerWidth;
     let height = container.clientHeight || window.innerHeight;
 
+    // Disposables registry for comprehensive WebGL cleanup
+    const disposables: { dispose: () => void }[] = [];
+    const trackDisposable = <T extends { dispose: () => void }>(item: T): T => {
+      disposables.push(item);
+      return item;
+    };
+
     // ========================================================
-    // 1. SCENE SETUP & ATMOSPHERIC FOG
+    // 1. SCENE SETUP & ATMOSPHERIC FOG (NEAR-BLACK IDENTITY)
     // ========================================================
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#050508');
 
-    // Atmospheric fog: deep charcoal & moonlight mist
-    scene.fog = new THREE.FogExp2('#07080D', 0.012);
+    // Atmospheric fog: deep charcoal & dark crimson mist
+    scene.fog = new THREE.FogExp2('#06070B', 0.012);
 
     // ========================================================
-    // 2. CAMERA SETUP (DESKTOP & MOBILE ADAPTIVE)
+    // 2. CAMERA SETUP (DESKTOP, TABLET & MOBILE ADAPTIVE)
     // ========================================================
     let baseCameraZ = 8.5;
     let baseCameraY = 1.65;
@@ -62,13 +75,13 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
       if (aspect < 0.75) {
         // Mobile portrait (320px - 430px)
         camera.fov = 52;
-        baseCameraX = 0.5;
+        baseCameraX = 1.1;
         baseCameraY = 1.95;
         baseCameraZ = 10.6;
       } else if (aspect < 1.1) {
         // Tablet (600px - 820px)
         camera.fov = 48;
-        baseCameraX = 0.4;
+        baseCameraX = 0.5;
         baseCameraY = 1.70;
         baseCameraZ = 9.2;
       } else {
@@ -79,7 +92,7 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
         baseCameraZ = 8.5;
       }
       camera.position.set(baseCameraX, baseCameraY, baseCameraZ);
-      camera.lookAt(0.9, 1.8, -10);
+      camera.lookAt(baseCameraX * 0.4 + 0.9, 1.8, -10);
       camera.updateProjectionMatrix();
     };
 
@@ -96,23 +109,23 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.55; // Crisp, readable exposure
+    renderer.toneMappingExposure = 1.55;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     container.appendChild(renderer.domElement);
 
     // ========================================================
-    // 4. LIGHTING ARCHITECTURE (CINEMATIC CONTRAST & VISIBILITY)
+    // 4. LIGHTING ARCHITECTURE (RESTORING RED-AND-BLACK IDENTITY)
     // ========================================================
-    // 4a. Ambient Fill Light: Prevents shadow crushing
-    const ambientLight = new THREE.AmbientLight('#202432', 1.8);
+    // 4a. Ambient Fill Light: Deep charcoal/crimson to prevent shadow crushing
+    const ambientLight = new THREE.AmbientLight('#121016', 1.6);
     scene.add(ambientLight);
 
     // 4b. Primary Key Directional Light: Cool silver-white key illuminating armor plates
     const keyLight = new THREE.DirectionalLight('#F0F4FA', 4.2);
-    keyLight.position.set(3.8, 4.5, 4.8);
-    keyLight.target.position.set(2.3, 1.8, 1.0);
+    keyLight.position.set(4.2, 5.0, 4.5);
+    keyLight.target.position.set(2.4, 1.8, 0.8);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.width = 2048;
     keyLight.shadow.mapSize.height = 2048;
@@ -120,179 +133,257 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     scene.add(keyLight);
     scene.add(keyLight.target);
 
-    // 4c. Powerful Silver Rim Light: Razor-sharp silver contour behind the knight
-    const rimLight = new THREE.DirectionalLight('#FFFFFF', 6.5);
-    rimLight.position.set(2.3, 3.2, -1.8);
-    rimLight.target.position.set(2.3, 1.8, 1.0);
+    // 4c. Powerful Silver Rim Light: Razor-sharp silver contour behind the warrior
+    const rimLight = new THREE.DirectionalLight('#FFFFFF', 6.8);
+    rimLight.position.set(2.4, 3.5, -2.2);
+    rimLight.target.position.set(2.4, 1.8, 0.8);
     scene.add(rimLight);
     scene.add(rimLight.target);
 
-    // 4d. Left Fill Light: Soft slate fill for the left hall
-    const fillLight = new THREE.DirectionalLight('#455168', 1.8);
+    // 4d. Overhead Celestial Spotlight: Neutral moonlight silver beam from above
+    const overheadSpot = new THREE.SpotLight('#E8EEF8', 5.5, 45, Math.PI / 4.5, 0.7, 1.1);
+    overheadSpot.position.set(2.4, 11.5, 0.8);
+    overheadSpot.target.position.set(2.4, 1.6, 0.8);
+    overheadSpot.castShadow = true;
+    scene.add(overheadSpot);
+    scene.add(overheadSpot.target);
+
+    // 4e. Left Fill Light: Soft slate fill for the left hall
+    const fillLight = new THREE.DirectionalLight('#2A2D38', 1.3);
     fillLight.position.set(-6.0, 4.0, 4.0);
     scene.add(fillLight);
 
-    // 4e. Cathedral Arch Volumetric Spotlight: Beaming through the distant arch
-    const archSpot = new THREE.SpotLight('#CBD5E1', 4.8, 60, Math.PI / 4, 0.65, 1.2);
+    // 4f. Cathedral Arch Volumetric Spotlight: Beaming through the distant arch
+    const archSpot = new THREE.SpotLight('#CBD5E1', 4.2, 60, Math.PI / 4, 0.65, 1.2);
     archSpot.position.set(1.5, 12, -32);
     archSpot.target.position.set(1.8, 0, 0);
     archSpot.castShadow = true;
     scene.add(archSpot);
     scene.add(archSpot.target);
 
-    // 4f. Crimson Visor Point Light: Menacing eye slit illumination
-    const crimsonEyeLight = new THREE.PointLight('#FF1E38', 3.0, 3.5);
-    crimsonEyeLight.position.set(2.3, 2.72, 1.28);
-    scene.add(crimsonEyeLight);
-
-    // 4g. Sword Runic Core Light
-    const swordGlowLight = new THREE.PointLight('#FF2A42', 2.4, 4.0);
-    swordGlowLight.position.set(2.3, 1.4, 1.45);
+    // 4g. RESTRAINED CRIMSON SWORD LIGHT: Subtle warm crimson accent near blade and hilt
+    const swordGlowLight = new THREE.PointLight('#FF2A42', 2.2, 3.8, 1.8);
+    swordGlowLight.position.set(1.85, 0.85, 1.35);
     scene.add(swordGlowLight);
 
+    // 4h. RESTRAINED CRIMSON CHEST CORE LIGHT
+    const chestCoreLight = new THREE.PointLight('#FF1E38', 1.8, 2.5, 2.0);
+    chestCoreLight.position.set(2.4, 2.85, 1.35);
+    scene.add(chestCoreLight);
+
+    // 4i. PIERCING CRIMSON VISOR SLIT LIGHT
+    const visorEyeLight = new THREE.PointLight('#FF1E38', 2.2, 2.2, 2.0);
+    visorEyeLight.position.set(2.4, 3.42, 1.35);
+    scene.add(visorEyeLight);
+
+    // 4j. FRONT METALLIC ARMOR KEY LIGHT: Illuminating chevron cuirass facets & silver bevels
+    const armorKeyLight = new THREE.DirectionalLight('#D8E2F0', 2.5);
+    armorKeyLight.position.set(2.4, 2.6, 4.5);
+    armorKeyLight.target.position.set(2.4, 1.8, 0.8);
+    scene.add(armorKeyLight);
+    scene.add(armorKeyLight.target);
+
+    // 4k. RADIANT HELMET PLUME TOP LIGHT
+    const plumeLight = new THREE.PointLight('#FF1E42', 2.8, 3.5, 1.5);
+    plumeLight.position.set(2.4, 3.8, 0.6);
+    scene.add(plumeLight);
+
     // ========================================================
-    // 5. MATERIALS PALETTE (SHADOW KNIGHT & CATHEDRAL)
+    // 5. MATERIALS PALETTE (BLACK LUXURY, POLISHED SILVER & CRIMSON)
     // ========================================================
     // Obsidian Black Iron Armor (high specular reflection, clear facets)
-    const armorPlateMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#141620'),
-      roughness: 0.20,
-      metalness: 0.95,
-      envMapIntensity: 2.5,
-    });
+    const armorPlateMat = trackDisposable(
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#0D111A'),
+        roughness: 0.18,
+        metalness: 0.94,
+        envMapIntensity: 2.5,
+      })
+    );
 
-    // Dark Crimson Secondary Steel Plates
-    const crimsonSteelMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#480A12'),
-      roughness: 0.25,
-      metalness: 0.88,
-    });
+    // Secondary Midnight Steel Plates
+    const secondaryArmorMat = trackDisposable(
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#161C28'),
+        roughness: 0.22,
+        metalness: 0.90,
+      })
+    );
 
     // Gleaming Silver Filigree Trim & Bevels
-    const silverTrimMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#E8EDF5'),
-      roughness: 0.12,
-      metalness: 0.98,
-    });
+    const silverTrimMat = trackDisposable(
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#D8E2F0'),
+        roughness: 0.12,
+        metalness: 0.98,
+      })
+    );
 
-    // Self-Illuminated Crimson Visor Slit
-    const crimsonGlowMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color('#FF1E38'),
-    });
+    // Restrained Crimson Energy Channels (Replacing electric blue)
+    const crimsonEnergyMat = trackDisposable(
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color('#D31027'),
+      })
+    );
 
-    // Flowing Crimson Velvet Cape Material (Double-sided)
-    const capeMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#580A15'),
-      roughness: 0.72,
-      metalness: 0.28,
-      side: THREE.DoubleSide,
-    });
+    // Concentrated Crimson Visor & Core Glow
+    const crimsonCoreMat = trackDisposable(
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color('#FF2442'),
+      })
+    );
 
-    // Greatsword Steel Blade Material
-    const swordBladeMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#1E222D'),
-      roughness: 0.15,
-      metalness: 0.96,
-    });
+    // Greatsword Dark Obsidian Steel Blade Material
+    const swordBladeMat = trackDisposable(
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#141720'),
+        roughness: 0.16,
+        metalness: 0.94,
+        envMapIntensity: 2.2,
+      })
+    );
+
+    // Radiant Crimson Velvet / Flame Helmet Plume Material
+    const crimsonPlumeMat = trackDisposable(
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#FF0033'),
+        emissive: new THREE.Color('#A8001E'),
+        emissiveIntensity: 1.25,
+        roughness: 0.40,
+        metalness: 0.18,
+        side: THREE.DoubleSide,
+      })
+    );
+
+    // Flowing Black Velvet Cape Material (Double-sided)
+    const blackCapeMat = trackDisposable(
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#08090E'),
+        roughness: 0.85,
+        metalness: 0.15,
+        side: THREE.DoubleSide,
+      })
+    );
 
     // Cathedral Stone / Pillar Material
-    const rockMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#15161F'),
-      roughness: 0.80,
-      metalness: 0.22,
-      flatShading: true,
-    });
+    const rockMat = trackDisposable(
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#12151E'),
+        roughness: 0.65,
+        metalness: 0.45,
+      })
+    );
 
-    // Reflective Polished Obsidian Stone Floor
-    const stoneFloorMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#08090E'),
-      roughness: 0.14,
-      metalness: 0.90,
-      envMapIntensity: 2.2,
-    });
+    // Reflective Flagstone Water / Mirror Floor
+    const stoneFloorMat = trackDisposable(
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#06070B'),
+        roughness: 0.14,
+        metalness: 0.90,
+        envMapIntensity: 2.2,
+      })
+    );
+
+    const portalMat = trackDisposable(
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color('#1C1F2E'),
+        transparent: true,
+        opacity: 0.65,
+      })
+    );
+
+    // Helpers for beveled polygon plates
+    const createPlateGeo = (points: [number, number][], depth = 0.04, bevel = 0.015) => {
+      const shape = new THREE.Shape();
+      shape.moveTo(points[0][0], points[0][1]);
+      for (let i = 1; i < points.length; i++) {
+        shape.lineTo(points[i][0], points[i][1]);
+      }
+      shape.closePath();
+      return trackDisposable(
+        new THREE.ExtrudeGeometry(shape, {
+          depth,
+          bevelEnabled: true,
+          bevelThickness: bevel,
+          bevelSize: bevel,
+          bevelSegments: 2,
+        })
+      );
+    };
+
+    const createEnergyLineGeo = (points: [number, number][], depth = 0.02) => {
+      const shape = new THREE.Shape();
+      shape.moveTo(points[0][0], points[0][1]);
+      for (let i = 1; i < points.length; i++) {
+        shape.lineTo(points[i][0], points[i][1]);
+      }
+      shape.closePath();
+      return trackDisposable(
+        new THREE.ExtrudeGeometry(shape, {
+          depth,
+          bevelEnabled: false,
+        })
+      );
+    };
 
     // ========================================================
-    // 6. GRAND MEDIEVAL CATHEDRAL ENVIRONMENT
+    // 6. CATHEDRAL ENVIRONMENT (ARCHITECTURAL MONOLITHS & WATER)
     // ========================================================
     const environmentGroup = new THREE.Group();
 
-    // 6a. Reflective Flagstone Floor Plane
-    const waterGeo = new THREE.PlaneGeometry(160, 100, 64, 40);
+    // 6a. Reflective Floor Plane
+    const waterGeo = trackDisposable(new THREE.PlaneGeometry(64, 80));
     waterGeo.rotateX(-Math.PI / 2);
     const floorMesh = new THREE.Mesh(waterGeo, stoneFloorMat);
     floorMesh.position.set(0, -0.01, -12);
     floorMesh.receiveShadow = true;
     environmentGroup.add(floorMesh);
 
-    // 6b. Flagstone Tile Grid Seams
-    const tileGrid = new THREE.GridHelper(120, 40, '#242A3A', '#12141E');
-    tileGrid.position.set(0, 0.005, -12);
-    environmentGroup.add(tileGrid);
+    // 6b. Cathedral Colonnade Pillars
+    const pillarGeo = trackDisposable(new THREE.BoxGeometry(1.6, 22, 1.6));
+    const pillarBaseGeo = trackDisposable(new THREE.BoxGeometry(2.4, 1.2, 2.4));
+    const pillarCapitalGeo = trackDisposable(new THREE.BoxGeometry(2.2, 1.0, 2.2));
 
-    // 6c. Monumental Fluted Gothic Pillars
-    const pillarGeo = new THREE.CylinderGeometry(0.85, 0.95, 18, 16);
-    const pillarBaseGeo = new THREE.BoxGeometry(2.4, 0.9, 2.4);
-    const pillarCapitalGeo = new THREE.BoxGeometry(2.6, 0.8, 2.6);
+    const leftColX = -8.2;
+    const rightColX = 8.2;
+    const colZPoints = [6, -2, -10, -18, -26, -34];
 
-    const pillarPositions = [
-      // Left Colonnade
-      { x: -5.5, z: 4 },
-      { x: -6.2, z: -4 },
-      { x: -6.8, z: -12 },
-      { x: -7.5, z: -20 },
-      { x: -8.2, z: -28 },
-      // Right Colonnade
-      { x: 7.2, z: 4 },
-      { x: 7.6, z: -4 },
-      { x: 8.0, z: -12 },
-      { x: 8.5, z: -20 },
-      { x: 9.0, z: -28 },
-    ];
+    colZPoints.forEach((z) => {
+      [leftColX, rightColX].forEach((x) => {
+        const pGroup = new THREE.Group();
+        pGroup.position.set(x, 0, z);
 
-    pillarPositions.forEach((pos, idx) => {
-      const pGroup = new THREE.Group();
-      pGroup.position.set(pos.x, 9, pos.z);
+        const shaft = new THREE.Mesh(pillarGeo, rockMat);
+        shaft.position.y = 11;
+        shaft.castShadow = true;
+        shaft.receiveShadow = true;
+        pGroup.add(shaft);
 
-      const shaft = new THREE.Mesh(pillarGeo, rockMat);
-      shaft.castShadow = true;
-      shaft.receiveShadow = true;
-      pGroup.add(shaft);
+        const base = new THREE.Mesh(pillarBaseGeo, rockMat);
+        base.position.y = 0.6;
+        base.receiveShadow = true;
+        pGroup.add(base);
 
-      const base = new THREE.Mesh(pillarBaseGeo, rockMat);
-      base.position.set(0, -8.5, 0);
-      base.receiveShadow = true;
-      pGroup.add(base);
+        const cap = new THREE.Mesh(pillarCapitalGeo, rockMat);
+        cap.position.y = 21.5;
+        pGroup.add(cap);
 
-      const cap = new THREE.Mesh(pillarCapitalGeo, rockMat);
-      cap.position.set(0, 8.6, 0);
-      pGroup.add(cap);
-
-      if (idx % 2 === 0) {
-        const sconce = new THREE.PointLight('#E59844', 1.3, 10);
-        sconce.position.set(pos.x > 0 ? -1.0 : 1.0, 3.2, 0);
-        pGroup.add(sconce);
-
-        const flameGeo = new THREE.SphereGeometry(0.12, 8, 8);
-        const flameMat = new THREE.MeshBasicMaterial({ color: '#FFAA33' });
-        const flame = new THREE.Mesh(flameGeo, flameMat);
-        flame.position.copy(sconce.position);
-        pGroup.add(flame);
-      }
-
-      environmentGroup.add(pGroup);
+        environmentGroup.add(pGroup);
+      });
     });
 
-    // 6d. Grounded Left Architectural Pediment (Safely below text zone)
-    const leftRock = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.8, 3.2), rockMat);
+    // 6c. Foreground Rocks Grounded Below Left Hero Text Zone
+    const leftRockGeo = trackDisposable(new THREE.BoxGeometry(3.6, 0.8, 3.2));
+    const leftRock = new THREE.Mesh(leftRockGeo, rockMat);
     leftRock.position.set(-7.2, -0.75, 1.8);
     leftRock.receiveShadow = true;
     environmentGroup.add(leftRock);
 
-    // 6e. Distant Grand Cathedral Archway
+    // 6d. Massive Distant Gothic Archway & Portal
     const archGroup = new THREE.Group();
-    archGroup.position.set(0, 0, -36);
+    archGroup.position.set(0, 0, -38);
 
-    const archPillarGeo = new THREE.CylinderGeometry(1.6, 1.8, 24, 20);
+    const archPillarGeo = trackDisposable(new THREE.BoxGeometry(2.8, 24, 2.8));
     const leftArchPillar = new THREE.Mesh(archPillarGeo, rockMat);
     leftArchPillar.position.set(-6.5, 12, 0);
     archGroup.add(leftArchPillar);
@@ -301,23 +392,18 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     rightArchPillar.position.set(6.5, 12, 0);
     archGroup.add(rightArchPillar);
 
-    const archTorusGeo = new THREE.TorusGeometry(6.5, 1.6, 16, 32, Math.PI);
+    const archTorusGeo = trackDisposable(new THREE.TorusGeometry(6.5, 1.6, 16, 32, Math.PI));
     const archTorus = new THREE.Mesh(archTorusGeo, rockMat);
     archTorus.position.set(0, 22, 0);
     archGroup.add(archTorus);
 
-    const portalGeo = new THREE.PlaneGeometry(12, 24);
-    const portalMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color('#3A455C'),
-      transparent: true,
-      opacity: 0.75,
-    });
+    const portalGeo = trackDisposable(new THREE.PlaneGeometry(12, 24));
     const portal = new THREE.Mesh(portalGeo, portalMat);
     portal.position.set(0, 12, -0.5);
     archGroup.add(portal);
 
-    // 6f. Central Altar Dais with Engraved AP Metallic Emblem
-    const daisGeo = new THREE.CylinderGeometry(4.2, 4.6, 0.6, 32);
+    // 6e. Central Altar Dais with Engraved AP Metallic Emblem
+    const daisGeo = trackDisposable(new THREE.CylinderGeometry(4.2, 4.6, 0.6, 32));
     const dais = new THREE.Mesh(daisGeo, rockMat);
     dais.position.set(0, 0.3, -26);
     dais.receiveShadow = true;
@@ -327,15 +413,17 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load('/brand/ap-transparent.png', (apTexture) => {
       apTexture.generateMipmaps = true;
-      const apEmblemGeo = new THREE.PlaneGeometry(5.2, 3.32);
-      const apEmblemMat = new THREE.MeshStandardMaterial({
-        map: apTexture,
-        transparent: true,
-        roughness: 0.15,
-        metalness: 0.95,
-        emissive: new THREE.Color('#94A3B8'),
-        emissiveIntensity: 0.35,
-      });
+      const apEmblemGeo = trackDisposable(new THREE.PlaneGeometry(5.2, 3.32));
+      const apEmblemMat = trackDisposable(
+        new THREE.MeshStandardMaterial({
+          map: apTexture,
+          transparent: true,
+          roughness: 0.15,
+          metalness: 0.95,
+          emissive: new THREE.Color('#94A3B8'),
+          emissiveIntensity: 0.35,
+        })
+      );
       const apEmblem = new THREE.Mesh(apEmblemGeo, apEmblemMat);
       apEmblem.position.set(0, 4.5, -34.8);
       scene.add(apEmblem);
@@ -345,327 +433,844 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     scene.add(environmentGroup);
 
     // ========================================================
-    // 7. THE SHADOW KNIGHT GUARDIAN MODEL (CURVED ARTICULATED GOTHIC ARMOR)
+    // 7. THE SHADOW KNIGHT GUARDIAN MODEL (HIGH-FIDELITY REBUILD)
     // ========================================================
     const figureGroup = new THREE.Group();
-    figureGroup.position.set(2.3, 0, 1.0); // Center-right position leaves left zone 100% readable
+    figureGroup.position.set(2.4, 0, 0.8); // Center-right position leaves left zone 100% readable
 
-    // 7a. Base Knight Dias / Ground Contact
-    const knightPedestalGeo = new THREE.CylinderGeometry(1.6, 1.8, 0.16, 32);
-    const knightPedestal = new THREE.Mesh(knightPedestalGeo, rockMat);
-    knightPedestal.position.set(0, 0.08, 0);
-    knightPedestal.receiveShadow = true;
-    figureGroup.add(knightPedestal);
+    // 7a. Base Knight Dais / Ground Contact with Engraved Crimson Runic Ring
+    const pedestalGeo = trackDisposable(new THREE.CylinderGeometry(1.65, 1.85, 0.16, 36));
+    const pedestalMesh = new THREE.Mesh(pedestalGeo, rockMat);
+    pedestalMesh.position.set(0, 0.08, 0);
+    pedestalMesh.receiveShadow = true;
+    figureGroup.add(pedestalMesh);
 
-    // Pedestal Silver Ring
-    const pedRingGeo = new THREE.TorusGeometry(1.6, 0.03, 8, 32);
-    pedRingGeo.rotateX(Math.PI / 2);
-    const pedRing = new THREE.Mesh(pedRingGeo, silverTrimMat);
-    pedRing.position.set(0, 0.16, 0);
-    figureGroup.add(pedRing);
+    const runeRingGeo = trackDisposable(new THREE.RingGeometry(1.35, 1.45, 48));
+    runeRingGeo.rotateX(-Math.PI / 2);
+    const runeRingMesh = new THREE.Mesh(
+      runeRingGeo,
+      trackDisposable(
+        new THREE.MeshBasicMaterial({
+          color: new THREE.Color('#8B0014'),
+          transparent: true,
+          opacity: 0.75,
+        })
+      )
+    );
+    runeRingMesh.position.set(0, 0.162, 0);
+    figureGroup.add(runeRingMesh);
 
-    // 7b. Articulated Gothic Sabatons (Boots)
-    const sabatonGeo = new THREE.BoxGeometry(0.28, 0.18, 0.58);
-    sabatonGeo.translate(0, 0.09, 0.1);
+    const rimTorusGeo = trackDisposable(new THREE.TorusGeometry(1.65, 0.025, 8, 36));
+    rimTorusGeo.rotateX(Math.PI / 2);
+    const rimMesh = new THREE.Mesh(rimTorusGeo, silverTrimMat);
+    rimMesh.position.set(0, 0.16, 0);
+    figureGroup.add(rimMesh);
 
-    const leftSabaton = new THREE.Mesh(sabatonGeo, armorPlateMat);
-    leftSabaton.position.set(-0.35, 0.16, 0);
-    leftSabaton.rotation.y = 0.14;
-    leftSabaton.castShadow = true;
-    figureGroup.add(leftSabaton);
+    // 7b. Legs & Gothic Sabatons (Boots)
+    const legsGroup = new THREE.Group();
 
-    const rightSabaton = new THREE.Mesh(sabatonGeo, armorPlateMat);
-    rightSabaton.position.set(0.35, 0.16, 0);
-    rightSabaton.rotation.y = -0.14;
-    rightSabaton.castShadow = true;
-    figureGroup.add(rightSabaton);
+    // Sabatons
+    const createSabatonMesh = () => {
+      const g = new THREE.Group();
+      const soleGeo = createPlateGeo([
+        [-0.12, -0.22],
+        [0.12, -0.22],
+        [0.10, 0.18],
+        [0.0, 0.32],
+        [-0.10, 0.18],
+      ], 0.08, 0.015);
+      soleGeo.rotateX(Math.PI / 2);
+      const sMesh = new THREE.Mesh(soleGeo, armorPlateMat);
+      sMesh.position.set(0, 0.04, 0.02);
+      sMesh.castShadow = true;
+      g.add(sMesh);
 
-    // 7c. Greaves & Shin Armor with Silver Bevels
-    const greaveGeo = new THREE.CylinderGeometry(0.18, 0.13, 0.88, 16);
-    const leftGreave = new THREE.Mesh(greaveGeo, armorPlateMat);
-    leftGreave.position.set(-0.35, 0.65, 0);
-    leftGreave.castShadow = true;
-    figureGroup.add(leftGreave);
+      const instepGeo = createPlateGeo([
+        [-0.10, -0.05],
+        [0.10, -0.05],
+        [0.08, 0.16],
+        [0.0, 0.24],
+        [-0.08, 0.16],
+      ], 0.07, 0.012);
+      instepGeo.rotateX(Math.PI / 2.3);
+      const iMesh = new THREE.Mesh(instepGeo, secondaryArmorMat);
+      iMesh.position.set(0, 0.08, 0.06);
+      g.add(iMesh);
 
-    const rightGreave = new THREE.Mesh(greaveGeo, armorPlateMat);
-    rightGreave.position.set(0.35, 0.65, 0);
-    rightGreave.castShadow = true;
-    figureGroup.add(rightGreave);
+      const stripGeo = createEnergyLineGeo([
+        [-0.11, -0.01],
+        [0.11, -0.01],
+        [0.09, 0.28],
+        [0.0, 0.33],
+        [-0.09, 0.28],
+      ], 0.015);
+      stripGeo.rotateX(Math.PI / 2);
+      const stripMesh = new THREE.Mesh(stripGeo, crimsonEnergyMat);
+      stripMesh.position.set(0, 0.02, 0.03);
+      g.add(stripMesh);
 
-    // Silver Greave Trim
-    const trimGreaveGeo = new THREE.TorusGeometry(0.18, 0.02, 8, 16);
-    const leftGreaveTrim = new THREE.Mesh(trimGreaveGeo, silverTrimMat);
-    leftGreaveTrim.rotation.x = Math.PI / 2;
-    leftGreaveTrim.position.set(-0.35, 0.95, 0);
-    figureGroup.add(leftGreaveTrim);
+      return g;
+    };
 
-    const rightGreaveTrim = new THREE.Mesh(trimGreaveGeo, silverTrimMat);
-    rightGreaveTrim.rotation.x = Math.PI / 2;
-    rightGreaveTrim.position.set(0.35, 0.95, 0);
-    figureGroup.add(rightGreaveTrim);
+    const leftSabaton = createSabatonMesh();
+    leftSabaton.position.set(-0.36, 0.16, 0.05);
+    leftSabaton.rotation.y = 0.18;
+    legsGroup.add(leftSabaton);
 
-    // 7d. Poleyns (Spiked Knee Cops)
-    const poleynGeo = new THREE.SphereGeometry(0.16, 16, 12);
-    poleynGeo.scale(1.0, 1.2, 1.4);
+    const rightSabaton = createSabatonMesh();
+    rightSabaton.position.set(0.36, 0.16, -0.05);
+    rightSabaton.rotation.y = -0.15;
+    legsGroup.add(rightSabaton);
 
-    const leftPoleyn = new THREE.Mesh(poleynGeo, crimsonSteelMat);
-    leftPoleyn.position.set(-0.35, 1.15, 0.12);
-    figureGroup.add(leftPoleyn);
+    // Greaves (Gothic Shin Plates with 3 Chevron Crimson Energy Lines)
+    const createGreaveMesh = () => {
+      const g = new THREE.Group();
+      const shinGeo = trackDisposable(new THREE.CylinderGeometry(0.14, 0.11, 0.72, 16));
+      const sMesh = new THREE.Mesh(shinGeo, armorPlateMat);
+      sMesh.position.set(0, 0.36, 0);
+      sMesh.castShadow = true;
+      g.add(sMesh);
 
-    const rightPoleyn = new THREE.Mesh(poleynGeo, crimsonSteelMat);
-    rightPoleyn.position.set(0.35, 1.15, 0.12);
-    figureGroup.add(rightPoleyn);
+      for (let i = 0; i < 3; i++) {
+        const yPos = 0.18 + i * 0.20;
+        const scale = 1.0 - i * 0.06;
 
-    // 7e. Cuisses (Thigh Armor)
-    const cuisseGeo = new THREE.CylinderGeometry(0.24, 0.19, 0.85, 16);
-    const leftCuisse = new THREE.Mesh(cuisseGeo, armorPlateMat);
-    leftCuisse.position.set(-0.32, 1.6, 0);
-    leftCuisse.castShadow = true;
-    figureGroup.add(leftCuisse);
+        const chevGeo = createPlateGeo([
+          [-0.13 * scale, 0.08],
+          [0, -0.06],
+          [0.13 * scale, 0.08],
+          [0.12 * scale, 0.02],
+          [0, -0.11],
+          [-0.12 * scale, 0.02],
+        ], 0.04, 0.012);
+        const cMesh = new THREE.Mesh(chevGeo, secondaryArmorMat);
+        cMesh.position.set(0, yPos, 0.11);
+        g.add(cMesh);
 
-    const rightCuisse = new THREE.Mesh(cuisseGeo, armorPlateMat);
-    rightCuisse.position.set(0.32, 1.6, 0);
-    rightCuisse.castShadow = true;
-    figureGroup.add(rightCuisse);
+        const lineGeo = createEnergyLineGeo([
+          [-0.12 * scale, 0.01],
+          [0, -0.10],
+          [0.12 * scale, 0.01],
+          [0.10 * scale, -0.01],
+          [0, -0.12],
+          [-0.10 * scale, -0.01],
+        ], 0.015);
+        const lMesh = new THREE.Mesh(lineGeo, crimsonEnergyMat);
+        lMesh.position.set(0, yPos, 0.13);
+        g.add(lMesh);
+      }
 
-    // 7f. Faulds & Tassets (Layered Hip & Thigh Guards)
-    const tassetGeo = new THREE.BoxGeometry(0.32, 0.45, 0.06);
-    const leftTasset = new THREE.Mesh(tassetGeo, crimsonSteelMat);
-    leftTasset.position.set(-0.44, 1.95, 0.14);
-    leftTasset.rotation.set(0.12, -0.18, 0.12);
-    figureGroup.add(leftTasset);
+      const trimGeo = trackDisposable(new THREE.CylinderGeometry(0.145, 0.115, 0.03, 16));
+      const tMesh = new THREE.Mesh(trimGeo, silverTrimMat);
+      tMesh.position.set(0, 0.72, 0);
+      g.add(tMesh);
 
-    const rightTasset = new THREE.Mesh(tassetGeo, crimsonSteelMat);
-    rightTasset.position.set(0.44, 1.95, 0.14);
-    rightTasset.rotation.set(0.12, 0.18, -0.12);
-    figureGroup.add(rightTasset);
+      return g;
+    };
 
-    // Belt Buckle / Center Inset
-    const beltBuckleGeo = new THREE.OctahedronGeometry(0.15, 0);
-    const beltBuckle = new THREE.Mesh(beltBuckleGeo, silverTrimMat);
-    beltBuckle.position.set(0, 2.05, 0.25);
-    figureGroup.add(beltBuckle);
+    const leftGreave = createGreaveMesh();
+    leftGreave.position.set(-0.36, 0.28, 0.05);
+    leftGreave.rotation.y = 0.18;
+    legsGroup.add(leftGreave);
 
-    // 7g. Articulated Breastplate & Torso Group (Breathing Animation Anchor)
+    const rightGreave = createGreaveMesh();
+    rightGreave.position.set(0.36, 0.28, -0.05);
+    rightGreave.rotation.y = -0.15;
+    legsGroup.add(rightGreave);
+
+    // Poleyns (Spiked Knee Cops)
+    const createPoleynMesh = () => {
+      const g = new THREE.Group();
+      const kneeGeo = createPlateGeo([
+        [-0.15, 0.12],
+        [0.15, 0.12],
+        [0.12, -0.08],
+        [0, -0.16],
+        [-0.12, -0.08],
+      ], 0.08, 0.02);
+      const kMesh = new THREE.Mesh(kneeGeo, armorPlateMat);
+      kMesh.position.set(0, 0, 0.12);
+      kMesh.rotation.x = -0.12;
+      g.add(kMesh);
+
+      const gemGeo = createEnergyLineGeo([
+        [0, 0.08],
+        [0.08, 0],
+        [0, -0.08],
+        [-0.08, 0],
+      ], 0.025);
+      const gemMesh = new THREE.Mesh(gemGeo, crimsonEnergyMat);
+      gemMesh.position.set(0, 0, 0.17);
+      g.add(gemMesh);
+
+      return g;
+    };
+
+    const leftPoleyn = createPoleynMesh();
+    leftPoleyn.position.set(-0.36, 1.06, 0.05);
+    legsGroup.add(leftPoleyn);
+
+    const rightPoleyn = createPoleynMesh();
+    rightPoleyn.position.set(0.36, 1.06, -0.05);
+    legsGroup.add(rightPoleyn);
+
+    // Cuisses (Thigh Armor with Diagonal Crimson Energy Lines)
+    const createCuisseMesh = () => {
+      const g = new THREE.Group();
+      const thighGeo = trackDisposable(new THREE.CylinderGeometry(0.22, 0.16, 0.76, 16));
+      const tMesh = new THREE.Mesh(thighGeo, armorPlateMat);
+      tMesh.position.set(0, 0.38, 0);
+      tMesh.castShadow = true;
+      g.add(tMesh);
+
+      const outerGeo = createPlateGeo([
+        [-0.14, 0.32],
+        [0.14, 0.32],
+        [0.12, -0.28],
+        [0, -0.36],
+        [-0.12, -0.28],
+      ], 0.05, 0.015);
+      const oMesh = new THREE.Mesh(outerGeo, secondaryArmorMat);
+      oMesh.position.set(0, 0.38, 0.12);
+      g.add(oMesh);
+
+      for (let i = 0; i < 2; i++) {
+        const yPos = 0.24 + i * 0.22;
+        const diagGeo = createEnergyLineGeo([
+          [-0.11, 0.04],
+          [0, -0.04],
+          [0.11, 0.04],
+          [0.09, 0.02],
+          [0, -0.06],
+          [-0.09, 0.02],
+        ], 0.02);
+        const dMesh = new THREE.Mesh(diagGeo, crimsonEnergyMat);
+        dMesh.position.set(0, yPos, 0.15);
+        g.add(dMesh);
+      }
+
+      return g;
+    };
+
+    const leftCuisse = createCuisseMesh();
+    leftCuisse.position.set(-0.33, 1.15, 0.04);
+    legsGroup.add(leftCuisse);
+
+    const rightCuisse = createCuisseMesh();
+    rightCuisse.position.set(0.33, 1.15, -0.04);
+    legsGroup.add(rightCuisse);
+
+    figureGroup.add(legsGroup);
+
+    // 7c. Hips, Belt Buckle & Flared Tassets
+    const hipsGroup = new THREE.Group();
+    hipsGroup.position.set(0, 1.95, 0);
+
+    const girdleGeo = trackDisposable(new THREE.CylinderGeometry(0.38, 0.35, 0.22, 20));
+    girdleGeo.scale(1.15, 1.0, 0.85);
+    const girdleMesh = new THREE.Mesh(girdleGeo, armorPlateMat);
+    hipsGroup.add(girdleMesh);
+
+    const buckleGeo = createPlateGeo([
+      [0, 0.12],
+      [0.14, 0.04],
+      [0.11, -0.10],
+      [0, -0.15],
+      [-0.11, -0.10],
+      [-0.14, 0.04],
+    ], 0.06, 0.015);
+    const buckleMesh = new THREE.Mesh(buckleGeo, silverTrimMat);
+    buckleMesh.position.set(0, 0.02, 0.28);
+    hipsGroup.add(buckleMesh);
+
+    const buckleGemGeo = createEnergyLineGeo([
+      [0, 0.07],
+      [0.08, 0],
+      [0, -0.07],
+      [-0.08, 0],
+    ], 0.025);
+    const buckleGemMesh = new THREE.Mesh(buckleGemGeo, crimsonCoreMat);
+    buckleGemMesh.position.set(0, 0.02, 0.32);
+    hipsGroup.add(buckleGemMesh);
+
+    const createTassetMesh = (isLeft: boolean) => {
+      const g = new THREE.Group();
+      for (let i = 0; i < 2; i++) {
+        const scale = 1.0 - i * 0.12;
+        const yOffset = -i * 0.14;
+        const tGeo = createPlateGeo([
+          [-0.15 * scale, 0.12],
+          [0.15 * scale, 0.12],
+          [0.13 * scale, -0.12],
+          [0, -0.22],
+          [-0.13 * scale, -0.12],
+        ], 0.04, 0.012);
+        const tMesh = new THREE.Mesh(tGeo, secondaryArmorMat);
+        tMesh.position.set(0, yOffset, 0);
+        g.add(tMesh);
+
+        const lGeo = createEnergyLineGeo([
+          [-0.12 * scale, 0.02],
+          [0, -0.06],
+          [0.12 * scale, 0.02],
+          [0.10 * scale, 0.0],
+          [0, -0.08],
+          [-0.10 * scale, 0.0],
+        ], 0.018);
+        const lMesh = new THREE.Mesh(lGeo, crimsonEnergyMat);
+        lMesh.position.set(0, yOffset - 0.06, 0.03);
+        g.add(lMesh);
+      }
+      return g;
+    };
+
+    const leftTasset = createTassetMesh(true);
+    leftTasset.position.set(-0.46, -0.08, 0.12);
+    leftTasset.rotation.set(0.15, -0.22, 0.18);
+    hipsGroup.add(leftTasset);
+
+    const rightTasset = createTassetMesh(false);
+    rightTasset.position.set(0.46, -0.08, 0.12);
+    rightTasset.rotation.set(0.15, 0.22, -0.18);
+    hipsGroup.add(rightTasset);
+
+    figureGroup.add(hipsGroup);
+
+    // 7d. Torso Group (Breathing Anchor) with Chevron Cuirass & Restrained Crimson Core
     const torsoGroup = new THREE.Group();
-    torsoGroup.position.set(0, 2.0, 0);
+    torsoGroup.position.set(0, 2.05, 0);
 
-    // Segmented Abdomen Cuirass
-    const abdomenGeo = new THREE.CylinderGeometry(0.42, 0.38, 0.52, 20);
-    abdomenGeo.scale(1.15, 1.0, 0.84);
-    const abdomen = new THREE.Mesh(abdomenGeo, armorPlateMat);
-    abdomen.position.set(0, 0.3, 0);
-    abdomen.castShadow = true;
-    torsoGroup.add(abdomen);
+    const abdoBaseGeo = trackDisposable(new THREE.CylinderGeometry(0.39, 0.35, 0.48, 20));
+    abdoBaseGeo.scale(1.12, 1.0, 0.82);
+    const abdoBaseMesh = new THREE.Mesh(abdoBaseGeo, armorPlateMat);
+    abdoBaseMesh.position.set(0, 0.26, 0);
+    abdoBaseMesh.castShadow = true;
+    torsoGroup.add(abdoBaseMesh);
 
-    // Upper Muscled Gothic Cuirass (Chestplate with anatomical curves)
-    const chestGeo = new THREE.SphereGeometry(0.55, 24, 18);
-    chestGeo.scale(1.0, 0.85, 0.75);
-    const chest = new THREE.Mesh(chestGeo, armorPlateMat);
-    chest.position.set(0, 0.80, 0.06);
-    chest.castShadow = true;
-    torsoGroup.add(chest);
+    // 4 Interlocking Chevron Abdominal Plates with Restrained Crimson Seams
+    for (let i = 0; i < 4; i++) {
+      const yPos = 0.12 + i * 0.11;
+      const scale = 0.86 + i * 0.06;
 
-    // Center Ridge / Fluting (Silver spine line)
-    const ridgeGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.72, 8);
-    const ridge = new THREE.Mesh(ridgeGeo, silverTrimMat);
-    ridge.position.set(0, 0.80, 0.44);
-    torsoGroup.add(ridge);
+      const chevPlateGeo = createPlateGeo([
+        [-0.24 * scale, 0.08],
+        [0, -0.05],
+        [0.24 * scale, 0.08],
+        [0.22 * scale, 0.01],
+        [0, -0.11],
+        [-0.22 * scale, 0.01],
+      ], 0.04, 0.012);
+      const chevPlateMesh = new THREE.Mesh(chevPlateGeo, secondaryArmorMat);
+      chevPlateMesh.position.set(0, yPos, 0.22);
+      torsoGroup.add(chevPlateMesh);
 
-    // Crimson Inset Pectoral Plates
-    const pecGeo = new THREE.BoxGeometry(0.28, 0.28, 0.05);
-    const leftPec = new THREE.Mesh(pecGeo, crimsonSteelMat);
-    leftPec.position.set(-0.22, 0.85, 0.40);
-    leftPec.rotation.set(0, -0.22, 0.05);
-    torsoGroup.add(leftPec);
+      const chevLineGeo = createEnergyLineGeo([
+        [-0.23 * scale, 0.02],
+        [0, -0.09],
+        [0.23 * scale, 0.02],
+        [0.21 * scale, -0.01],
+        [0, -0.12],
+        [-0.21 * scale, -0.01],
+      ], 0.02);
+      const chevLineMesh = new THREE.Mesh(chevLineGeo, crimsonEnergyMat);
+      chevLineMesh.position.set(0, yPos, 0.245);
+      torsoGroup.add(chevLineMesh);
+    }
 
-    const rightPec = new THREE.Mesh(pecGeo, crimsonSteelMat);
-    rightPec.position.set(0.22, 0.85, 0.40);
-    rightPec.rotation.set(0, 0.22, -0.05);
-    torsoGroup.add(rightPec);
+    // Upper Pectoral Gothic Cuirass
+    const chestBaseGeo = trackDisposable(new THREE.SphereGeometry(0.52, 24, 18));
+    chestBaseGeo.scale(1.05, 0.82, 0.72);
+    const chestBaseMesh = new THREE.Mesh(chestBaseGeo, armorPlateMat);
+    chestBaseMesh.position.set(0, 0.74, 0.06);
+    chestBaseMesh.castShadow = true;
+    torsoGroup.add(chestBaseMesh);
 
-    // Gorget (Armored Neck Collar)
-    const gorgetGeo = new THREE.CylinderGeometry(0.26, 0.35, 0.26, 16);
-    const gorget = new THREE.Mesh(gorgetGeo, silverTrimMat);
-    gorget.position.set(0, 1.22, 0.04);
-    torsoGroup.add(gorget);
+    // Angular Pectoral Plates
+    const leftPecGeo = createPlateGeo([
+      [-0.28, 0.18],
+      [0, 0.14],
+      [0, -0.16],
+      [-0.24, -0.18],
+    ], 0.05, 0.015);
+    const leftPecMesh = new THREE.Mesh(leftPecGeo, secondaryArmorMat);
+    leftPecMesh.position.set(-0.16, 0.74, 0.32);
+    leftPecMesh.rotation.set(-0.05, -0.20, 0.08);
+    torsoGroup.add(leftPecMesh);
 
-    // 7h. Grand Flared Gothic Pauldrons (Shoulder Armor with Silver Bevels)
-    const pauldronGeo = new THREE.SphereGeometry(0.38, 16, 12, 0, Math.PI);
-    pauldronGeo.scale(1.2, 0.9, 0.9);
+    const rightPecGeo = createPlateGeo([
+      [0, 0.14],
+      [0.28, 0.18],
+      [0.24, -0.18],
+      [0, -0.16],
+    ], 0.05, 0.015);
+    const rightPecMesh = new THREE.Mesh(rightPecGeo, secondaryArmorMat);
+    rightPecMesh.position.set(0.16, 0.74, 0.32);
+    rightPecMesh.rotation.set(-0.05, 0.20, -0.08);
+    torsoGroup.add(rightPecMesh);
 
-    const leftPauldron = new THREE.Mesh(pauldronGeo, armorPlateMat);
-    leftPauldron.position.set(-0.66, 1.15, 0);
-    leftPauldron.rotation.set(0.2, 0, -Math.PI / 2.3);
-    leftPauldron.castShadow = true;
+    // Restrained Crimson Winged Sternum Emblem (Chest Core)
+    const chestCoreGeo = createEnergyLineGeo([
+      [0, 0.18],
+      [0.15, 0.24],
+      [0.28, 0.14],
+      [0.14, 0.02],
+      [0, -0.16],
+      [-0.14, 0.02],
+      [-0.28, 0.14],
+      [-0.15, 0.24],
+    ], 0.035);
+    const chestCoreMesh = new THREE.Mesh(chestCoreGeo, crimsonCoreMat);
+    chestCoreMesh.position.set(0, 0.82, 0.38);
+    torsoGroup.add(chestCoreMesh);
+
+    // Gorget (Neck Collar) with Polished Silver
+    const gorgetGeo = trackDisposable(new THREE.CylinderGeometry(0.24, 0.32, 0.24, 18));
+    gorgetGeo.scale(1.08, 1.0, 0.90);
+    const gorgetMesh = new THREE.Mesh(gorgetGeo, silverTrimMat);
+    gorgetMesh.position.set(0, 1.12, 0.05);
+    torsoGroup.add(gorgetMesh);
+
+    // 7e. Multi-Tiered Flared Angular Pauldrons (Shoulder Plates)
+    const createPauldronMesh = (isLeft: boolean) => {
+      const g = new THREE.Group();
+      const sign = isLeft ? -1 : 1;
+
+      for (let tier = 0; tier < 3; tier++) {
+        const scale = 1.0 - tier * 0.12;
+        const yOffset = tier * 0.12;
+        const zOffset = -tier * 0.04;
+        const rotZ = sign * (0.35 + tier * 0.18);
+
+        const pGeo = createPlateGeo([
+          [-0.24 * scale, 0.16],
+          [0.0, 0.36 * scale],
+          [0.24 * scale, 0.16],
+          [0.18 * scale, -0.14],
+          [0.0, -0.22 * scale],
+          [-0.18 * scale, -0.14],
+        ], 0.05, 0.015);
+
+        const pMesh = new THREE.Mesh(pGeo, tier === 1 ? secondaryArmorMat : armorPlateMat);
+        pMesh.position.set(sign * (0.05 + tier * 0.04), yOffset, zOffset);
+        pMesh.rotation.set(0.18, sign * -0.12, rotZ);
+        pMesh.castShadow = true;
+        g.add(pMesh);
+
+        const rGeo = createEnergyLineGeo([
+          [-0.22 * scale, 0.14],
+          [0.0, 0.33 * scale],
+          [0.22 * scale, 0.14],
+          [0.16 * scale, 0.11],
+          [0.0, 0.29 * scale],
+          [-0.16 * scale, 0.11],
+        ], 0.02);
+        const rMesh = new THREE.Mesh(rGeo, crimsonEnergyMat);
+        rMesh.position.set(sign * (0.05 + tier * 0.04), yOffset, zOffset + 0.04);
+        rMesh.rotation.set(0.18, sign * -0.12, rotZ);
+        g.add(rMesh);
+      }
+
+      const crestGeo = createPlateGeo([
+        [-0.04, 0.44],
+        [0.04, 0.44],
+        [0.03, -0.08],
+        [-0.03, -0.08],
+      ], 0.04, 0.01);
+      const crestMesh = new THREE.Mesh(crestGeo, silverTrimMat);
+      crestMesh.position.set(sign * 0.12, 0.18, 0.02);
+      crestMesh.rotation.set(0.15, 0, sign * 0.42);
+      g.add(crestMesh);
+
+      return g;
+    };
+
+    const leftPauldron = createPauldronMesh(true);
+    leftPauldron.position.set(-0.65, 0.98, 0.04);
     torsoGroup.add(leftPauldron);
 
-    const leftPauldronRim = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.025, 8, 16, Math.PI), silverTrimMat);
-    leftPauldronRim.position.copy(leftPauldron.position);
-    leftPauldronRim.rotation.copy(leftPauldron.rotation);
-    torsoGroup.add(leftPauldronRim);
-
-    const rightPauldron = new THREE.Mesh(pauldronGeo, armorPlateMat);
-    rightPauldron.position.set(0.66, 1.15, 0);
-    rightPauldron.rotation.set(0.2, 0, Math.PI / 2.3);
-    rightPauldron.castShadow = true;
+    const rightPauldron = createPauldronMesh(false);
+    rightPauldron.position.set(0.65, 0.98, 0.04);
     torsoGroup.add(rightPauldron);
 
-    const rightPauldronRim = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.025, 8, 16, Math.PI), silverTrimMat);
-    rightPauldronRim.position.copy(rightPauldron.position);
-    rightPauldronRim.rotation.copy(rightPauldron.rotation);
-    torsoGroup.add(rightPauldronRim);
+    // 7f. Arms, Forearms & Gauntlets (Left Relaxed at Side, Right Gripping Greatsword)
+    const bicepGeo = trackDisposable(new THREE.CylinderGeometry(0.13, 0.11, 0.45, 14));
+    const couterGeo = createPlateGeo([
+      [-0.10, 0.10],
+      [0.10, 0.10],
+      [0.08, -0.08],
+      [0, -0.16],
+      [-0.08, -0.08],
+    ], 0.05, 0.015);
+    const forearmGeo = trackDisposable(new THREE.CylinderGeometry(0.12, 0.09, 0.44, 14));
+    const gauntletGeo = trackDisposable(new THREE.BoxGeometry(0.13, 0.18, 0.15));
 
-    // 7i. Articulated Arms, Vambraces & Gauntlets Gripping the Greatsword
-    const armGeo = new THREE.CylinderGeometry(0.14, 0.12, 0.65, 12);
+    // Left Arm (Relaxed at side)
+    const leftArmGroup = new THREE.Group();
+    leftArmGroup.position.set(-0.55, 0.85, 0.05);
 
-    // Left Arm holding sword hilt
-    const leftArm = new THREE.Mesh(armGeo, armorPlateMat);
-    leftArm.position.set(-0.54, 0.75, 0.22);
-    leftArm.rotation.set(0.55, 0.22, -0.32);
-    torsoGroup.add(leftArm);
+    const leftBicepMesh = new THREE.Mesh(bicepGeo, armorPlateMat);
+    leftBicepMesh.position.set(0, -0.22, 0);
+    leftArmGroup.add(leftBicepMesh);
 
-    const leftForearm = new THREE.Mesh(armGeo, crimsonSteelMat);
-    leftForearm.position.set(-0.38, 0.32, 0.48);
-    leftForearm.rotation.set(0.95, -0.28, 0.18);
-    torsoGroup.add(leftForearm);
+    const leftCouterMesh = new THREE.Mesh(couterGeo, secondaryArmorMat);
+    leftCouterMesh.position.set(-0.06, -0.46, -0.08);
+    leftCouterMesh.rotation.set(Math.PI / 1.8, 0, -0.2);
+    leftArmGroup.add(leftCouterMesh);
 
-    // Right Arm holding sword hilt
-    const rightArm = new THREE.Mesh(armGeo, armorPlateMat);
-    rightArm.position.set(0.54, 0.75, 0.22);
-    rightArm.rotation.set(0.55, -0.22, 0.32);
-    torsoGroup.add(rightArm);
+    const leftForearmMesh = new THREE.Mesh(forearmGeo, secondaryArmorMat);
+    leftForearmMesh.position.set(0.04, -0.66, 0.05);
+    leftArmGroup.add(leftForearmMesh);
 
-    const rightForearm = new THREE.Mesh(armGeo, crimsonSteelMat);
-    rightForearm.position.set(0.38, 0.32, 0.48);
-    rightForearm.rotation.set(0.95, 0.28, -0.18);
-    torsoGroup.add(rightForearm);
+    for (let i = 0; i < 2; i++) {
+      const lineGeo = createEnergyLineGeo([
+        [-0.08, 0.02],
+        [0, -0.03],
+        [0.08, 0.02],
+        [0.07, 0],
+        [0, -0.04],
+        [-0.07, 0],
+      ], 0.018);
+      const lineMesh = new THREE.Mesh(lineGeo, crimsonEnergyMat);
+      lineMesh.position.set(0.04, -0.58 - i * 0.12, 0.14);
+      leftArmGroup.add(lineMesh);
+    }
 
-    // Gauntlets (Armored Hands meeting at the sword grip)
-    const gauntletGeo = new THREE.BoxGeometry(0.16, 0.16, 0.22);
-    const leftGauntlet = new THREE.Mesh(gauntletGeo, silverTrimMat);
-    leftGauntlet.position.set(-0.10, 0.26, 0.64);
-    leftGauntlet.rotation.set(0.35, 0.2, -0.15);
-    torsoGroup.add(leftGauntlet);
+    const leftGauntletMesh = new THREE.Mesh(gauntletGeo, armorPlateMat);
+    leftGauntletMesh.position.set(0.06, -0.92, 0.08);
+    leftArmGroup.add(leftGauntletMesh);
 
-    const rightGauntlet = new THREE.Mesh(gauntletGeo, silverTrimMat);
-    rightGauntlet.position.set(0.10, 0.38, 0.64);
-    rightGauntlet.rotation.set(0.35, -0.2, 0.15);
-    torsoGroup.add(rightGauntlet);
+    const knuckleLineGeo = createEnergyLineGeo([
+      [-0.06, 0.02],
+      [0.06, 0.02],
+      [0.06, -0.02],
+      [-0.06, -0.02],
+    ], 0.02);
+    const leftKnuckleMesh = new THREE.Mesh(knuckleLineGeo, crimsonCoreMat);
+    leftKnuckleMesh.position.set(0.06, -0.92, 0.16);
+    leftArmGroup.add(leftKnuckleMesh);
 
-    // 7j. Imposing Gothic Knight Helm (Sleek curved helmet with glowing visor)
-    const helmetGroup = new THREE.Group();
-    helmetGroup.position.set(0, 1.45, 0.05);
+    torsoGroup.add(leftArmGroup);
 
-    // Curved Helm Dome
-    const helmDomeGeo = new THREE.SphereGeometry(0.27, 24, 20);
-    helmDomeGeo.scale(0.85, 1.15, 1.0);
-    const helmDome = new THREE.Mesh(helmDomeGeo, armorPlateMat);
-    helmDome.castShadow = true;
-    helmetGroup.add(helmDome);
+    // Right Arm (Angled forward-downward to firmly grip Greatsword)
+    const rightArmGroup = new THREE.Group();
+    rightArmGroup.position.set(0.55, 0.85, 0.05);
 
-    // Silver Crown Fin / Crest
-    const finGeo = new THREE.BoxGeometry(0.04, 0.55, 0.45);
-    const helmFin = new THREE.Mesh(finGeo, silverTrimMat);
-    helmFin.position.set(0, 0.30, -0.05);
-    helmFin.rotation.x = -0.35;
-    helmetGroup.add(helmFin);
+    const rightBicepMesh = new THREE.Mesh(bicepGeo, armorPlateMat);
+    rightBicepMesh.position.set(0.05, -0.18, 0.12);
+    rightBicepMesh.rotation.set(0.42, -0.15, 0.18);
+    rightArmGroup.add(rightBicepMesh);
 
-    // Swept-Back Horn Accents (Winged Crest)
-    const hornGeo = new THREE.ConeGeometry(0.07, 0.75, 8);
-    const leftHorn = new THREE.Mesh(hornGeo, crimsonSteelMat);
-    leftHorn.position.set(-0.28, 0.35, -0.12);
-    leftHorn.rotation.set(-0.45, 0.15, -0.55);
-    helmetGroup.add(leftHorn);
+    const rightCouterMesh = new THREE.Mesh(couterGeo, secondaryArmorMat);
+    rightCouterMesh.position.set(0.12, -0.38, 0.28);
+    rightCouterMesh.rotation.set(0.65, 0.3, 0);
+    rightArmGroup.add(rightCouterMesh);
 
-    const rightHorn = new THREE.Mesh(hornGeo, crimsonSteelMat);
-    rightHorn.position.set(0.28, 0.35, -0.12);
-    rightHorn.rotation.set(-0.45, -0.15, 0.55);
-    helmetGroup.add(rightHorn);
+    const rightForearmMesh = new THREE.Mesh(forearmGeo, secondaryArmorMat);
+    rightForearmMesh.position.set(-0.12, -0.48, 0.44);
+    rightForearmMesh.rotation.set(0.85, 0.24, -0.45);
+    rightArmGroup.add(rightForearmMesh);
 
-    // Curved Gothic Visor Mask
-    const visorMaskGeo = new THREE.CylinderGeometry(0.24, 0.22, 0.32, 16, 1, false, 0, Math.PI);
-    const visorMask = new THREE.Mesh(visorMaskGeo, armorPlateMat);
-    visorMask.position.set(0, -0.04, 0.10);
-    visorMask.rotation.y = Math.PI / 2;
-    helmetGroup.add(visorMask);
+    for (let i = 0; i < 2; i++) {
+      const lineGeo = createEnergyLineGeo([
+        [-0.08, 0.02],
+        [0, -0.03],
+        [0.08, 0.02],
+        [0.07, 0],
+        [0, -0.04],
+        [-0.07, 0],
+      ], 0.018);
+      const lineMesh = new THREE.Mesh(lineGeo, crimsonEnergyMat);
+      lineMesh.position.set(-0.12, -0.42 - i * 0.10, 0.52);
+      lineMesh.rotation.set(0.85, 0.24, -0.45);
+      rightArmGroup.add(lineMesh);
+    }
 
-    // Luminous Crimson Eye Visor Slit
-    const visorSlitGeo = new THREE.BoxGeometry(0.30, 0.035, 0.06);
-    const visorSlit = new THREE.Mesh(visorSlitGeo, crimsonGlowMat);
-    visorSlit.position.set(0, 0.02, 0.28);
-    helmetGroup.add(visorSlit);
+    const rightGauntletGeo = trackDisposable(new THREE.BoxGeometry(0.14, 0.16, 0.16));
+    const rightGauntletMesh = new THREE.Mesh(rightGauntletGeo, armorPlateMat);
+    rightGauntletMesh.position.set(-0.25, -0.58, 0.62);
+    rightGauntletMesh.rotation.set(0.85, 0.24, -0.45);
+    rightArmGroup.add(rightGauntletMesh);
 
-    torsoGroup.add(helmetGroup);
-    figureGroup.add(torsoGroup);
+    const rightKnuckleMesh = new THREE.Mesh(knuckleLineGeo, crimsonCoreMat);
+    rightKnuckleMesh.position.set(-0.25, -0.58, 0.71);
+    rightKnuckleMesh.rotation.set(0.85, 0.24, -0.45);
+    rightArmGroup.add(rightKnuckleMesh);
 
-    // 7k. Monumental Medieval Greatsword (Planted Firmly Point-Down in Front)
+    torsoGroup.add(rightArmGroup);
+
+    // 7g. MONUMENTAL DARK STEEL GREATSWORD WITH RESTRAINED CRIMSON FULLER LINE
     const swordGroup = new THREE.Group();
-    swordGroup.position.set(0, 0.16, 0.65);
+    swordGroup.position.set(-0.25, 1.47, 0.67);
+    swordGroup.rotation.set(0.35, -0.22, 0.62); // Angled down-left toward floor
 
-    // Double-Edged Blade (1.75m long)
-    const bladeGeo = new THREE.BoxGeometry(0.16, 1.65, 0.035);
-    const blade = new THREE.Mesh(bladeGeo, swordBladeMat);
-    blade.position.set(0, 0.82, 0);
-    blade.castShadow = true;
-    swordGroup.add(blade);
+    const hiltGeo = trackDisposable(new THREE.CylinderGeometry(0.032, 0.035, 0.55, 14));
+    const hiltMesh = new THREE.Mesh(hiltGeo, secondaryArmorMat);
+    hiltMesh.position.set(0, 0.15, 0);
+    swordGroup.add(hiltMesh);
 
-    // Tapered Point (Tip resting on pedestal)
-    const tipGeo = new THREE.ConeGeometry(0.08, 0.22, 4);
-    tipGeo.rotateY(Math.PI / 4);
-    const tip = new THREE.Mesh(tipGeo, swordBladeMat);
-    tip.position.set(0, 0.05, 0);
-    swordGroup.add(tip);
+    const pommelGeo = createPlateGeo([
+      [0, 0.07],
+      [0.06, 0.02],
+      [0.04, -0.06],
+      [0, -0.08],
+      [-0.04, -0.06],
+      [-0.06, 0.02],
+    ], 0.06, 0.015);
+    const pommelMesh = new THREE.Mesh(pommelGeo, silverTrimMat);
+    pommelMesh.position.set(0, 0.44, 0);
+    swordGroup.add(pommelMesh);
 
-    // Glowing Crimson Runic Core Line
-    const fullerGeo = new THREE.BoxGeometry(0.035, 1.45, 0.045);
-    const fuller = new THREE.Mesh(fullerGeo, crimsonGlowMat);
-    fuller.position.set(0, 0.90, 0);
-    swordGroup.add(fuller);
+    const crossguardGeo = createPlateGeo([
+      [-0.38, 0.05],
+      [0, 0.08],
+      [0.38, 0.05],
+      [0.42, -0.03],
+      [0, -0.06],
+      [-0.42, -0.03],
+    ], 0.08, 0.018);
+    const crossguardMesh = new THREE.Mesh(crossguardGeo, armorPlateMat);
+    crossguardMesh.position.set(0, -0.14, 0);
+    swordGroup.add(crossguardMesh);
 
-    // Intricate Silver Crossguard
-    const crossguardGeo = new THREE.BoxGeometry(0.74, 0.07, 0.11);
-    const crossguard = new THREE.Mesh(crossguardGeo, silverTrimMat);
-    crossguard.position.set(0, 1.68, 0);
-    swordGroup.add(crossguard);
+    // Subtle Crimson Crossguard Accent Line
+    const guardGlowGeo = createEnergyLineGeo([
+      [-0.32, 0.02],
+      [0, 0.04],
+      [0.32, 0.02],
+      [0.30, 0.0],
+      [0, 0.02],
+      [-0.30, 0.0],
+    ], 0.025);
+    const guardGlowMesh = new THREE.Mesh(guardGlowGeo, crimsonEnergyMat);
+    guardGlowMesh.position.set(0, -0.14, 0.05);
+    swordGroup.add(guardGlowMesh);
 
-    // Hilt / Wire-Wrapped Grip
-    const hiltGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.45, 12);
-    const hilt = new THREE.Mesh(hiltGeo, crimsonSteelMat);
-    hilt.position.set(0, 1.94, 0);
-    swordGroup.add(hilt);
+    // Dark Metallic Steel Blade (Black luxury steel with sharp specular edge highlights)
+    const bladeShape = new THREE.Shape();
+    bladeShape.moveTo(0, 0);
+    bladeShape.lineTo(0.12, 0.35);
+    bladeShape.lineTo(0.14, 1.85);
+    bladeShape.lineTo(-0.14, 1.85);
+    bladeShape.lineTo(-0.12, 0.35);
+    bladeShape.closePath();
 
-    // Faceted Silver Pommel
-    const pommelGeo = new THREE.OctahedronGeometry(0.075, 0);
-    const pommel = new THREE.Mesh(pommelGeo, silverTrimMat);
-    pommel.position.set(0, 2.20, 0);
-    swordGroup.add(pommel);
+    const bladeGeo = trackDisposable(
+      new THREE.ExtrudeGeometry(bladeShape, {
+        depth: 0.045,
+        bevelEnabled: true,
+        bevelThickness: 0.025,
+        bevelSize: 0.02,
+        bevelSegments: 2,
+      })
+    );
+    bladeGeo.center();
+
+    const bladeMesh = new THREE.Mesh(bladeGeo, swordBladeMat);
+    bladeMesh.position.set(0, -1.15, 0);
+    bladeMesh.castShadow = true;
+    swordGroup.add(bladeMesh);
+
+    // Subtle Crimson Fuller Line in Blade Center Spine
+    const fullerGeo = createEnergyLineGeo([
+      [0, 0.2],
+      [0.028, 0.35],
+      [0.032, 1.75],
+      [-0.032, 1.75],
+      [-0.028, 0.35],
+    ], 0.06);
+    fullerGeo.center();
+    const fullerMesh = new THREE.Mesh(fullerGeo, crimsonEnergyMat);
+    fullerMesh.position.set(0, -1.12, 0.005);
+    swordGroup.add(fullerMesh);
 
     figureGroup.add(swordGroup);
 
-    // 7l. Flowing Crimson Velvet Cape (Dynamic Vertex Simulation)
-    const capeGeo = new THREE.PlaneGeometry(1.55, 2.40, 24, 24);
-    const capePos = capeGeo.attributes.position;
-    const initialCapeZ = new Float32Array(capePos.count);
-    const initialCapeX = new Float32Array(capePos.count);
+    // Subtle Restrained Crimson Ground Contact Sheen Beneath Sword
+    const swordGroundPoolGeo = trackDisposable(new THREE.RingGeometry(0.05, 0.55, 32));
+    swordGroundPoolGeo.rotateX(-Math.PI / 2);
+    const swordGroundPoolMesh = new THREE.Mesh(
+      swordGroundPoolGeo,
+      trackDisposable(
+        new THREE.MeshBasicMaterial({
+          color: new THREE.Color('#66000E'),
+          transparent: true,
+          opacity: 0.30,
+          side: THREE.DoubleSide,
+        })
+      )
+    );
+    swordGroundPoolMesh.position.set(-1.18, 0.025, 0.65);
+    figureGroup.add(swordGroundPoolMesh);
 
-    for (let i = 0; i < capePos.count; i++) {
-      initialCapeZ[i] = capePos.getZ(i);
-      initialCapeX[i] = capePos.getX(i);
+    // 7h. Helmet, Piercing Crimson Visor Slit Eyes & Horn Accents
+    const helmetGroup = new THREE.Group();
+    helmetGroup.position.set(0, 1.34, 0.06);
+
+    const helmDomeGeo = trackDisposable(new THREE.SphereGeometry(0.25, 24, 20));
+    helmDomeGeo.scale(0.88, 1.18, 1.05);
+    const helmDomeMesh = new THREE.Mesh(helmDomeGeo, armorPlateMat);
+    helmDomeMesh.castShadow = true;
+    helmetGroup.add(helmDomeMesh);
+
+    const visorFaceGeo = createPlateGeo([
+      [-0.18, 0.16],
+      [0.18, 0.16],
+      [0.15, -0.06],
+      [0, -0.22],
+      [-0.15, -0.06],
+    ], 0.14, 0.02);
+    const visorFaceMesh = new THREE.Mesh(visorFaceGeo, secondaryArmorMat);
+    visorFaceMesh.position.set(0, -0.04, 0.16);
+    helmetGroup.add(visorFaceMesh);
+
+    const helmCrestGeo = createPlateGeo([
+      [0, 0.28],
+      [0.05, 0.08],
+      [0.04, -0.12],
+      [-0.04, -0.12],
+      [-0.05, 0.08],
+    ], 0.06, 0.015);
+    const helmCrestMesh = new THREE.Mesh(helmCrestGeo, silverTrimMat);
+    helmCrestMesh.position.set(0, 0.12, 0.20);
+    helmCrestMesh.rotation.x = -0.18;
+    helmetGroup.add(helmCrestMesh);
+
+    // Dual Piercing Crimson Visor Slit Eyes
+    const leftEyeGeo = createEnergyLineGeo([
+      [-0.14, 0.035],
+      [-0.02, 0.01],
+      [-0.02, -0.015],
+      [-0.14, 0.005],
+    ], 0.04);
+    const leftEyeMesh = new THREE.Mesh(leftEyeGeo, crimsonCoreMat);
+    leftEyeMesh.position.set(0, 0.04, 0.25);
+    helmetGroup.add(leftEyeMesh);
+
+    const rightEyeGeo = createEnergyLineGeo([
+      [0.02, 0.01],
+      [0.14, 0.035],
+      [0.14, 0.005],
+      [0.02, -0.015],
+    ], 0.04);
+    const rightEyeMesh = new THREE.Mesh(rightEyeGeo, crimsonCoreMat);
+    rightEyeMesh.position.set(0, 0.04, 0.25);
+    helmetGroup.add(rightEyeMesh);
+
+    for (let isLeft of [true, false]) {
+      const sign = isLeft ? -1 : 1;
+      const hornGeo = createPlateGeo([
+        [0, 0],
+        [sign * 0.18, 0.35],
+        [sign * 0.12, 0.38],
+        [0, 0.08],
+      ], 0.04, 0.01);
+      const hornMesh = new THREE.Mesh(hornGeo, secondaryArmorMat);
+      hornMesh.position.set(sign * 0.14, 0.12, -0.05);
+      hornMesh.rotation.set(-0.25, sign * 0.15, sign * -0.2);
+      helmetGroup.add(hornMesh);
     }
 
-    const cape = new THREE.Mesh(capeGeo, capeMat);
-    cape.position.set(0, 1.42, -0.22);
-    cape.castShadow = true;
-    figureGroup.add(cape);
+    // 7i. Crimson Helmet Plume / Hair (High-Arched Dynamic Flame Ponytail)
+    const plumeGroup = new THREE.Group();
+    for (let i = 0; i < 6; i++) {
+      const strandSpread = (i - 2.5) * 0.05;
+      const curve = new THREE.CubicBezierCurve3(
+        new THREE.Vector3(0, 0.28, -0.02),
+        new THREE.Vector3(strandSpread, 0.68 + (i % 2) * 0.08, -0.18),
+        new THREE.Vector3(strandSpread * 1.5, 0.42, -0.55 - i * 0.07),
+        new THREE.Vector3(strandSpread * 2.0, -0.12 - i * 0.08, -0.85 - i * 0.09)
+      );
+      const tubeGeo = trackDisposable(new THREE.TubeGeometry(curve, 28, 0.052 - i * 0.004, 8, false));
+      const plumeMesh = new THREE.Mesh(tubeGeo, crimsonPlumeMat);
+      plumeMesh.castShadow = true;
+      plumeGroup.add(plumeMesh);
+    }
+    helmetGroup.add(plumeGroup);
+
+    torsoGroup.add(helmetGroup);
+
+    // ========================================================
+    // 7j. CORRECTED TAPERED BLACK VELVET CAPE
+    // - Substantially reduced width (kept behind shoulders and body)
+    // - Reduced length (ends near lower legs/ankles, above pedestal)
+    // - Both arms, legs, boots, and greatsword completely visible
+    // - Natural vertical folds and subtle fabric movement
+    // ========================================================
+    const capeWidth = 1.05;
+    const capeHeight = 1.75;
+    const capeGeo = trackDisposable(new THREE.PlaneGeometry(capeWidth, capeHeight, 20, 24));
+    capeGeo.translate(0, -0.82, 0);
+
+    const cPos = capeGeo.attributes.position;
+    const initialCapeZ = new Float32Array(cPos.count);
+    const initialCapeX = new Float32Array(cPos.count);
+
+    for (let i = 0; i < cPos.count; i++) {
+      const y = cPos.getY(i);
+      const factor = Math.max(0, -y / 1.6);
+      const currentX = cPos.getX(i);
+
+      // Natural gentle taper: narrow at shoulders (1.05m), widening slightly to ~1.25m at lower legs
+      const taper = 1.0 + factor * 0.20;
+      // Realistic vertical cloth folds
+      const fold = Math.sin(currentX * 9.0) * 0.035;
+
+      cPos.setX(i, currentX * taper);
+      cPos.setZ(i, -0.22 + fold - factor * 0.06);
+
+      initialCapeZ[i] = cPos.getZ(i);
+      initialCapeX[i] = cPos.getX(i);
+    }
+    capeGeo.computeVertexNormals();
+
+    const capeMesh = new THREE.Mesh(capeGeo, blackCapeMat);
+    capeMesh.position.set(0, 1.05, -0.05);
+    capeMesh.castShadow = true;
+    torsoGroup.add(capeMesh);
+
+    figureGroup.add(torsoGroup);
+
+    // 7k. Celestial Dark Eclipse Disc Behind Knight (With subtle faint crimson outer rim)
+    const auraGroup = new THREE.Group();
+    auraGroup.position.set(0, 1.85, -0.95);
+
+    const haloRingGeo = trackDisposable(new THREE.RingGeometry(2.35, 2.50, 64));
+    const haloRingMesh = new THREE.Mesh(
+      haloRingGeo,
+      trackDisposable(
+        new THREE.MeshBasicMaterial({
+          color: new THREE.Color('#4A060E'),
+          transparent: true,
+          opacity: 0.28,
+          side: THREE.DoubleSide,
+        })
+      )
+    );
+    auraGroup.add(haloRingMesh);
+
+    const eclipseDiscGeo = trackDisposable(new THREE.CircleGeometry(2.35, 48));
+    const eclipseDiscMesh = new THREE.Mesh(
+      eclipseDiscGeo,
+      trackDisposable(
+        new THREE.MeshBasicMaterial({
+          color: new THREE.Color('#040508'),
+          transparent: true,
+          opacity: 0.85,
+          side: THREE.DoubleSide,
+        })
+      )
+    );
+    auraGroup.add(eclipseDiscMesh);
+
+    figureGroup.add(auraGroup);
 
     scene.add(figureGroup);
 
     // ========================================================
-    // 8. VOLUMETRIC ATMOSPHERIC PARTICLES & RISING EMBERS
+    // 8. RESTORED CRIMSON & AMBER ATMOSPHERIC EMBERS
     // ========================================================
-    const emberCount = 40;
-    const emberGeo = new THREE.BufferGeometry();
+    const emberCount = 38;
+    const emberGeo = trackDisposable(new THREE.BufferGeometry());
     const emberPositions = new Float32Array(emberCount * 3);
     const emberSpeeds = new Float32Array(emberCount);
 
@@ -678,13 +1283,15 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
 
     emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPositions, 3));
 
-    const emberMat = new THREE.PointsMaterial({
-      color: new THREE.Color('#FF4D4D'),
-      size: 0.075,
-      transparent: true,
-      opacity: 0.65,
-      blending: THREE.AdditiveBlending,
-    });
+    const emberMat = trackDisposable(
+      new THREE.PointsMaterial({
+        color: new THREE.Color('#FF2A3D'),
+        size: 0.065,
+        transparent: true,
+        opacity: 0.65,
+        blending: THREE.AdditiveBlending,
+      })
+    );
 
     const embers = new THREE.Points(emberGeo, emberMat);
     scene.add(embers);
@@ -719,7 +1326,7 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
     window.addEventListener('resize', handleResize);
 
     // ========================================================
-    // 10. ANIMATION LOOP (NATURAL IDLE BREATHING, CAPE & EMBERS)
+    // 10. ANIMATION LOOP (BREATHING, CAPE WAVE, CRIMSON PULSE)
     // ========================================================
     const clock = new THREE.Clock();
 
@@ -729,29 +1336,29 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
 
       if (!reducedMotion) {
         // Natural Knight Idle Breathing
-        const breath = Math.sin(elapsedTime * 1.5) * 0.012;
-        torsoGroup.position.y = 2.0 + breath;
+        const breath = Math.sin(elapsedTime * 1.6) * 0.015;
+        torsoGroup.position.y = 2.05 + breath;
         helmetGroup.rotation.y = Math.sin(elapsedTime * 0.7) * 0.035;
 
-        // Visor & Sword Core Luminous Pulse
-        const glowPulse = 2.6 + Math.sin(elapsedTime * 3.0) * 0.5;
-        crimsonEyeLight.intensity = glowPulse;
-        swordGlowLight.intensity = 2.0 + Math.sin(elapsedTime * 2.6) * 0.4;
+        // Subtle Crimson Visor & Core Pulse
+        swordGlowLight.intensity = 2.2 + Math.sin(elapsedTime * 2.5) * 0.35;
+        visorEyeLight.intensity = 2.2 + Math.sin(elapsedTime * 2.8) * 0.35;
+        chestCoreLight.intensity = 1.8 + Math.sin(elapsedTime * 2.0) * 0.25;
 
-        // Flowing Velvet Cape Wave Simulation
-        const cPos = capeGeo.attributes.position;
-        for (let i = 0; i < cPos.count; i++) {
-          const y = cPos.getY(i);
-          const factor = Math.max(0, -y);
-          const waveZ = Math.sin(y * 1.8 + elapsedTime * 2.2) * 0.07 * factor;
-          const waveX = Math.cos(y * 1.5 + elapsedTime * 1.8) * 0.035 * factor;
-          cPos.setZ(i, initialCapeZ[i] + waveZ);
-          cPos.setX(i, initialCapeX[i] + waveX);
+        // Corrected Tapered Velvet Cape Wave Simulation
+        const pos = capeGeo.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+          const y = pos.getY(i);
+          const factor = Math.max(0, -y / 1.6);
+          const waveZ = Math.sin(y * 2.2 + elapsedTime * 1.8) * 0.025 * factor;
+          const waveX = Math.cos(y * 1.6 + elapsedTime * 1.5) * 0.012 * factor;
+          pos.setZ(i, initialCapeZ[i] + waveZ);
+          pos.setX(i, initialCapeX[i] + waveX);
         }
         capeGeo.computeVertexNormals();
-        cPos.needsUpdate = true;
+        pos.needsUpdate = true;
 
-        // Rising Atmospheric Embers
+        // Rising Crimson Embers
         const ePos = emberGeo.attributes.position;
         for (let i = 0; i < emberCount; i++) {
           let ey = ePos.getY(i);
@@ -761,7 +1368,7 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
         }
         ePos.needsUpdate = true;
 
-        // Smooth Cinematic Parallax
+        // Smooth Parallax
         currentParallaxX += (targetParallaxX - currentParallaxX) * 0.05;
         currentParallaxY += (targetParallaxY - currentParallaxY) * 0.05;
 
@@ -784,54 +1391,11 @@ export const CinematicHeroScene: React.FC<CinematicHeroSceneProps> = ({ reducedM
         container.removeChild(renderer.domElement);
       }
       renderer.dispose();
-      waterGeo.dispose();
-      pillarGeo.dispose();
-      pillarBaseGeo.dispose();
-      pillarCapitalGeo.dispose();
-      archPillarGeo.dispose();
-      archTorusGeo.dispose();
-      daisGeo.dispose();
-      pedRingGeo.dispose();
-      sabatonGeo.translate(0, 0, 0);
-      sabatonGeo.dispose();
-      greaveGeo.dispose();
-      trimGreaveGeo.dispose();
-      poleynGeo.dispose();
-      cuisseGeo.dispose();
-      tassetGeo.dispose();
-      beltBuckleGeo.dispose();
-      abdomenGeo.dispose();
-      chestGeo.dispose();
-      ridgeGeo.dispose();
-      pecGeo.dispose();
-      gorgetGeo.dispose();
-      pauldronGeo.dispose();
-      armGeo.dispose();
-      gauntletGeo.dispose();
-      helmDomeGeo.dispose();
-      finGeo.dispose();
-      hornGeo.dispose();
-      visorMaskGeo.dispose();
-      visorSlitGeo.dispose();
-      bladeGeo.dispose();
-      tipGeo.dispose();
-      fullerGeo.dispose();
-      crossguardGeo.dispose();
-      hiltGeo.dispose();
-      pommelGeo.dispose();
-      capeGeo.dispose();
-      emberGeo.dispose();
-
-      armorPlateMat.dispose();
-      crimsonSteelMat.dispose();
-      silverTrimMat.dispose();
-      crimsonGlowMat.dispose();
-      capeMat.dispose();
-      swordBladeMat.dispose();
-      rockMat.dispose();
-      stoneFloorMat.dispose();
-      portalMat.dispose();
-      emberMat.dispose();
+      disposables.forEach((item) => {
+        try {
+          item.dispose();
+        } catch {}
+      });
     };
   }, [reducedMotion]);
 

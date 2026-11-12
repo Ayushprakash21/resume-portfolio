@@ -41,7 +41,7 @@ export const CinematicHero: React.FC<CinematicHeroProps> = ({
           zIndex: 2,
           pointerEvents: 'none',
           background:
-            'radial-gradient(ellipse at 20% 32%, rgba(5, 5, 5, 0.85) 0%, rgba(5, 5, 5, 0.45) 55%, rgba(5, 5, 5, 0.85) 100%), linear-gradient(180deg, rgba(5, 5, 5, 0.6) 0%, transparent 40%, rgba(5, 5, 5, 0.9) 100%)',
+            'radial-gradient(ellipse at 22% 45%, rgba(5, 5, 5, 0.88) 0%, rgba(5, 5, 5, 0.45) 50%, transparent 75%), linear-gradient(180deg, rgba(5, 5, 5, 0.45) 0%, transparent 35%, rgba(5, 5, 5, 0.85) 100%)',
         }}
       />
 

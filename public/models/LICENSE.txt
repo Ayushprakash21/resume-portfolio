@@ -1,0 +1,16 @@
+Asset: Shadow Knight 3D Character Model (shadow_knight.glb)
+Author: Ayush Prakash Portfolio Team / Antigravity
+License: MIT License (Free for commercial and personal portfolio distribution)
+
+Description:
+Original high-fidelity 3D dark fantasy armored warrior featuring:
+- Midnight navy and obsidian metallic plate armor
+- Three-tier angular flared pauldrons
+- Segmented chevron breastplate and abdominal cuirass
+- Luminous electric-blue energy channels and chevron seams
+- Piercing electric-blue helmet visor slit eyes
+- Flowing crimson red plume / hair crest
+- Billowing black fabric cape
+- Giant luminous electric-blue two-handed greatsword
+- Gothic runic circular dais platform
+- Celestial shadow aura eclipse disc

@@ -15,6 +15,7 @@ import { SwarmCursor } from './components/reactbits/SwarmCursor';
 import { ResumeGeneratorModal } from './components/resume/ResumeGeneratorModal';
 import { AdaptiveNotchNavigation } from './components/public/AdaptiveNotchNavigation';
 import { BootIntro } from './components/public/BootIntro';
+import { GlobalFlameAtmosphere } from './components/brand/GlobalFlameAtmosphere';
 
 // Admin Console Components
 import { AdminLogin } from './components/admin/AdminLogin';
@@ -220,6 +221,9 @@ export const App: React.FC = () => {
         color: appearance.textPrimary || 'var(--text-primary)',
       }}
     >
+      {/* GLOBAL PERSISTENT FLAME & CRIMSON EMBER ATMOSPHERE SYSTEM */}
+      <GlobalFlameAtmosphere reducedMotion={reducedMotion} />
+
       {/* 4-SECOND CINEMATIC AP BRAND BOOT ANIMATION */}
       <BootIntro />
 
