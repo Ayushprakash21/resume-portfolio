@@ -50,8 +50,8 @@
   --accent-champagne: #E5E0D8;
   --accent-emerald: #10B981;
 
-  /* Typography Font Families (Admin-Controlled Defaults; SIL OFL Local WOFF2 + Webfonts) */
-  --font-display: 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Typography Font Families (Admin-Controlled Defaults; SIL OFL Local OTF/WOFF2 + Webfonts) */
+  --font-display: 'Benzinova', 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-heading: var(--font-display);
   --font-body: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-editorial: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
@@ -96,8 +96,8 @@
   --font-size-card: var(--typo-desktop-card);
   --font-size-eyebrow: var(--typo-desktop-eyebrow);
 
-  --heading-font-weight: 600;
-  --heading-letter-spacing: -0.025em;
+  --heading-font-weight: 400;
+  --heading-letter-spacing: 0.02em;
   --heading-line-height: 1.14;
   --heading-text-transform: none;
   --font-size-body: 16px;

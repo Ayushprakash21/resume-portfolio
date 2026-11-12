@@ -35,18 +35,40 @@ test('Typography System: Default desktop, tablet & mobile scales meet spec', () 
   }
 });
 
-test('Typography System: Honest font catalog and local Limerock drop-in slot', () => {
-  assert.equal(DEFAULT_TYPOGRAPHY_SETTINGS.headingFont, 'Plus Jakarta Sans');
+test('Typography System: Honest font catalog and local Benzinova OFL 1.1 font family', () => {
+  assert.equal(DEFAULT_TYPOGRAPHY_SETTINGS.headingFont, 'Benzinova');
   assert.equal(DEFAULT_TYPOGRAPHY_SETTINGS.bodyFont, 'Manrope');
 
-  const limerockOpt = HEADING_FONT_OPTIONS.find((f) => f.id === 'Limerock');
-  assert.ok(limerockOpt, 'Limerock option must exist as local WOFF2 slot');
-  assert.equal(limerockOpt.requiresLocalFiles, true);
-  assert.ok(limerockOpt.licenseNote.includes('East Coast Font Club'));
+  const benzinovaOpt = HEADING_FONT_OPTIONS.find((f) => f.id === 'Benzinova');
+  assert.ok(benzinovaOpt, 'Benzinova option must exist as primary local font');
+  assert.equal(benzinovaOpt.isLocalFont, true);
+  assert.ok(benzinovaOpt.licenseNote.includes('SIL Open Font License 1.1'));
+
+  // Width variants must all be available in HEADING_FONT_OPTIONS
+  const variants = ['Benzinova', 'Benzinova Condensed', 'Benzinova Extra Condensed', 'Benzinova Extended'];
+  for (const v of variants) {
+    const opt = HEADING_FONT_OPTIONS.find((f) => f.id === v);
+    assert.ok(opt, `Variant ${v} must exist in font options`);
+    assert.ok(opt.isBenzinova, `Variant ${v} must be marked as Benzinova`);
+  }
+
+  // Verify Limerock and Cravelo are removed
+  assert.ok(!HEADING_FONT_OPTIONS.some((f) => f.id.toLowerCase().includes('limerock')), 'Limerock removed');
+  assert.ok(!HEADING_FONT_OPTIONS.some((f) => f.id.toLowerCase().includes('cravelo')), 'Cravelo removed');
 
   const fontsCss = fs.readFileSync('src/styles/fonts.css', 'utf-8');
-  assert.ok(fontsCss.includes("font-family: 'Limerock'"), 'fonts.css declares local Limerock @font-face');
-  assert.ok(fontsCss.includes('/fonts/limerock/Limerock-Regular.woff2'), 'fonts.css targets local Limerock WOFF2');
+  assert.ok(fontsCss.includes("font-family: 'Benzinova'"), 'fonts.css declares Benzinova @font-face');
+  assert.ok(fontsCss.includes('/fonts/benzinova/Benzinova-Thin.otf'), 'fonts.css targets Benzinova-Thin.otf');
+  assert.ok(fontsCss.includes('/fonts/benzinova/Benzinova-ThinCondensed.otf'), 'fonts.css targets Benzinova-ThinCondensed.otf');
+  assert.ok(fontsCss.includes('/fonts/benzinova/Benzinova-ThinExtraCondensed.otf'), 'fonts.css targets Benzinova-ThinExtraCondensed.otf');
+  assert.ok(fontsCss.includes('/fonts/benzinova/Benzinova-ThinExtended.otf'), 'fonts.css targets Benzinova-ThinExtended.otf');
+
+  // Verify physical files exist in public/fonts/benzinova
+  assert.ok(fs.existsSync('public/fonts/benzinova/Benzinova-Thin.otf'), 'Benzinova-Thin.otf on disk');
+  assert.ok(fs.existsSync('public/fonts/benzinova/Benzinova-ThinCondensed.otf'), 'Benzinova-ThinCondensed.otf on disk');
+  assert.ok(fs.existsSync('public/fonts/benzinova/Benzinova-ThinExtended.otf'), 'Benzinova-ThinExtended.otf on disk');
+  assert.ok(fs.existsSync('public/fonts/benzinova/Benzinova-ThinExtraCondensed.otf'), 'Benzinova-ThinExtraCondensed.otf on disk');
+  assert.ok(fs.existsSync('public/fonts/benzinova/OFL.txt'), 'OFL.txt on disk');
 
   const mainTsx = fs.readFileSync('src/main.tsx', 'utf-8');
   assert.ok(mainTsx.includes('@fontsource/plus-jakarta-sans/400.css'));
@@ -120,7 +142,7 @@ test('Typography System: CSS custom properties generation & legacy appearance pr
   assert.equal(legacyNormalized.primaryBg, '#08080A');
   assert.equal(legacyNormalized.accentColor, '#E5E0D8');
   assert.equal(legacyNormalized.sectionSpacing, 'spacious');
-  assert.equal(legacyNormalized.typography?.headingFont, 'Plus Jakarta Sans');
+  assert.equal(legacyNormalized.typography?.headingFont, 'Benzinova');
   assert.equal(legacyNormalized.typography?.scale.h2.desktop, 44);
 });
 
@@ -155,7 +177,7 @@ test('Typography System: Draft vs Published isolation in CMS service', async () 
 
   // Restore defaults cleanly
   await cmsService.resetTypographyDefaults('publish');
-  assert.equal(cmsService.getPublishedTypographySettings().headingFont, 'Plus Jakarta Sans');
+  assert.equal(cmsService.getPublishedTypographySettings().headingFont, 'Benzinova');
   assert.equal(cmsService.getPublishedTypographySettings().scale.h2.desktop, 44);
 });
 

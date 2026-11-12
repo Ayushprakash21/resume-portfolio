@@ -12,33 +12,67 @@ export interface FontCatalogOption {
   stack: string;
   source: string;
   licenseNote: string;
-  isLocalWoff2Slot?: boolean;
-  requiresLocalFiles?: boolean;
+  isLocalFont?: boolean;
+  isBenzinova?: boolean;
+  widthVariant?: 'standard' | 'condensed' | 'extra-condensed' | 'extended';
 }
 
 export const HEADING_FONT_OPTIONS: FontCatalogOption[] = [
   {
+    id: 'Benzinova',
+    label: 'Benzinova — Standard (Thin Regular)',
+    cssFamily: 'Benzinova',
+    stack: "'Benzinova', 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    source: 'Local OTF (/public/fonts/benzinova/Benzinova-Thin.otf)',
+    licenseNote: 'SIL Open Font License 1.1 — Authentic Bundled Open Font.',
+    isLocalFont: true,
+    isBenzinova: true,
+    widthVariant: 'standard',
+  },
+  {
+    id: 'Benzinova Condensed',
+    label: 'Benzinova — Condensed (Thin Condensed)',
+    cssFamily: 'Benzinova Condensed',
+    stack: "'Benzinova Condensed', 'Benzinova', 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    source: 'Local OTF (/public/fonts/benzinova/Benzinova-ThinCondensed.otf)',
+    licenseNote: 'SIL Open Font License 1.1 — Authentic Bundled Open Font.',
+    isLocalFont: true,
+    isBenzinova: true,
+    widthVariant: 'condensed',
+  },
+  {
+    id: 'Benzinova Extra Condensed',
+    label: 'Benzinova — Extra Condensed (Thin Extra Condensed)',
+    cssFamily: 'Benzinova Extra Condensed',
+    stack: "'Benzinova Extra Condensed', 'Benzinova Condensed', 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    source: 'Local OTF (/public/fonts/benzinova/Benzinova-ThinExtraCondensed.otf)',
+    licenseNote: 'SIL Open Font License 1.1 — Authentic Bundled Open Font.',
+    isLocalFont: true,
+    isBenzinova: true,
+    widthVariant: 'extra-condensed',
+  },
+  {
+    id: 'Benzinova Extended',
+    label: 'Benzinova — Extended (Thin Extended)',
+    cssFamily: 'Benzinova Extended',
+    stack: "'Benzinova Extended', 'Benzinova', 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    source: 'Local OTF (/public/fonts/benzinova/Benzinova-ThinExtended.otf)',
+    licenseNote: 'SIL Open Font License 1.1 — Authentic Bundled Open Font.',
+    isLocalFont: true,
+    isBenzinova: true,
+    widthVariant: 'extended',
+  },
+  {
     id: 'Plus Jakarta Sans',
-    label: 'Plus Jakarta Sans (Active Licensed Default)',
+    label: 'Plus Jakarta Sans (Geometric Sans)',
     cssFamily: 'Plus Jakarta Sans',
     stack: "'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     source: 'Bundled Local WOFF2 (@fontsource/plus-jakarta-sans)',
-    licenseNote: 'SIL Open Font License 1.1 — Free & commercially licensed for web.',
-  },
-  {
-    id: 'Limerock',
-    label: 'Limerock (Local WOFF2 Slot — Licensed Files Required)',
-    cssFamily: 'Limerock',
-    stack: "'Limerock', 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    source: 'Local /public/fonts/limerock/*.woff2',
-    licenseNote:
-      'Proprietary typeface by Lewis Read (East Coast Font Club). Free downloads are personal-use desktop demos only. Supply purchased commercial WOFF2 files in public/fonts/limerock/ before activating.',
-    isLocalWoff2Slot: true,
-    requiresLocalFiles: true,
+    licenseNote: 'SIL Open Font License 1.1',
   },
   {
     id: 'Manrope',
-    label: 'Manrope (Geometric Sans)',
+    label: 'Manrope (Modern Sans)',
     cssFamily: 'Manrope',
     stack: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     source: 'Google Fonts Webfont',
@@ -129,7 +163,7 @@ export const TYPOGRAPHY_RANGES = {
   h4: { min: 16, max: 40, step: 1 },
   card: { min: 14, max: 34, step: 1 },
   eyebrow: { min: 9, max: 18, step: 1 },
-  headingFontWeight: { min: 300, max: 800, step: 100 },
+  headingFontWeight: { min: 100, max: 700, step: 100 },
   headingLetterSpacing: { min: -0.06, max: 0.12, step: 0.005 },
   headingLineHeight: { min: 0.9, max: 1.6, step: 0.02 },
   bodyFontSize: { min: 14, max: 22, step: 1 },
@@ -147,7 +181,7 @@ export const DEFAULT_TYPOGRAPHY_SCALE: TypographyScaleSettings = {
 };
 
 export const DEFAULT_TYPOGRAPHY_SETTINGS: TypographySettings = {
-  headingFont: 'Plus Jakarta Sans',
+  headingFont: 'Benzinova',
   bodyFont: 'Manrope',
   scale: {
     hero: { ...DEFAULT_TYPOGRAPHY_SCALE.hero },
@@ -158,8 +192,8 @@ export const DEFAULT_TYPOGRAPHY_SETTINGS: TypographySettings = {
     card: { ...DEFAULT_TYPOGRAPHY_SCALE.card },
     eyebrow: { ...DEFAULT_TYPOGRAPHY_SCALE.eyebrow },
   },
-  headingFontWeight: 600,
-  headingLetterSpacing: -0.025,
+  headingFontWeight: 400,
+  headingLetterSpacing: 0.02,
   headingLineHeight: 1.14,
   headingTextTransform: 'none',
   bodyFontSize: 16,
@@ -198,7 +232,7 @@ export function resolveFontStack(fontId: string, kind: 'heading' | 'body'): stri
     return kind === 'heading' ? HEADING_FONT_OPTIONS[0].stack : BODY_FONT_OPTIONS[0].stack;
   }
   const sanitized = trimmed.replace(/['";<>]/g, '');
-  return `'${sanitized}', 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+  return `'${sanitized}', 'Benzinova', 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
 }
 
 export function normalizeTypographySettings(
@@ -207,10 +241,17 @@ export function normalizeTypographySettings(
 ): TypographySettings {
   const d = DEFAULT_TYPOGRAPHY_SETTINGS;
   const scaleIn = input?.scale;
-  const headingFont =
+  const rawHeading =
     (typeof input?.headingFont === 'string' && input.headingFont.trim()) ||
     (fallbackOverrides?.headingFont && fallbackOverrides.headingFont.trim()) ||
     d.headingFont;
+  
+  // Clean deprecated Limerock or Cravelo entries to Benzinova
+  const headingFont =
+    rawHeading.toLowerCase().includes('limerock') || rawHeading.toLowerCase().includes('cravelo')
+      ? 'Benzinova'
+      : rawHeading;
+
   const bodyFont =
     (typeof input?.bodyFont === 'string' && input.bodyFont.trim()) ||
     (fallbackOverrides?.bodyFont && fallbackOverrides.bodyFont.trim()) ||
@@ -276,8 +317,6 @@ export function normalizeAppearanceSettings(
   defaults: AppearanceSettings
 ): AppearanceSettings {
   const safeRaw = raw || {};
-  // Legacy unmigrated settings/appearance docs only contain old headingFont/bodyFont strings without `typography`.
-  // When `typography` is absent, use the new curated DEFAULT_TYPOGRAPHY_SETTINGS as safe defaults.
   const publishedTypography = safeRaw.typography
     ? normalizeTypographySettings(safeRaw.typography)
     : normalizeTypographySettings(defaults.typography);

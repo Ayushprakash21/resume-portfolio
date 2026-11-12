@@ -273,13 +273,13 @@ export const TypographyManager: React.FC<TypographyManagerProps> = ({
   };
 
   const renderFontStatusPill = (status: 'loaded' | 'loading' | 'missing', family: string) => {
-    const isMissingLimerock = status === 'missing' && family.toLowerCase() === 'limerock';
+    const isBenzinova = family.toLowerCase().includes('benzinova');
     const colors =
       status === 'loaded'
         ? { bg: 'rgba(16, 185, 129, 0.14)', border: 'rgba(16, 185, 129, 0.35)', text: '#6CE098' }
         : status === 'loading'
           ? { bg: 'rgba(200, 200, 206, 0.12)', border: 'rgba(200, 200, 206, 0.3)', text: '#D4D7DC' }
-          : { bg: 'rgba(245, 158, 11, 0.14)', border: 'rgba(245, 158, 11, 0.38)', text: '#FBBF24' };
+          : { bg: 'rgba(239, 68, 68, 0.16)', border: 'rgba(239, 68, 68, 0.42)', text: '#F87171' };
 
     return (
       <span
@@ -305,11 +305,11 @@ export const TypographyManager: React.FC<TypographyManagerProps> = ({
           <AlertTriangle size={12} />
         )}
         {status === 'loaded'
-          ? 'Loaded & Ready'
+          ? 'Loaded & Ready (Bundled Local OFL)'
           : status === 'loading'
-            ? 'Checking WOFF2...'
-            : isMissingLimerock
-              ? 'Local WOFF2 Missing — Fallback Active'
+            ? 'Checking Local Font Assets...'
+            : isBenzinova
+              ? 'Local Font Missing — Check /public/fonts/benzinova'
               : 'Using System Fallback'}
       </span>
     );
@@ -563,9 +563,9 @@ export const TypographyManager: React.FC<TypographyManagerProps> = ({
               >
                 Aa Bb Cc 123 &mdash; {draft.headingFont}
               </div>
-              {draft.headingFont === 'Limerock' && headingFontStatus !== 'loaded' && (
-                <div style={{ fontSize: '11.5px', color: '#FBBF24', marginTop: '8px', lineHeight: 1.45 }}>
-                  Local WOFF2 files were not detected at <code>/fonts/limerock/Limerock-*.woff2</code>. Add your licensed commercial Limerock WOFF2 files to <code>public/fonts/limerock/</code> to activate authentic rendering.
+              {draft.headingFont.toLowerCase().includes('benzinova') && (
+                <div style={{ fontSize: '11.5px', color: '#929299', marginTop: '8px', lineHeight: 1.45 }}>
+                  Authentic SIL OFL 1.1 Benzinova typeface active. Note: Benzinova is crafted as a geometric Thin typeface; weights 100–400 render its authentic natural strokes without synthetic boldness distortion.
                 </div>
               )}
             </div>

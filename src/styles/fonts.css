@@ -1,43 +1,55 @@
 /**
  * AP — GLOBAL TYPOGRAPHY SYSTEM FONT FACES
  *
- * Active Default Webfonts (Bundled locally in Vite via @fontsource/plus-jakarta-sans + Google Fonts):
- *   - Heading / Display: Plus Jakarta Sans (SIL OFL 1.1 — WOFF2 bundled locally)
- *   - Body / UI: Manrope / Inter (SIL OFL 1.1)
- *   - Editorial Accent: Cormorant Garamond (SIL OFL 1.1)
+ * Primary Heading / Display Typeface:
+ *   - Benzinova (SIL Open Font License 1.1 — self-hosted local OTF/WOFF)
+ *     Variants:
+ *       - Benzinova (Regular / Normal Width Thin)
+ *       - Benzinova Condensed (Thin Condensed)
+ *       - Benzinova Extra Condensed (Thin Extra Condensed)
+ *       - Benzinova Extended (Thin Extended)
  *
- * Optional Local WOFF2 Drop-In Slot:
- *   - Limerock (Commercial font — place licensed WOFF2 files in /public/fonts/limerock/ before activating)
+ * Body / UI Typefaces:
+ *   - Manrope / Inter (SIL OFL 1.1 — Google Fonts / Webfonts)
+ *   - Plus Jakarta Sans (SIL OFL 1.1 — Bundled locally via @fontsource/plus-jakarta-sans)
  */
 
+/* 1. Benzinova (Standard / Normal Width) */
 @font-face {
-  font-family: 'Limerock';
-  src: url('/fonts/limerock/Limerock-Regular.woff2') format('woff2');
-  font-weight: 400;
+  font-family: 'Benzinova';
+  src: url('/fonts/benzinova/Benzinova-Thin.otf') format('opentype');
+  font-weight: 100 400;
+  font-stretch: normal;
   font-style: normal;
   font-display: swap;
 }
 
+/* 2. Benzinova Condensed */
 @font-face {
-  font-family: 'Limerock';
-  src: url('/fonts/limerock/Limerock-Medium.woff2') format('woff2');
-  font-weight: 500;
+  font-family: 'Benzinova Condensed';
+  src: url('/fonts/benzinova/Benzinova-ThinCondensed.otf') format('opentype');
+  font-weight: 100 400;
+  font-stretch: condensed;
   font-style: normal;
   font-display: swap;
 }
 
+/* 3. Benzinova Extra Condensed */
 @font-face {
-  font-family: 'Limerock';
-  src: url('/fonts/limerock/Limerock-SemiBold.woff2') format('woff2');
-  font-weight: 600;
+  font-family: 'Benzinova Extra Condensed';
+  src: url('/fonts/benzinova/Benzinova-ThinExtraCondensed.otf') format('opentype');
+  font-weight: 100 400;
+  font-stretch: extra-condensed;
   font-style: normal;
   font-display: swap;
 }
 
+/* 4. Benzinova Extended */
 @font-face {
-  font-family: 'Limerock';
-  src: url('/fonts/limerock/Limerock-Bold.woff2') format('woff2');
-  font-weight: 700;
+  font-family: 'Benzinova Extended';
+  src: url('/fonts/benzinova/Benzinova-ThinExtended.otf') format('opentype');
+  font-weight: 100 400;
+  font-stretch: expanded;
   font-style: normal;
   font-display: swap;
 }
