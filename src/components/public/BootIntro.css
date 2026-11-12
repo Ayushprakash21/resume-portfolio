@@ -1,11 +1,11 @@
 /* ==========================================================================
-   AP BRAND 4-SECOND CINEMATIC BOOT INTRO OVERLAY
+   AP BRAND CINEMATIC LOGO-FIRST BOOT INTRO OVERLAY
    Palette:
      Background: #080809
      Deep Burgundy: #24070E
      Crimson: #781E31
-     Metallic Silver: #D5D2D6
-     Primary Text: #F3F1F2
+     Metallic Silver: #D5D2D6 / #E1E2E6
+     Primary Text: #F3F1F2 / #FFFFFF
    ========================================================================== */
 
 .boot-intro-overlay {
@@ -46,7 +46,7 @@
   filter: blur(40px);
   pointer-events: none;
   opacity: 0;
-  animation: bootGlowPulse 3.6s ease-in-out forwards;
+  animation: bootGlowPulse 3.4s ease-in-out forwards;
 }
 
 @keyframes bootGlowPulse {
@@ -68,6 +68,42 @@
   }
 }
 
+/* Floating Cinematic Micro-Embers */
+.boot-intro-embers-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.boot-intro-ember {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #ff5270 45%, #781E31 100%);
+  box-shadow: 0 0 6px rgba(255, 82, 112, 0.7);
+  opacity: 0;
+  animation: bootEmberDrift linear infinite;
+}
+
+@keyframes bootEmberDrift {
+  0% {
+    opacity: 0;
+    transform: translateY(0) translateX(0);
+  }
+  20% {
+    opacity: 0.65;
+  }
+  80% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-80vh) translateX(24px);
+  }
+}
+
 /* Central Composition Container */
 .boot-intro-content {
   position: relative;
@@ -82,7 +118,7 @@
 }
 
 /* ==========================================================================
-   0.0s – 1.8s: AP ORIGINAL LOGO REVEAL & SHIMMER
+   1. AP ORIGINAL LOGO REVEAL, CONTOUR TRACE & STAR FLARE
    ========================================================================== */
 
 .boot-intro-logo-wrapper {
@@ -91,15 +127,15 @@
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transform: scale(0.92);
-  animation: bootLogoEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
+  transform: scale(0.94);
+  animation: bootLogoEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   filter: drop-shadow(0 0 35px rgba(120, 30, 49, 0.35)) drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9));
 }
 
 @keyframes bootLogoEntrance {
   0% {
     opacity: 0;
-    transform: scale(0.90) translateY(6px);
+    transform: scale(0.92) translateY(8px);
   }
   100% {
     opacity: 1;
@@ -107,37 +143,133 @@
   }
 }
 
+/* Faint crimson light focused directly behind the logo */
+.boot-intro-logo-backglow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 140%;
+  height: 140%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    rgba(120, 30, 49, 0.38) 0%,
+    rgba(36, 7, 14, 0.18) 50%,
+    transparent 75%
+  );
+  filter: blur(25px);
+  pointer-events: none;
+  opacity: 0;
+  animation: bootLogoBackglowFade 1.6s ease-out 0.2s forwards;
+  z-index: 0;
+}
+
+@keyframes bootLogoBackglowFade {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  100% {
+    opacity: 0.75;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 .boot-intro-logo-img {
   display: block;
-  width: clamp(120px, 14vw, 175px);
+  width: clamp(130px, 15vw, 185px);
   height: auto;
   object-fit: contain;
   position: relative;
   z-index: 1;
+  opacity: 0.15;
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Specular Light Sweep Overlay */
+.boot-intro-logo-wrapper.is-tracing .boot-intro-logo-img {
+  opacity: 1;
+}
+
+/* CSS Masked Contour Light Tracer following the authentic AP silhouette */
+.boot-intro-contour-tracer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  -webkit-mask-image: url('/brand/ap-transparent.png');
+  mask-image: url('/brand/ap-transparent.png');
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  background: linear-gradient(
+    135deg,
+    transparent 15%,
+    rgba(255, 255, 255, 0.2) 32%,
+    rgba(255, 255, 255, 0.95) 48%,
+    rgba(213, 210, 214, 0.5) 60%,
+    transparent 82%
+  );
+  background-size: 250% 250%;
+  background-position: 100% 100%;
+  opacity: 0;
+}
+
+.boot-intro-logo-wrapper.is-tracing .boot-intro-contour-tracer {
+  opacity: 1;
+  animation: bootContourTrace 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s forwards;
+}
+
+@keyframes bootContourTrace {
+  0% {
+    opacity: 0;
+    background-position: 100% 100%;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    background-position: 0% 0%;
+  }
+}
+
+/* Specular Light Sweep Overlay across metallic planes */
 .boot-intro-light-sweep {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 2;
+  inset: 0;
+  z-index: 4;
   pointer-events: none;
+  -webkit-mask-image: url('/brand/ap-transparent.png');
+  mask-image: url('/brand/ap-transparent.png');
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
   background: linear-gradient(
     115deg,
     transparent 20%,
-    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0.65) 50%,
     transparent 80%
   );
   opacity: 0;
   transform: translateX(-120%);
-  mix-blend-mode: overlay;
 }
 
-.boot-intro-logo-wrapper.is-shimmering .boot-intro-light-sweep {
-  animation: bootLightSweep 1.1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+.boot-intro-logo-wrapper.is-tracing .boot-intro-light-sweep {
+  animation: bootLightSweep 1.1s cubic-bezier(0.25, 1, 0.5, 1) 0.4s forwards;
 }
 
 @keyframes bootLightSweep {
@@ -145,11 +277,11 @@
     opacity: 0;
     transform: translateX(-120%);
   }
-  20% {
-    opacity: 0.9;
+  25% {
+    opacity: 0.95;
   }
-  80% {
-    opacity: 0.7;
+  75% {
+    opacity: 0.8;
   }
   100% {
     opacity: 0;
@@ -157,8 +289,76 @@
   }
 }
 
+/* Radiant 4-Pointed Starburst Flare positioned at apex of AP orbital loop */
+/* Logo 432x276 => Star apex at top: 11.5%, right: 17.5% */
+.boot-intro-star-flare {
+  position: absolute;
+  top: 11.5%;
+  right: 17.5%;
+  width: 32px;
+  height: 32px;
+  transform: translate(50%, -50%) scale(0);
+  pointer-events: none;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+}
+
+.boot-intro-star-flare.is-flaring {
+  animation: bootStarBurst 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes bootStarBurst {
+  0% {
+    opacity: 0;
+    transform: translate(50%, -50%) scale(0) rotate(-45deg);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(50%, -50%) scale(1.4) rotate(15deg);
+    filter: drop-shadow(0 0 10px #ffffff) drop-shadow(0 0 20px rgba(220, 225, 235, 0.9));
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate(50%, -50%) scale(1.1) rotate(0deg);
+    filter: drop-shadow(0 0 6px #ffffff) drop-shadow(0 0 12px rgba(213, 210, 214, 0.8));
+  }
+  100% {
+    opacity: 0.75;
+    transform: translate(50%, -50%) scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 4px #ffffff);
+  }
+}
+
+.boot-intro-star-core {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 30%, rgba(255, 255, 255, 0.8) 60%, transparent 100%);
+  filter: blur(1.5px);
+}
+
+.boot-intro-star-streak {
+  position: absolute;
+  width: 48px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #ffffff 50%, transparent 100%);
+  border-radius: 1px;
+  opacity: 0.85;
+}
+
+.boot-intro-star-svg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 /* ==========================================================================
-   1.8s – 2.8s: FOUNDER IDENTITY & TAGLINE REVEAL
+   2. FOUNDER IDENTITY REVEAL: AYUSH PRAKASH
    ========================================================================== */
 
 .boot-intro-identity-wrapper {
@@ -167,7 +367,7 @@
   flex-direction: column;
   align-items: center;
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(14px);
   pointer-events: none;
   transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -219,6 +419,10 @@
   filter: drop-shadow(0 4px 22px rgba(120, 30, 49, 0.35));
 }
 
+/* ==========================================================================
+   3. TWO-STAGE TAGLINE REVEAL
+   ========================================================================== */
+
 .boot-intro-tagline {
   margin-top: clamp(12px, 1.8vh, 18px);
   display: flex;
@@ -236,6 +440,14 @@
   letter-spacing: 0.03em !important;
   word-spacing: 0.12em !important;
   color: #F4F5F7 !important;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.boot-intro-tagline-heading.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .boot-intro-tagline-sub {
@@ -245,22 +457,29 @@
   font-weight: 400 !important;
   color: #C6CBD2 !important;
   letter-spacing: 0.01em !important;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
+}
+
+.boot-intro-tagline-sub.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* ==========================================================================
-   2.8s – 3.6s: DIGITAL INITIALIZATION & PROGRESS BAR
+   4. DIGITAL INITIALIZATION & PROGRESS BAR
    ========================================================================== */
 
 .boot-intro-progress-wrapper {
-  margin-top: clamp(28px, 4vh, 42px);
+  margin-top: clamp(24px, 3.6vh, 38px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   opacity: 0;
-  transform: translateY(6px);
-  pointer-events: none;
-  transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+  transform: translateY(8px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
 }
 
 .boot-intro-progress-wrapper.is-visible {
@@ -269,16 +488,16 @@
 }
 
 .boot-intro-status-text {
-  font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-  font-size: clamp(9.5px, 0.85vw, 11px);
+  font-family: var(--font-body, 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  font-size: 10.5px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #A1A1AA;
+  color: #a0a4af;
 }
 
 .boot-intro-progress-track {
-  width: clamp(170px, 22vw, 240px);
+  width: clamp(160px, 20vw, 240px);
   height: 2px;
   background-color: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
@@ -287,23 +506,23 @@
 }
 
 .boot-intro-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #D5D2D6 0%, #E52E42 65%, #9E1B2D 100%);
-  box-shadow: 0 0 10px rgba(229, 46, 66, 0.55);
+  background: linear-gradient(90deg, #781E31 0%, #D5D2D6 70%, #ffffff 100%);
+  box-shadow: 0 0 10px rgba(120, 30, 49, 0.8), 0 0 4px #ffffff;
   border-radius: 999px;
 }
 
 .boot-intro-progress-bar.is-animating {
-  animation: bootProgressFill 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: bootProgressFill 0.6s cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
 }
 
 @keyframes bootProgressFill {
   0% {
     width: 0%;
-  }
-  60% {
-    width: 78%;
   }
   100% {
     width: 100%;
@@ -311,47 +530,102 @@
 }
 
 /* ==========================================================================
-   ACCESSIBILITY: SKIP INTRO BUTTON
+   5. SKIP INTRO BUTTON
    ========================================================================== */
 
 .boot-intro-skip-btn {
   position: absolute;
-  top: clamp(16px, 3vh, 28px);
-  right: clamp(16px, 3vw, 32px);
+  top: 24px;
+  right: 28px;
   z-index: 10;
-  background: rgba(18, 19, 24, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #A1A1AA;
-  font-family: var(--font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 6px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  background: rgba(18, 18, 20, 0.65);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #c4c7cf;
+  font-family: var(--font-body, 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 7px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  outline: none;
 }
 
 .boot-intro-skip-btn:hover {
-  background: rgba(36, 7, 14, 0.8);
-  border-color: rgba(229, 46, 66, 0.4);
-  color: #FFFFFF;
-  box-shadow: 0 0 14px rgba(229, 46, 66, 0.25);
+  background: rgba(120, 30, 49, 0.35);
+  border-color: rgba(213, 210, 214, 0.4);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .boot-intro-skip-btn:focus-visible {
-  outline: 2px solid #E52E42;
+  outline: 2px solid #781E31;
   outline-offset: 2px;
 }
 
 /* ==========================================================================
-   REDUCED MOTION OVERRIDE
+   6. RESPONSIVENESS & ACCESSIBILITY
    ========================================================================== */
+
+@media (max-width: 768px) {
+  .boot-intro-skip-btn {
+    top: 16px;
+    right: 16px;
+    padding: 6px 14px;
+    font-size: 11px;
+  }
+
+  .boot-intro-founder-name {
+    gap: 8px;
+  }
+
+  .boot-intro-tagline {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .boot-intro-founder-name {
+    font-size: clamp(28px, 8.5vw, 38px) !important;
+  }
+
+  .boot-intro-tagline-heading,
+  .boot-intro-tagline-sub {
+    font-size: 13.5px !important;
+  }
+}
+
+/* Reduced Motion: Immediate minimal reveal */
 @media (prefers-reduced-motion: reduce) {
-  .boot-intro-overlay {
+  .boot-intro-ambient-glow,
+  .boot-intro-embers-container,
+  .boot-intro-contour-tracer,
+  .boot-intro-light-sweep,
+  .boot-intro-star-flare {
     display: none !important;
+    animation: none !important;
+  }
+
+  .boot-intro-overlay {
+    transition: opacity 0.15s ease-out;
+  }
+
+  .boot-intro-logo-wrapper,
+  .boot-intro-identity-wrapper,
+  .boot-intro-tagline-heading,
+  .boot-intro-tagline-sub,
+  .boot-intro-progress-wrapper {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .boot-intro-logo-img {
+    opacity: 1 !important;
   }
 }

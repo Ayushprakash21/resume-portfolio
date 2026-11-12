@@ -2,10 +2,11 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-describe('4-Second Cinematic AP Brand Boot Animation Suite', () => {
+describe('Cinematic Logo-First AP Brand Boot Animation Suite', () => {
   const bootIntroTsx = fs.readFileSync('src/components/public/BootIntro.tsx', 'utf-8');
   const bootIntroCss = fs.readFileSync('src/components/public/BootIntro.css', 'utf-8');
   const appTsx = fs.readFileSync('src/App.tsx', 'utf-8');
+  const indexHtml = fs.readFileSync('index.html', 'utf-8');
 
   it('1. BootIntro component and CSS exist and are exported cleanly', () => {
     assert.ok(fs.existsSync('src/components/public/BootIntro.tsx'), 'BootIntro.tsx must exist');
@@ -18,7 +19,7 @@ describe('4-Second Cinematic AP Brand Boot Animation Suite', () => {
     assert.ok(appTsx.includes('<BootIntro />'), 'App.tsx must render BootIntro');
   });
 
-  it('3. Uses the original authentic AP logo image asset', () => {
+  it('3. Uses and preloads the authentic original AP logo image asset', () => {
     assert.ok(
       bootIntroTsx.includes('src="/brand/ap-transparent.png"'),
       'BootIntro must reference the authentic original /brand/ap-transparent.png asset'
@@ -27,17 +28,21 @@ describe('4-Second Cinematic AP Brand Boot Animation Suite', () => {
       fs.existsSync('public/brand/ap-transparent.png'),
       'The original AP logo asset file must exist in public/brand/'
     );
+    assert.ok(
+      indexHtml.includes('rel="preload" as="image" href="/brand/ap-transparent.png"'),
+      'index.html must preload the AP logo asset'
+    );
   });
 
-  it('4. Animation timing matches 4-second sequence specifications', () => {
-    assert.ok(bootIntroTsx.includes('TOTAL_DURATION_MS = 4000'), 'Total duration must be 4000ms (4 seconds)');
-    assert.ok(bootIntroTsx.includes('FADE_OUT_START_MS = 3600'), 'Fade out starts at 3600ms (3.6s)');
-    assert.ok(bootIntroCss.includes('bootLightSweep 1.1s'), 'Light sweep triggers during 0.7s - 1.8s window');
-    assert.ok(bootIntroCss.includes('boot-intro-identity-wrapper.is-visible') || bootIntroCss.includes('bootIdentityReveal'), 'Identity reveals during 1.8s - 2.8s window');
-    assert.ok(bootIntroCss.includes('bootProgressFill 0.8s'), 'Progress bar fills during 2.8s - 3.6s window');
+  it('4. Animation timing matches sequence specifications', () => {
+    assert.ok(bootIntroTsx.includes('TOTAL_DURATION_MS = 3400'), 'Total duration must be 3400ms');
+    assert.ok(bootIntroTsx.includes('FADE_OUT_START_MS = 3000'), 'Fade out starts at 3000ms');
+    assert.ok(bootIntroCss.includes('bootContourTrace'), 'CSS contour tracer animation defined');
+    assert.ok(bootIntroCss.includes('bootStarBurst'), 'AP starburst flare animation defined');
+    assert.ok(bootIntroCss.includes('bootProgressFill'), 'Progress bar fill animation defined');
   });
 
-  it('5. Displays required founder name, approved gradients, and dual-typography tagline', () => {
+  it('5. Displays required founder name, approved gradients, and two-stage tagline', () => {
     assert.ok(bootIntroTsx.includes('AYUSH'), 'Must render AYUSH');
     assert.ok(bootIntroTsx.includes('PRAKASH'), 'Must render PRAKASH');
     assert.ok(bootIntroTsx.includes('BUSINESS. SYSTEMS.'), 'Must render BUSINESS. SYSTEMS.');
@@ -49,9 +54,11 @@ describe('4-Second Cinematic AP Brand Boot Animation Suite', () => {
     assert.ok(bootIntroCss.includes('linear-gradient(105deg, #f4f4f6 0%, #a8abb5 24%, #8c1524 52%, #bc3545 76%, #500a15 100%)'), 'PRAKASH silver-to-crimson gradient');
   });
 
-  it('6. Accessibility & Session Governance: sessionStorage, prefers-reduced-motion, Skip button, and Esc key', () => {
-    assert.ok(bootIntroTsx.includes("sessionStorage.getItem('ap_boot_intro_played')") || bootIntroTsx.includes('sessionStorage.getItem(SESSION_STORAGE_KEY)'), 'Checks sessionStorage');
-    assert.ok(bootIntroTsx.includes("sessionStorage.setItem(SESSION_STORAGE_KEY, 'true')"), 'Sets sessionStorage once played');
+  it('6. Accessibility & Session Governance: sessionStorage ap_intro_seen_v1, prefers-reduced-motion, Skip button, and Esc key', () => {
+    assert.ok(bootIntroTsx.includes('ap_intro_seen_v1'), 'Uses versioned session key ap_intro_seen_v1');
+    assert.ok(bootIntroTsx.includes('ap_boot_intro_played'), 'Maintains backward compatibility with legacy session key');
+    assert.ok(bootIntroTsx.includes('sessionStorage.getItem'), 'Checks sessionStorage');
+    assert.ok(bootIntroTsx.includes('sessionStorage.setItem'), 'Sets sessionStorage on load and exit');
     assert.ok(bootIntroTsx.includes('prefers-reduced-motion'), 'Checks prefers-reduced-motion in JS');
     assert.ok(bootIntroCss.includes('@media (prefers-reduced-motion: reduce)'), 'Overrides styles in CSS for reduced motion');
     assert.ok(bootIntroTsx.includes('Skip Intro'), 'Renders accessible Skip button');
@@ -89,5 +96,12 @@ describe('4-Second Cinematic AP Brand Boot Animation Suite', () => {
       !bootIntroCss.includes('.boot-intro-founder-name {\n  font-family: var(--font-display)'),
       'boot-intro-founder-name must not use global Benzinova Thin heading font'
     );
+  });
+
+  it('9. Logo-first visual assets: CSS contour tracing, star flare burst, and floating embers', () => {
+    assert.ok(bootIntroTsx.includes('boot-intro-contour-tracer'), 'Includes CSS contour tracer element');
+    assert.ok(bootIntroTsx.includes('boot-intro-star-flare'), 'Includes star flare container element');
+    assert.ok(bootIntroTsx.includes('boot-intro-ember'), 'Includes floating micro-embers');
+    assert.ok(bootIntroCss.includes('-webkit-mask-image: url(\'/brand/ap-transparent.png\')'), 'Masks tracer with authentic logo asset');
   });
 });
