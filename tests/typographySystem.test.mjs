@@ -229,4 +229,12 @@ test('Typography System: Hero founder name typography is strictly isolated from 
 
   const tokensCss = fs.readFileSync('src/styles/tokens.css', 'utf-8');
   assert.ok(tokensCss.includes('--font-hero-name:'), 'tokens.css defines --font-hero-name');
+
+  // Verify Hero Tagline (BUSINESS. SYSTEMS. & Intelligence & Innovation.)
+  assert.ok(heroLayout.includes('hero-tagline-container'), 'Hero layout renders hero-tagline-container');
+  assert.ok(heroLayout.includes('hero-tagline-primary'), 'Hero layout renders hero-tagline-primary');
+  assert.ok(heroLayout.includes('hero-tagline-secondary'), 'Hero layout renders hero-tagline-secondary');
+  assert.ok(!heroLayout.includes("className=\"hero-tagline-primary\"\n              style={{\n                fontFamily: 'var(--font-display)'"), 'Hero tagline does not use Benzinova Thin');
+  assert.ok(indexCss.includes('.hero-tagline-primary'), 'index.css defines .hero-tagline-primary');
+  assert.ok(indexCss.includes('.hero-tagline-secondary'), 'index.css defines .hero-tagline-secondary');
 });

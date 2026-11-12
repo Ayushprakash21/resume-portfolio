@@ -106,8 +106,8 @@
 
   /* Unified Semantic Scale Mapping */
   --type-hero: var(--font-size-hero);
-  --type-hero-tagline: clamp(1.0625rem, 1.35vw, 1.3125rem);
-  --type-hero-subtagline: clamp(1rem, 1.25vw, 1.25rem);
+  --type-hero-tagline: clamp(15px, 1.25vw, 18px);
+  --type-hero-subtagline: clamp(15.5px, 1.25vw, 18.5px);
   --type-editorial-large: var(--font-size-h2);
   --type-section-heading: var(--font-size-h2);
   --type-project-heading: var(--font-size-h3);

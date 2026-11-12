@@ -216,41 +216,48 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             </span>
           </div>
 
-          {/* 5. & 6. TAGLINE POSITION: BUSINESS. SYSTEMS. / Intelligence & Innovation. */}
+          {/* 5. & 6. HERO TAGLINE: DUAL-LINE BRAND POSITIONING (SEPARATE LINES) */}
           <div
+            className="hero-tagline-container"
             style={{
               display: 'flex',
-              alignItems: 'baseline',
-              gap: '12px',
-              flexWrap: 'wrap',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '6px',
               marginTop: '6px',
             }}
           >
             <div
+              className="hero-tagline-primary"
               style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 'var(--type-hero-tagline)',
-                lineHeight: 1.15,
+                fontFamily: "var(--font-body, 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif)",
+                fontSize: 'var(--type-hero-tagline, clamp(15px, 1.25vw, 18px))',
+                lineHeight: 1.25,
                 fontWeight: 600,
-                letterSpacing: '-0.01em',
-                color: 'var(--text-primary)',
+                letterSpacing: '0.03em',
+                wordSpacing: '0.12em',
+                color: '#F4F5F7',
                 textTransform: 'uppercase',
                 overflowWrap: 'break-word',
                 wordBreak: 'break-word',
+                userSelect: 'none',
               }}
             >
               {heading}
             </div>
             <div
+              className="hero-tagline-secondary"
               style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: 'var(--type-hero-subtagline)',
-                lineHeight: 1.18,
+                fontFamily: "var(--font-serif, 'Cormorant Garamond', Georgia, serif)",
+                fontSize: 'var(--type-hero-subtagline, clamp(15.5px, 1.25vw, 18.5px))',
+                lineHeight: 1.25,
                 fontWeight: 400,
                 fontStyle: 'italic',
-                color: 'var(--accent-silver)',
-                letterSpacing: '0.005em',
+                color: '#C6CBD2',
+                letterSpacing: '0.01em',
                 overflowWrap: 'break-word',
+                wordBreak: 'break-word',
+                userSelect: 'none',
               }}
             >
               {subHeading}
