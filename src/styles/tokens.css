@@ -115,7 +115,7 @@
   --type-subheading: clamp(1.0625rem, 1.25vw, 1.1875rem);
   --type-body: var(--font-size-body);
   --type-body-sm: 0.9375rem;
-  --type-nav: 0.8125rem;
+  --type-nav: clamp(13px, 0.95vw, 13.5px);
   --type-metadata: var(--font-size-eyebrow);
   /* Geometry & Radii */
   --radius-xs: 4px;
@@ -160,5 +160,6 @@
     --font-size-h4: var(--typo-mobile-h4);
     --font-size-card: var(--typo-mobile-card);
     --font-size-eyebrow: var(--typo-mobile-eyebrow);
+    --type-nav: 12.5px;
   }
 }

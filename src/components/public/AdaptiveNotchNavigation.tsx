@@ -377,44 +377,43 @@ export const AdaptiveNotchNavigation: React.FC<AdaptiveNotchNavigationProps> = (
                 style={{
                   position: 'relative',
                   zIndex: 2,
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: isMobile ? '0px' : '5px',
+                  gap: isMobile ? '0px' : '6px',
                   padding: isMobile
                     ? '6px 6px'
                     : isTablet
-                    ? isAccreditations ? '5px 7px' : '5px 8px'
-                    : isAccreditations ? '6px 9px' : '6px 10px',
+                    ? '5px 8px'
+                    : '6px 10px',
                   minWidth: isMobile ? '36px' : 'auto',
                   minHeight: '38px',
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
                   cursor: 'pointer',
-                  color: isActive ? '#FFFFFF' : '#9CA3AF',
+                  color: isActive ? '#FFFFFF' : '#CBD0D8',
                   fontFamily:
-                    'var(--font-display, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)',
+                    'var(--font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)',
                   fontSize: isMobile
-                    ? '11px'
-                    : isAccreditations
-                    ? isTablet ? '11px' : '12px'
-                    : isTablet ? '12px' : '13px',
-                  fontWeight: isAccreditations ? 700 : isActive ? 600 : 500,
-                  letterSpacing: isAccreditations ? '0.05em' : '-0.01em',
-                  textTransform: isAccreditations ? 'uppercase' : 'none',
+                    ? '12.5px'
+                    : isTablet
+                    ? '13px'
+                    : '13.5px',
+                  fontWeight: isActive ? 600 : 500,
+                  letterSpacing: '-0.01em',
+                  textTransform: 'none',
                   transition: 'color 0.2s ease',
                   WebkitTapHighlightColor: 'transparent',
                   whiteSpace: 'nowrap',
                 }}
               >
                 <Icon
-                  size={isMobile ? 16 : 14}
-                  strokeWidth={isActive ? 2.3 : 1.9}
+                  size={isMobile ? 15 : 14}
+                  strokeWidth={isActive ? 2.2 : 1.9}
                   className="notch-icon"
-                  style={isAccreditations && !isActive ? { color: '#E4E4E7' } : undefined}
                 />
-                {!isMobile && <span>{dest.label}</span>}
+                {!isMobile && <span>{dest.id === 'accreditations' ? 'Accreditations' : dest.label}</span>}
               </button>
             );
           })}

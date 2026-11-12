@@ -118,4 +118,33 @@ describe('Exact Adaptive Notch Navigation Suite', () => {
       'App.tsx renders AdminLogin and AdminConsole on /admin'
     );
   });
+
+  it('9. Navigation typography consumes clean UI sans-serif font stack without Benzinova Thin overrides', () => {
+    assert.ok(
+      !notchNavFile.includes("fontFamily:\n                    'var(--font-display"),
+      'Navigation does not use --font-display (Benzinova Thin)'
+    );
+    assert.ok(
+      notchNavFile.includes("fontFamily:\n                    'var(--font-body"),
+      'Navigation consumes --font-body for clean sans-serif UI typography'
+    );
+    assert.ok(
+      notchNavFile.includes("isActive ? 600 : 500"),
+      'Navigation uses medium (500) and semibold (600) weights'
+    );
+    assert.ok(
+      notchNavFile.includes("isActive ? '#FFFFFF' : '#CBD0D8'"),
+      'Navigation uses near-white for active and muted silver for inactive'
+    );
+
+    const indexCssFile = fs.readFileSync('src/styles/index.css', 'utf-8');
+    assert.ok(
+      indexCssFile.includes('.notch-nav-item'),
+      'index.css defines .notch-nav-item ruleset'
+    );
+    assert.ok(
+      indexCssFile.includes('font-family: var(--font-body'),
+      'index.css enforces var(--font-body) on .notch-nav-item'
+    );
+  });
 });

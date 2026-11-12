@@ -699,12 +699,32 @@ h1, h2, h3, h4, .font-display {
 }
 
 .notch-nav-item {
+  font-family: var(--font-body, 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+  font-size: var(--type-nav, 13.5px);
+  line-height: 1 !important;
   transition: color 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   border-radius: 9999px;
 }
 
+.notch-nav-item.is-active {
+  font-weight: 600 !important;
+  color: #FFFFFF !important;
+}
+
+.notch-nav-item:not(.is-active) {
+  font-weight: 500 !important;
+  color: #CBD0D8 !important;
+}
+
 .notch-nav-item:hover {
   color: #FFFFFF !important;
+}
+
+.notch-nav-item .notch-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .notch-nav-item:focus-visible,
