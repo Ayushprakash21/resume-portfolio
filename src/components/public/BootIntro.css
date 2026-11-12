@@ -1,5 +1,5 @@
 /* ==========================================================================
-   AP BRAND CINEMATIC LOGO-FIRST BOOT INTRO OVERLAY
+   AP BRAND CINEMATIC LOGO VIDEO BOOT INTRO OVERLAY
    Palette:
      Background: #080809
      Deep Burgundy: #24070E
@@ -19,7 +19,7 @@
   overflow: hidden;
   user-select: none;
   opacity: 1;
-  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity;
 }
 
@@ -46,7 +46,7 @@
   filter: blur(40px);
   pointer-events: none;
   opacity: 0;
-  animation: bootGlowPulse 3.4s ease-in-out forwards;
+  animation: bootGlowPulse 7.2s ease-in-out forwards;
 }
 
 @keyframes bootGlowPulse {
@@ -54,11 +54,11 @@
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.85);
   }
-  25% {
+  20% {
     opacity: 0.85;
     transform: translate(-50%, -50%) scale(1);
   }
-  75% {
+  80% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1.04);
   }
@@ -118,7 +118,7 @@
 }
 
 /* ==========================================================================
-   1. AP ORIGINAL LOGO REVEAL, CONTOUR TRACE & STAR FLARE
+   1. CINEMATIC AP LOGO VIDEO CONTAINER (Occupies Exact Original AP Logo Area)
    ========================================================================== */
 
 .boot-intro-logo-wrapper {
@@ -126,235 +126,87 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* Video aspect ratio is 896/576 = 1.5555. Sized so internal AP logo matches visual scale */
+  width: clamp(240px, 24vw, 320px);
+  aspect-ratio: 896 / 576;
+  margin: 0 auto;
   opacity: 0;
-  transform: scale(0.94);
-  animation: bootLogoEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  filter: drop-shadow(0 0 35px rgba(120, 30, 49, 0.35)) drop-shadow(0 4px 20px rgba(0, 0, 0, 0.9));
+  animation: bootLogoVideoFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes bootLogoEntrance {
+@keyframes bootLogoVideoFadeIn {
   0% {
     opacity: 0;
-    transform: scale(0.92) translateY(8px);
+    transform: scale(0.96);
   }
   100% {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: scale(1);
   }
 }
 
-/* Faint crimson light focused directly behind the logo */
+/* Faint crimson backlight focused behind the logo video */
 .boot-intro-logo-backglow {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 140%;
-  height: 140%;
+  width: 130%;
+  height: 130%;
   border-radius: 50%;
   background: radial-gradient(
     circle at center,
-    rgba(120, 30, 49, 0.38) 0%,
-    rgba(36, 7, 14, 0.18) 50%,
+    rgba(120, 30, 49, 0.36) 0%,
+    rgba(36, 7, 14, 0.16) 50%,
     transparent 75%
   );
-  filter: blur(25px);
+  filter: blur(30px);
   pointer-events: none;
-  opacity: 0;
-  animation: bootLogoBackglowFade 1.6s ease-out 0.2s forwards;
+  opacity: 0.8;
   z-index: 0;
 }
 
-@keyframes bootLogoBackglowFade {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.7);
-  }
-  50% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.05);
-  }
-  100% {
-    opacity: 0.75;
-    transform: translate(-50%, -50%) scale(1);
-  }
+/* Real HTML5 Video element with seamless blend mode and feathered radial mask */
+.boot-intro-logo-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border: none;
+  outline: none;
+  background: transparent;
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
+  mix-blend-mode: screen;
+  /* Feathered radial edge mask to eliminate any visible rectangular video borders */
+  -webkit-mask-image: radial-gradient(
+    ellipse 75% 70% at 50% 48%,
+    black 45%,
+    rgba(0, 0, 0, 0.6) 65%,
+    transparent 88%
+  );
+  mask-image: radial-gradient(
+    ellipse 75% 70% at 50% 48%,
+    black 45%,
+    rgba(0, 0, 0, 0.6) 65%,
+    transparent 88%
+  );
 }
 
-.boot-intro-logo-img {
-  display: block;
+/* Fallback static AP logo image when video is blocked or unsupported */
+.boot-intro-logo-fallback {
   width: clamp(130px, 15vw, 185px);
   height: auto;
   object-fit: contain;
+  display: none;
   position: relative;
   z-index: 1;
-  opacity: 0.15;
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.boot-intro-logo-wrapper.is-tracing .boot-intro-logo-img {
-  opacity: 1;
-}
-
-/* CSS Masked Contour Light Tracer following the authentic AP silhouette */
-.boot-intro-contour-tracer {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  -webkit-mask-image: url('/brand/ap-transparent.png');
-  mask-image: url('/brand/ap-transparent.png');
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  background: linear-gradient(
-    135deg,
-    transparent 15%,
-    rgba(255, 255, 255, 0.2) 32%,
-    rgba(255, 255, 255, 0.95) 48%,
-    rgba(213, 210, 214, 0.5) 60%,
-    transparent 82%
-  );
-  background-size: 250% 250%;
-  background-position: 100% 100%;
-  opacity: 0;
-}
-
-.boot-intro-logo-wrapper.is-tracing .boot-intro-contour-tracer {
-  opacity: 1;
-  animation: bootContourTrace 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s forwards;
-}
-
-@keyframes bootContourTrace {
-  0% {
-    opacity: 0;
-    background-position: 100% 100%;
-  }
-  20% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 0.85;
-  }
-  100% {
-    opacity: 0;
-    background-position: 0% 0%;
-  }
-}
-
-/* Specular Light Sweep Overlay across metallic planes */
-.boot-intro-light-sweep {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  pointer-events: none;
-  -webkit-mask-image: url('/brand/ap-transparent.png');
-  mask-image: url('/brand/ap-transparent.png');
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  background: linear-gradient(
-    115deg,
-    transparent 20%,
-    rgba(255, 255, 255, 0.65) 50%,
-    transparent 80%
-  );
-  opacity: 0;
-  transform: translateX(-120%);
-}
-
-.boot-intro-logo-wrapper.is-tracing .boot-intro-light-sweep {
-  animation: bootLightSweep 1.1s cubic-bezier(0.25, 1, 0.5, 1) 0.4s forwards;
-}
-
-@keyframes bootLightSweep {
-  0% {
-    opacity: 0;
-    transform: translateX(-120%);
-  }
-  25% {
-    opacity: 0.95;
-  }
-  75% {
-    opacity: 0.8;
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(120%);
-  }
-}
-
-/* Radiant 4-Pointed Starburst Flare positioned at apex of AP orbital loop */
-/* Logo 432x276 => Star apex at top: 11.5%, right: 17.5% */
-.boot-intro-star-flare {
-  position: absolute;
-  top: 11.5%;
-  right: 17.5%;
-  width: 32px;
-  height: 32px;
-  transform: translate(50%, -50%) scale(0);
-  pointer-events: none;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-}
-
-.boot-intro-star-flare.is-flaring {
-  animation: bootStarBurst 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes bootStarBurst {
-  0% {
-    opacity: 0;
-    transform: translate(50%, -50%) scale(0) rotate(-45deg);
-  }
-  25% {
-    opacity: 1;
-    transform: translate(50%, -50%) scale(1.4) rotate(15deg);
-    filter: drop-shadow(0 0 10px #ffffff) drop-shadow(0 0 20px rgba(220, 225, 235, 0.9));
-  }
-  50% {
-    opacity: 0.9;
-    transform: translate(50%, -50%) scale(1.1) rotate(0deg);
-    filter: drop-shadow(0 0 6px #ffffff) drop-shadow(0 0 12px rgba(213, 210, 214, 0.8));
-  }
-  100% {
-    opacity: 0.75;
-    transform: translate(50%, -50%) scale(1) rotate(0deg);
-    filter: drop-shadow(0 0 4px #ffffff);
-  }
-}
-
-.boot-intro-star-core {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #ffffff 30%, rgba(255, 255, 255, 0.8) 60%, transparent 100%);
-  filter: blur(1.5px);
-}
-
-.boot-intro-star-streak {
-  position: absolute;
-  width: 48px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #ffffff 50%, transparent 100%);
-  border-radius: 1px;
-  opacity: 0.85;
-}
-
-.boot-intro-star-svg {
-  position: relative;
-  width: 100%;
-  height: 100%;
+.boot-intro-logo-fallback.is-active {
   display: block;
+  animation: bootLogoVideoFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* ==========================================================================
@@ -362,14 +214,14 @@
    ========================================================================== */
 
 .boot-intro-identity-wrapper {
-  margin-top: clamp(20px, 3.2vh, 32px);
+  margin-top: clamp(8px, 1.8vh, 18px);
   display: flex;
   flex-direction: column;
   align-items: center;
   opacity: 0;
-  transform: translateY(14px);
+  transform: translateY(12px);
   pointer-events: none;
-  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .boot-intro-identity-wrapper.is-visible {
@@ -424,7 +276,7 @@
    ========================================================================== */
 
 .boot-intro-tagline {
-  margin-top: clamp(12px, 1.8vh, 18px);
+  margin-top: clamp(10px, 1.6vh, 16px);
   display: flex;
   align-items: baseline;
   justify-content: center;
@@ -472,7 +324,7 @@
    ========================================================================== */
 
 .boot-intro-progress-wrapper {
-  margin-top: clamp(24px, 3.6vh, 38px);
+  margin-top: clamp(20px, 3.2vh, 34px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -568,7 +420,7 @@
 }
 
 /* ==========================================================================
-   6. RESPONSIVENESS & ACCESSIBILITY
+   6. RESPONSIVENESS (320px, 360px, 375px, 390px, 430px, 768px, 1024px, 1440px, 1920px)
    ========================================================================== */
 
 @media (max-width: 768px) {
@@ -577,6 +429,10 @@
     right: 16px;
     padding: 6px 14px;
     font-size: 11px;
+  }
+
+  .boot-intro-logo-wrapper {
+    width: clamp(210px, 46vw, 270px);
   }
 
   .boot-intro-founder-name {
@@ -589,6 +445,10 @@
 }
 
 @media (max-width: 480px) {
+  .boot-intro-logo-wrapper {
+    width: clamp(190px, 62vw, 240px);
+  }
+
   .boot-intro-founder-name {
     font-size: clamp(28px, 8.5vw, 38px) !important;
   }
@@ -599,13 +459,25 @@
   }
 }
 
+@media (max-width: 360px) {
+  .boot-intro-logo-wrapper {
+    width: 190px;
+  }
+
+  .boot-intro-founder-name {
+    font-size: 26px !important;
+  }
+
+  .boot-intro-tagline-heading,
+  .boot-intro-tagline-sub {
+    font-size: 12.5px !important;
+  }
+}
+
 /* Reduced Motion: Immediate minimal reveal */
 @media (prefers-reduced-motion: reduce) {
   .boot-intro-ambient-glow,
-  .boot-intro-embers-container,
-  .boot-intro-contour-tracer,
-  .boot-intro-light-sweep,
-  .boot-intro-star-flare {
+  .boot-intro-embers-container {
     display: none !important;
     animation: none !important;
   }
@@ -625,7 +497,12 @@
     animation: none !important;
   }
 
-  .boot-intro-logo-img {
+  .boot-intro-logo-fallback {
+    display: block !important;
     opacity: 1 !important;
+  }
+
+  .boot-intro-logo-video {
+    display: none !important;
   }
 }

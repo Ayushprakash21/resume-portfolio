@@ -4,13 +4,12 @@ import './BootIntro.css';
 
 export const SESSION_STORAGE_KEY = 'ap_intro_seen_v1';
 export const LEGACY_STORAGE_KEY = 'ap_boot_intro_played';
-export const TOTAL_DURATION_MS = 3400;
-export const FADE_OUT_START_MS = 3000;
+export const TOTAL_DURATION_MS = 7600;
+export const FADE_OUT_START_MS = 7000;
 
 export type IntroStage =
   | 'entrance'
-  | 'logo_trace'
-  | 'star_flare'
+  | 'video_play'
   | 'name'
   | 'tagline1'
   | 'tagline2'
@@ -53,8 +52,10 @@ export const BootIntro: React.FC<BootIntroProps> = ({ onComplete, forcePlay = fa
 
   const [isMounted, setIsMounted] = useState<boolean>(() => shouldPlay());
   const [stage, setStage] = useState<IntroStage>('entrance');
-  const [logoLoaded, setLogoLoaded] = useState<boolean>(false);
+  const [videoError, setVideoError] = useState<boolean>(false);
+  const [videoPlaying, setVideoPlaying] = useState<boolean>(false);
 
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const timersRef = useRef<number[]>([]);
 
   const clearAllTimers = useCallback(() => {
@@ -74,6 +75,13 @@ export const BootIntro: React.FC<BootIntroProps> = ({ onComplete, forcePlay = fa
       // Ignore private browsing sessionStorage errors
     }
 
+    // Pause video to free memory
+    if (videoRef.current) {
+      try {
+        videoRef.current.pause();
+      } catch {}
+    }
+
     // Restore body scrolling
     if (typeof document !== 'undefined') {
       document.body.style.overflow = '';
@@ -83,7 +91,7 @@ export const BootIntro: React.FC<BootIntroProps> = ({ onComplete, forcePlay = fa
     setTimeout(() => {
       setIsMounted(false);
       if (onComplete) onComplete();
-    }, 400);
+    }, 450);
   }, [clearAllTimers, onComplete]);
 
   // Immediate skip on user action (Skip button or Escape key)
@@ -103,6 +111,20 @@ export const BootIntro: React.FC<BootIntroProps> = ({ onComplete, forcePlay = fa
     // Lock background scrolling while intro is visible
     if (typeof document !== 'undefined') {
       document.body.style.overflow = 'hidden';
+    }
+
+    // Attempt video autoplay with playback speed of 1.3x for high-energy motion
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 1.3;
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setVideoPlaying(true))
+          .catch(() => {
+            // If autoplay policy blocks video, fallback to poster/image seamlessly
+            setVideoError(true);
+          });
+      }
     }
 
     // Expose developer replay helper on window
@@ -136,33 +158,30 @@ export const BootIntro: React.FC<BootIntroProps> = ({ onComplete, forcePlay = fa
       };
     }
 
-    // Timeline Sequence:
-    // 0.0s – 0.4s: 'entrance' (ambient dark emergence & crimson backlight)
-    // 0.4s – 1.2s: 'logo_trace' (contour tracing and metallic emergence)
-    const t1 = window.setTimeout(() => setStage('logo_trace'), 400);
+    // Timeline Sequence (Coordinated with Video Playback at 1.3x):
+    // 0.0s – 0.4s: 'entrance' (ambient dark emergence)
+    // 0.4s – 3.0s: 'video_play' (video draws orbital contour ring and reveals chrome AP glyphs)
+    const t1 = window.setTimeout(() => setStage('video_play'), 400);
 
-    // 1.2s – 1.7s: 'star_flare' (AP orbital starburst flare & specular shimmer)
-    const t2 = window.setTimeout(() => setStage('star_flare'), 1200);
+    // 3.0s – 4.5s: 'name' (AYUSH PRAKASH reveal beneath the revealed AP logo)
+    const t2 = window.setTimeout(() => setStage('name'), 3000);
 
-    // 1.7s – 2.1s: 'name' (AYUSH PRAKASH reveal)
-    const t3 = window.setTimeout(() => setStage('name'), 1700);
+    // 4.5s – 5.5s: 'tagline1' (BUSINESS. SYSTEMS. reveal)
+    const t3 = window.setTimeout(() => setStage('tagline1'), 4500);
 
-    // 2.1s – 2.4s: 'tagline1' (BUSINESS. SYSTEMS. reveal)
-    const t4 = window.setTimeout(() => setStage('tagline1'), 2100);
+    // 5.5s – 6.4s: 'tagline2' (Intelligence & Innovation. reveal, synced with video star flare at ~7s video time)
+    const t4 = window.setTimeout(() => setStage('tagline2'), 5500);
 
-    // 2.4s – 2.8s: 'tagline2' (Intelligence & Innovation. reveal)
-    const t5 = window.setTimeout(() => setStage('tagline2'), 2400);
+    // 6.4s – 7.0s: 'initialization' (sleek digital progress fill)
+    const t5 = window.setTimeout(() => setStage('initialization'), 6400);
 
-    // 2.8s – 3.0s: 'initialization' (sleek digital progress fill)
-    const t6 = window.setTimeout(() => setStage('initialization'), 2800);
+    // 7.0s – 7.6s: 'exit' (smooth fade transition revealing hero)
+    const t6 = window.setTimeout(() => setStage('exit'), FADE_OUT_START_MS);
 
-    // 3.0s – 3.4s: 'exit' (smooth fade transition revealing hero)
-    const t7 = window.setTimeout(() => setStage('exit'), FADE_OUT_START_MS);
+    // 7.6s: Complete & unmount
+    const t7 = window.setTimeout(() => completeIntro(), TOTAL_DURATION_MS);
 
-    // 3.4s: Complete & unmount
-    const t8 = window.setTimeout(() => completeIntro(), TOTAL_DURATION_MS);
-
-    timersRef.current = [t1, t2, t3, t4, t5, t6, t7, t8];
+    timersRef.current = [t1, t2, t3, t4, t5, t6, t7];
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
@@ -178,8 +197,6 @@ export const BootIntro: React.FC<BootIntroProps> = ({ onComplete, forcePlay = fa
   }
 
   const isExiting = stage === 'exit';
-  const hasLogoTrace = stage !== 'entrance';
-  const hasStarFlare = stage === 'star_flare' || stage === 'name' || stage === 'tagline1' || stage === 'tagline2' || stage === 'initialization' || stage === 'exit';
   const showName = stage === 'name' || stage === 'tagline1' || stage === 'tagline2' || stage === 'initialization' || stage === 'exit';
   const showTagline1 = stage === 'tagline1' || stage === 'tagline2' || stage === 'initialization' || stage === 'exit';
   const showTagline2 = stage === 'tagline2' || stage === 'initialization' || stage === 'exit';
@@ -233,62 +250,46 @@ export const BootIntro: React.FC<BootIntroProps> = ({ onComplete, forcePlay = fa
 
       {/* Central Composition */}
       <div className="boot-intro-content">
-        {/* AP Monogram Cinematic Reveal */}
-        <div className={`boot-intro-logo-wrapper ${hasLogoTrace ? 'is-tracing' : ''} ${hasStarFlare ? 'is-starred' : ''}`}>
-          {/* Subtle backglow focused behind the logo */}
+        {/* Cinematic AP Logo Video Container (occupies exact original logo position) */}
+        <div className="boot-intro-logo-wrapper">
+          {/* Subtle backglow focused behind the logo video */}
           <div className="boot-intro-logo-backglow" aria-hidden="true" />
 
-          {/* Authentic Base AP Logo Image */}
-          <img
-            src="/brand/ap-transparent.png"
-            alt="AP — Ayush Prakash Official Brand Monogram"
-            width={175}
-            height={112}
-            className={`boot-intro-logo-img ${logoLoaded ? 'is-loaded' : ''}`}
-            onLoad={() => setLogoLoaded(true)}
-            onError={() => {
-              // Gracefully handle missing asset without blocking website
-              setLogoLoaded(true);
-            }}
-          />
-
-          {/* CSS Masked Silver Contour Light Tracer */}
-          <div className="boot-intro-contour-tracer" aria-hidden="true" />
-
-          {/* Specular Light Sweep Overlay */}
-          <div className="boot-intro-light-sweep" aria-hidden="true" />
-
-          {/* Radiant 4-Pointed Starburst Flare over AP star apex (top: 11.5%, right: 17.5%) */}
-          <div className={`boot-intro-star-flare ${hasStarFlare ? 'is-flaring' : ''}`} aria-hidden="true">
-            <div className="boot-intro-star-core" />
-            <div className="boot-intro-star-streak" />
-            <svg
-              viewBox="0 0 36 36"
-              className="boot-intro-star-svg"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          {/* HTML5 Video Element with WebM + MP4 sources */}
+          {!videoError ? (
+            <video
+              ref={videoRef}
+              className={`boot-intro-logo-video ${videoPlaying ? 'is-playing' : ''}`}
+              autoPlay
+              muted
+              playsInline
+              preload="auto"
+              poster="/brand/ap-logo-poster.jpg"
+              onPlay={() => setVideoPlaying(true)}
+              onError={() => setVideoError(true)}
+              aria-label="AP — Ayush Prakash Official Brand Monogram Cinematic Reveal"
             >
-              <path
-                d="M18 0C18 10 26 18 36 18C26 18 18 26 18 36C18 26 10 18 0 18C10 18 18 10 18 0Z"
-                fill="url(#star-gradient)"
+              <source src="/brand/ap-logo-intro.webm" type="video/webm" />
+              <source src="/brand/ap-logo-intro.mp4" type="video/mp4" />
+              {/* Fallback image inside video element */}
+              <img
+                src="/brand/ap-transparent.png"
+                alt="AP — Ayush Prakash Official Brand Monogram"
+                className="boot-intro-logo-fallback"
+                width={175}
+                height={112}
               />
-              <defs>
-                <radialGradient
-                  id="star-gradient"
-                  cx="50%"
-                  cy="50%"
-                  r="50%"
-                  fx="50%"
-                  fy="50%"
-                >
-                  <stop offset="0%" stopColor="#FFFFFF" />
-                  <stop offset="45%" stopColor="#E2E6EF" />
-                  <stop offset="75%" stopColor="#C8CCD8" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="#781E31" stopOpacity="0" />
-                </radialGradient>
-              </defs>
-            </svg>
-          </div>
+            </video>
+          ) : (
+            /* Fallback static AP logo if video playback is blocked or unavailable */
+            <img
+              src="/brand/ap-transparent.png"
+              alt="AP — Ayush Prakash Official Brand Monogram"
+              className="boot-intro-logo-fallback is-active"
+              width={175}
+              height={112}
+            />
+          )}
         </div>
 
         {/* Founder Identity Reveal: AYUSH PRAKASH */}

@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-describe('Cinematic Logo-First AP Brand Boot Animation Suite', () => {
+describe('Cinematic AP Logo Video Boot Intro Suite', () => {
   const bootIntroTsx = fs.readFileSync('src/components/public/BootIntro.tsx', 'utf-8');
   const bootIntroCss = fs.readFileSync('src/components/public/BootIntro.css', 'utf-8');
   const appTsx = fs.readFileSync('src/App.tsx', 'utf-8');
@@ -19,27 +19,30 @@ describe('Cinematic Logo-First AP Brand Boot Animation Suite', () => {
     assert.ok(appTsx.includes('<BootIntro />'), 'App.tsx must render BootIntro');
   });
 
-  it('3. Uses and preloads the authentic original AP logo image asset', () => {
-    assert.ok(
-      bootIntroTsx.includes('src="/brand/ap-transparent.png"'),
-      'BootIntro must reference the authentic original /brand/ap-transparent.png asset'
-    );
-    assert.ok(
-      fs.existsSync('public/brand/ap-transparent.png'),
-      'The original AP logo asset file must exist in public/brand/'
-    );
-    assert.ok(
-      indexHtml.includes('rel="preload" as="image" href="/brand/ap-transparent.png"'),
-      'index.html must preload the AP logo asset'
-    );
+  it('3. Real HTML5 video element with MP4, WebM sources, poster and fallback image', () => {
+    assert.ok(bootIntroTsx.includes('<video'), 'Must contain HTML5 video tag');
+    assert.ok(bootIntroTsx.includes('src="/brand/ap-logo-intro.webm"'), 'Must specify WebM source');
+    assert.ok(bootIntroTsx.includes('src="/brand/ap-logo-intro.mp4"'), 'Must specify MP4 source');
+    assert.ok(bootIntroTsx.includes('poster="/brand/ap-logo-poster.jpg"'), 'Must specify poster attribute');
+    assert.ok(bootIntroTsx.includes('autoPlay'), 'Video must autoplay');
+    assert.ok(bootIntroTsx.includes('muted'), 'Video must be muted');
+    assert.ok(bootIntroTsx.includes('playsInline'), 'Video must play inline');
+    assert.ok(!bootIntroTsx.includes('controls='), 'Must not display default browser controls');
+    assert.ok(bootIntroTsx.includes('src="/brand/ap-transparent.png"'), 'Must include fallback static AP logo');
+
+    // File existence on disk
+    assert.ok(fs.existsSync('public/brand/ap-logo-intro.mp4'), 'ap-logo-intro.mp4 must exist');
+    assert.ok(fs.existsSync('public/brand/ap-logo-intro.webm'), 'ap-logo-intro.webm must exist');
+    assert.ok(fs.existsSync('public/brand/ap-logo-poster.jpg'), 'ap-logo-poster.jpg must exist');
+    assert.ok(fs.existsSync('public/brand/ap-transparent.png'), 'ap-transparent.png fallback must exist');
+    assert.ok(indexHtml.includes('href="/brand/ap-logo-poster.jpg"'), 'index.html preloads video poster');
   });
 
-  it('4. Animation timing matches sequence specifications', () => {
-    assert.ok(bootIntroTsx.includes('TOTAL_DURATION_MS = 3400'), 'Total duration must be 3400ms');
-    assert.ok(bootIntroTsx.includes('FADE_OUT_START_MS = 3000'), 'Fade out starts at 3000ms');
-    assert.ok(bootIntroCss.includes('bootContourTrace'), 'CSS contour tracer animation defined');
-    assert.ok(bootIntroCss.includes('bootStarBurst'), 'AP starburst flare animation defined');
-    assert.ok(bootIntroCss.includes('bootProgressFill'), 'Progress bar fill animation defined');
+  it('4. Seamless visual integration: feathered edge mask prevents rectangular video borders', () => {
+    assert.ok(bootIntroCss.includes('-webkit-mask-image: radial-gradient'), 'CSS defines feathered webkit radial mask');
+    assert.ok(bootIntroCss.includes('mask-image: radial-gradient'), 'CSS defines feathered standard radial mask');
+    assert.ok(bootIntroCss.includes('aspect-ratio: 896 / 576'), 'CSS maintains exact 896/576 video aspect ratio');
+    assert.ok(bootIntroCss.includes('object-fit: contain'), 'Video maintains contain object-fit');
   });
 
   it('5. Displays required founder name, approved gradients, and two-stage tagline', () => {
@@ -98,10 +101,9 @@ describe('Cinematic Logo-First AP Brand Boot Animation Suite', () => {
     );
   });
 
-  it('9. Logo-first visual assets: CSS contour tracing, star flare burst, and floating embers', () => {
-    assert.ok(bootIntroTsx.includes('boot-intro-contour-tracer'), 'Includes CSS contour tracer element');
-    assert.ok(bootIntroTsx.includes('boot-intro-star-flare'), 'Includes star flare container element');
-    assert.ok(bootIntroTsx.includes('boot-intro-ember'), 'Includes floating micro-embers');
-    assert.ok(bootIntroCss.includes('-webkit-mask-image: url(\'/brand/ap-transparent.png\')'), 'Masks tracer with authentic logo asset');
+  it('9. Responsive breakpoints: 320px, 360px, 480px, 768px, desktop', () => {
+    assert.ok(bootIntroCss.includes('@media (max-width: 768px)'), 'Mobile tablet media query');
+    assert.ok(bootIntroCss.includes('@media (max-width: 480px)'), 'Mobile smartphone media query');
+    assert.ok(bootIntroCss.includes('@media (max-width: 360px)'), 'Compact mobile media query');
   });
 });
