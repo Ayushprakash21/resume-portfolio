@@ -81,13 +81,23 @@ h1, h2, h3, h4, .font-display {
   letter-spacing: var(--heading-letter-spacing);
 }
 
-/* Hero Founder Name: Metallic Silver & Deep Crimson Gradient */
-.hero-name {
-  font-family: var(--font-display);
-  font-size: var(--font-size-hero);
-  font-weight: var(--heading-font-weight);
-  line-height: 0.94;
-  letter-spacing: var(--heading-letter-spacing);
+/* Hero Founder Name: Dedicated typography strictly isolated from global heading font */
+.hero-name,
+.hero-founder-name {
+  font-family: var(--font-hero-name, 'Orenza Bold', 'Orenza', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+  font-size: var(--font-size-hero) !important;
+  font-weight: 800 !important;
+  line-height: 0.90 !important;
+  letter-spacing: -0.03em !important;
+  text-transform: uppercase !important;
+}
+
+.hero-name__first,
+.hero-name__last {
+  font-family: var(--font-hero-name, 'Orenza Bold', 'Orenza', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
+  font-weight: 800 !important;
+  line-height: 0.90 !important;
+  letter-spacing: -0.03em !important;
 }
 
 .hero-name__first {

@@ -152,26 +152,32 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             />
           </div>
 
-          {/* 3. & 4. DOMINANT HERO IDENTITY: AYUSH / PRAKASH */}
-          <h1
+          {/* 3. & 4. DOMINANT HERO IDENTITY: AYUSH / PRAKASH (ORIGINAL BRAND DISPLAY GEOMETRIC SANS) */}
+          <div
+            role="heading"
+            aria-level={1}
             className="hero-founder-name hero-name"
             style={{
               display: 'flex',
               flexDirection: 'column',
-              lineHeight: 0.94,
-              letterSpacing: 'var(--heading-letter-spacing)',
+              lineHeight: 0.90,
+              letterSpacing: '-0.03em',
               textTransform: 'uppercase',
-              fontFamily: 'var(--font-display)',
-              fontWeight: 'var(--heading-font-weight)' as any,
+              fontFamily: "'Orenza Bold', 'Orenza', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+              fontWeight: 800,
               fontSize: 'var(--font-size-hero)',
               margin: '0 0 14px 0',
               userSelect: 'none',
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
               maxWidth: '100%',
             }}
           >
             <span
               className="hero-name__first"
               style={{
+                fontFamily: 'inherit',
+                fontWeight: 800,
                 background: 'linear-gradient(165deg, #ffffff 0%, #e1e2e6 42%, #9296a1 100%)',
                 WebkitBackgroundClip: 'text',
                 backgroundClip: 'text',
@@ -180,7 +186,8 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
                 display: 'block',
                 width: 'fit-content',
                 maxWidth: '100%',
-                lineHeight: 0.94,
+                lineHeight: 0.90,
+                letterSpacing: '-0.03em',
                 filter: 'drop-shadow(0 4px 28px rgba(0, 0, 0, 0.95))',
               }}
             >
@@ -189,6 +196,8 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
             <span
               className="hero-name__last"
               style={{
+                fontFamily: 'inherit',
+                fontWeight: 800,
                 background:
                   'linear-gradient(105deg, #f4f4f6 0%, #a8abb5 24%, #8c1524 52%, #bc3545 76%, #500a15 100%)',
                 WebkitBackgroundClip: 'text',
@@ -198,13 +207,14 @@ export const CinematicHeroLayout: React.FC<CinematicHeroLayoutProps> = ({
                 display: 'block',
                 width: 'fit-content',
                 maxWidth: '100%',
-                lineHeight: 0.94,
+                lineHeight: 0.90,
+                letterSpacing: '-0.03em',
                 filter: 'drop-shadow(0 4px 24px rgba(0, 0, 0, 0.85))',
               }}
             >
               PRAKASH
             </span>
-          </h1>
+          </div>
 
           {/* 5. & 6. TAGLINE POSITION: BUSINESS. SYSTEMS. / Intelligence & Innovation. */}
           <div

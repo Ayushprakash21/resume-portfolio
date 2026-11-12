@@ -208,3 +208,25 @@ test('Typography System: Public components & stylesheets consume centralized CSS
   const projects = fs.readFileSync('src/components/editorial/EditorialProjects.tsx', 'utf-8');
   assert.ok(projects.includes('var(--font-size-h3)'), 'Project titles consume --font-size-h3');
 });
+
+test('Typography System: Hero founder name typography is strictly isolated from global heading font', () => {
+  const heroLayout = fs.readFileSync('src/components/cinematic/CinematicHeroLayout.tsx', 'utf-8');
+  assert.ok(
+    heroLayout.includes("fontFamily: \"'Orenza Bold', 'Orenza', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif\""),
+    'CinematicHeroLayout specifies original hero name font stack'
+  );
+  assert.ok(heroLayout.includes('fontWeight: 800'), 'Hero name uses original 800 bold weight');
+  assert.ok(heroLayout.includes("letterSpacing: '-0.03em'"), 'Hero name uses original tight -0.03em letter spacing');
+  assert.ok(heroLayout.includes('lineHeight: 0.90'), 'Hero name uses original 0.90 line height');
+
+  const indexCss = fs.readFileSync('src/styles/index.css', 'utf-8');
+  assert.ok(indexCss.includes('.hero-founder-name'), 'index.css defines .hero-founder-name');
+  assert.ok(
+    indexCss.includes("font-family: var(--font-hero-name, 'Orenza Bold', 'Orenza', 'Manrope'"),
+    'index.css isolates hero name font from global heading font'
+  );
+  assert.ok(indexCss.includes('font-weight: 800 !important;'), 'Hero name CSS enforces 800 font weight');
+
+  const tokensCss = fs.readFileSync('src/styles/tokens.css', 'utf-8');
+  assert.ok(tokensCss.includes('--font-hero-name:'), 'tokens.css defines --font-hero-name');
+});

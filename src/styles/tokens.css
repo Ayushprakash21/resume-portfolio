@@ -53,6 +53,7 @@
   /* Typography Font Families (Admin-Controlled Defaults; SIL OFL Local OTF/WOFF2 + Webfonts) */
   --font-display: 'Benzinova', 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-heading: var(--font-display);
+  --font-hero-name: 'Orenza Bold', 'Orenza', 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-body: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-editorial: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --font-serif: var(--font-editorial);
